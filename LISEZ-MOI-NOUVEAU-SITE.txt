@@ -1,0 +1,44 @@
+====================================================================
+  KBO CORPORATE FINANCE — NOUVEAU SITE « FINANCE DES MARCHÉS »
+  (octobre 2026)
+====================================================================
+
+Le site a été recentré sur un seul compartiment : la finance des marchés.
+
+PAGES DU SITE
+  Accueil ................ index.html (accès direct à chaque rubrique)
+  L'école ................ ecole.html (approche, méthode, fondateur)
+  Le programme ........... programme.html
+     Parcours 1 .......... parcours-fondamentaux.html
+     Parcours 2 .......... parcours-avance.html
+  Admission .............. admission.html (étapes + dossier de candidature)
+  Publications ........... publications.html (+ article.html)
+  Contact ................ contact.html
+  Informations ........... faq.html, risques.html, mentions-legales.html,
+                           confidentialite.html
+  Paiement ............... paiement.html (lien personnel, inchangé)
+
+MODIFIER LE SITE (sans toucher au code)
+  1. Lancez le site (python3 server.py) et allez sur /admin.html.
+  2. Connectez-vous avec votre mot de passe administrateur.
+  3. Ouvrez n'importe quelle page : une barre « Mode administrateur »
+     apparaît en bas. Cliquez « Modifier le texte » : chaque titre,
+     paragraphe, liste, prix ou photo devient modifiable directement.
+     Vos changements s'enregistrent tout seuls.
+  4. Le tableau de bord (/admin.html) garde tout le reste : messages et
+     candidatures reçus, publications, médias, paiements, réseaux, e-mail.
+  Les prix se changent à un seul endroit (tableau de bord ou directement
+  sur la page) et s'appliquent partout, y compris aux liens de paiement.
+
+ANCIENNES PAGES
+  Les pages accompagnement, conseil, comptabilité, biographie, galerie et
+  anciennes formations sont mises en sommeil : leurs adresses redirigent
+  vers les nouvelles pages. Les originaux sont dans « _pages_en_sommeil ».
+  Les versions précédentes des fichiers remplacés sont dans
+  « _ancienne_version ».
+
+MISE EN LIGNE
+  Voir DEPLOIEMENT-RAILWAY.txt. Important : sans base PostgreSQL sur
+  l'hébergeur, les modifications faites en ligne sont perdues à chaque
+  redéploiement.
+====================================================================

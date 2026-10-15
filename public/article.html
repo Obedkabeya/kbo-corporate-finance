@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Publication — KBO Corporate Finance</title>
+  <meta name="description" content="Une publication de KBO Corporate Finance." />
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/marches.css" />
+</head>
+<body data-page="m-article" data-nav="publications">
+  <div id="site-header"></div>
+  <main id="contenu">
+    <section class="block">
+      <div class="wrap">
+        <div class="article" id="article"><p class="empty-state">Chargement…</p></div>
+        <div class="article" style="margin-top:48px"><a class="tlink" href="publications.html">← Toutes les publications</a></div>
+        <div class="comments">
+          <h3>Commentaires</h3>
+          <div id="commentsList" style="margin-top:20px"><p class="muted">Chargement des commentaires…</p></div>
+          <form id="commentForm" class="form" style="margin-top:32px">
+            <div class="fields" style="padding-top:24px">
+              <div class="field field--full"><label for="c_msg">Votre commentaire <span class="req">*</span></label><textarea id="c_msg" name="message" maxlength="2000" required></textarea></div>
+              <div class="field field--full"><label for="c_nom">Votre nom (facultatif)</label><input id="c_nom" name="nom" type="text" maxlength="80" /></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn" type="submit">Publier <span class="arrow" aria-hidden="true">→</span></button>
+              <span class="form-msg" id="commentMsg"></span>
+            </div>
+            <p class="form-note">Votre commentaire est public. Sans nom, il s'affiche «&nbsp;Anonyme&nbsp;». Aucune adresse e-mail n'est demandée.</p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="js/components.js"></script>
+  <script src="js/article.js"></script>
+</body>
+</html>

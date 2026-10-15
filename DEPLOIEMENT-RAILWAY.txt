@@ -1,0 +1,85 @@
+====================================================================
+  METTRE LE SITE EN LIGNE SUR RAILWAY (avec base PostgreSQL)
+====================================================================
+
+Le code bascule TOUT SEUL :
+  - Sur votre Mac (sans base de données)  -> il utilise les fichiers du
+    dossier "data" (comme avant).
+  - Sur Railway (avec la variable DATABASE_URL) -> il utilise votre base
+    PostgreSQL. Les textes, images, carrousels, réglages et messages sont
+    alors enregistrés de façon PERMANENTE (ils survivent aux redémarrages).
+
+Vous n'avez RIEN à coder. Il suffit de déployer ces fichiers.
+
+
+------------------------------------------------------------
+CE QUI A ÉTÉ AJOUTÉ POUR RAILWAY
+------------------------------------------------------------
+  - server.py            : gère automatiquement PostgreSQL si DATABASE_URL existe
+  - requirements.txt     : indique à Railway d'installer la librairie PostgreSQL
+  - Procfile             : indique à Railway comment démarrer le site
+
+
+------------------------------------------------------------
+ÉTAPES SUR RAILWAY (résumé)
+------------------------------------------------------------
+  1. Dans votre projet Railway, assurez-vous d'avoir :
+       - votre service "site" (ce code)
+       - un service "PostgreSQL" (la base que vous avez créée)
+
+  2. Railway relie automatiquement la base au site via la variable
+     DATABASE_URL. (Si ce n'est pas le cas : dans les Variables du service
+     du site, ajoutez  DATABASE_URL  =  ${{Postgres.DATABASE_URL}} )
+
+  3. Déployez ce dossier (via GitHub ou le CLI Railway).
+     Au premier démarrage, le site copie automatiquement vos données et vos
+     images actuelles (dossiers data/ et uploads/) DANS la base PostgreSQL.
+     -> Rien n'est perdu.
+
+  4. Ouvrez l'URL fournie par Railway : votre site est en ligne, permanent.
+
+  Astuce : dans les journaux (logs) Railway, au démarrage vous verrez
+           "Stockage : PostgreSQL (permanent)"  =  tout est branché correctement.
+
+
+------------------------------------------------------------
+E-MAIL (formulaire de contact / candidatures)  —  via BREVO (API HTTP)
+------------------------------------------------------------
+  Railway (offre gratuite) bloque TOUS les ports SMTP sortants. On envoie donc
+  les e-mails par API HTTP (port 443, jamais bloqué), avec Brevo (gratuit).
+
+  ÉTAPES :
+    1. Créez un compte gratuit sur  https://www.brevo.com
+    2. Vérifiez votre adresse d'expéditeur :
+         Brevo → Senders, Domains & Dedicated IPs → Senders → Add a sender
+         (utilisez votre Gmail ; Brevo vous enverra un e-mail de confirmation).
+    3. Créez une clé API :
+         Brevo → menu de votre compte → SMTP & API → API Keys → Generate a new key
+         (copiez la clé, elle commence par « xkeysib-… »).
+    4. Sur Railway → onglet « Variables » du service du site, ajoutez :
+
+           BREVO_API_KEY  =  votre clé API Brevo (xkeysib-…)
+           MAIL_FROM      =  votre adresse expéditrice VÉRIFIÉE à l'étape 2
+
+       (facultatif) MAIL_FROM_NAME = KBO Corporate Finance
+
+    5. Vous pouvez SUPPRIMER les anciennes variables SMTP_USER / SMTP_PASS /
+       SMTP_HOST / SMTP_PORT (elles ne servent plus).
+
+    6. Railway redéploie tout seul. Vérifiez : Tableau de bord →
+       « Compte & e-mail » → « Envoyer un e-mail de test ».
+       Dans les logs Railway au démarrage : « E-mail (formulaire): actif via brevo ».
+
+  (Alternative : SendGrid. Créez une clé API SendGrid et mettez-la dans la
+   variable SENDGRID_API_KEY à la place de BREVO_API_KEY.)
+
+  NB sécurité : le mot de passe d'application Gmail qui avait fuité n'est plus
+  utilisé du tout. Pensez tout de même à l'avoir révoqué chez Google.
+
+------------------------------------------------------------
+IMPORTANT
+------------------------------------------------------------
+  - Le PORT du site est géré automatiquement par Railway (ne rien changer).
+  - Le fichier data/mail.json n'existe plus et est ignoré par git (.gitignore).
+  - Gardez une COPIE de ce dossier en sauvegarde.
+====================================================================

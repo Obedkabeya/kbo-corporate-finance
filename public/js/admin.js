@@ -1,8 +1,7 @@
-/* KBO admin dashboard: settings (identité/textes/réseaux), blog & histoires, médias. */
+/* KBO admin dashboard — authentification par session (cookie). Aucune donnée
+   sensible en localStorage : le cookie HttpOnly est envoyé automatiquement. */
 (function () {
   const $ = (id) => document.getElementById(id);
-  const KEY = "kbo_admin_pw";
-  let pw = localStorage.getItem(KEY) || "";
 
   const loginPane = $("loginPane"), dashboard = $("dashboard");
   const loginForm = $("loginForm"), loginMsg = $("loginMsg");
@@ -17,42 +16,46 @@
     t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 3200);
   }
 
-  // ---------- raw upload (images + vidéos) ----------
+  // ---------- raw upload (images + vidéos) — cookie de session envoyé auto ----------
   function uploadRaw(file) {
     return fetch("/api/upload-raw", {
       method: "POST",
-      headers: { "X-Admin-Password": pw, "X-Filename": encodeURIComponent(file.name), "Content-Type": file.type || "application/octet-stream" },
+      headers: { "X-Filename": encodeURIComponent(file.name), "Content-Type": file.type || "application/octet-stream" },
       body: file,
     }).then(r => r.json().then(j => { if (!r.ok) throw new Error(j.error || "Upload impossible."); return j; }));
   }
 
-  // ---------- auth ----------
+  // ---------- auth (session) ----------
   function showDashboard() {
     loginPane.hidden = true; dashboard.hidden = false;
     loadSettings(); loadArticles(); loadMedia();
   }
-  if (pw) {
-    fetch("/api/admin/verify", { headers: { "X-Admin-Password": pw } })
-      .then(r => { if (r.ok) showDashboard(); else localStorage.removeItem(KEY); }).catch(() => {});
-  }
+  // Déjà connecté ? (cookie de session valide côté serveur)
+  fetch("/api/me").then(r => r.json()).then(m => { if (m.role === "admin") showDashboard(); }).catch(() => {});
+
   loginForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const val = $("pw").value;
     loginMsg.textContent = "Vérification…"; loginMsg.className = "form-msg";
-    fetch("/api/admin/verify", { headers: { "X-Admin-Password": val } })
-      .then(r => {
-        if (r.ok) { pw = val; localStorage.setItem(KEY, pw); loginMsg.textContent = ""; showDashboard(); }
-        else { loginMsg.textContent = "Mot de passe incorrect."; loginMsg.className = "form-msg err"; }
+    fetch("/api/login", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ password: val }),
+    })
+      .then(r => r.json().then(j => ({ ok: r.ok, j })))
+      .then(({ ok, j }) => {
+        if (ok && j.role === "admin") { loginMsg.textContent = ""; $("pw").value = ""; showDashboard(); }
+        else { loginMsg.textContent = j.error || "Mot de passe incorrect."; loginMsg.className = "form-msg err"; }
       })
       .catch(() => { loginMsg.textContent = "Serveur injoignable. Démarrez « python3 server.py »."; loginMsg.className = "form-msg err"; });
   });
   $("logoutBtn").addEventListener("click", () => {
-    localStorage.removeItem(KEY); pw = "";
-    dashboard.hidden = true; loginPane.hidden = false; $("pw").value = "";
+    fetch("/api/logout", { method: "POST" }).finally(() => {
+      dashboard.hidden = true; loginPane.hidden = false; $("pw").value = "";
+    });
   });
 
   // ---------- tabs ----------
-  const SETTINGS_TABS = ["identite", "textes", "reseaux"];
+  const SETTINGS_TABS = ["identite", "textes", "reseaux", "design"];
   $("adminTabs").addEventListener("click", (e) => {
     const btn = e.target.closest(".admin-tab"); if (!btn || !btn.dataset.tab) return;
     const tab = btn.dataset.tab;
@@ -70,10 +73,18 @@
     const texts = s.texts || {};
     document.querySelectorAll("[data-textkey]").forEach(el => { el.value = texts[el.dataset.textkey] || ""; });
     $("email").value = s.email || "";
+    if ($("whatsapp")) $("whatsapp").value = s.whatsapp || "";
+    const theme = s.theme || {};
+    document.querySelectorAll("[data-themekey]").forEach(el => {
+      const v = theme[el.dataset.themekey];
+      if (v) el.value = v;                     // sinon on garde la couleur d'origine (attribut value)
+    });
     const social = s.social || {};
     SOCIAL.forEach(k => { $(k).value = social[k] || ""; });
     currentPhoto = s.photo || "images/portrait.svg";
     $("photoPreview").src = currentPhoto;
+    // Alerte permanence : sans base de données, les modifications sont éphémères.
+    if ($("storageWarn")) $("storageWarn").hidden = (s._storagePermanent !== false);
     $("emailStatus").textContent = s._emailConfigured
       ? "✓ L'envoi d'e-mail est actif : les messages seront livrés à cette adresse."
       : "Les messages sont enregistrés et affichés dans le terminal du serveur. Pour l'envoi automatique par e-mail, configurez le SMTP (voir README).";
@@ -104,9 +115,10 @@
     }
     const texts = {}; document.querySelectorAll("[data-textkey]").forEach(el => { texts[el.dataset.textkey] = el.value.trim(); });
     const social = {}; SOCIAL.forEach(k => { social[k] = $(k).value.trim(); });
-    const payload = { email: $("email").value.trim(), photo: currentPhoto, social, texts };
+    const theme = {}; document.querySelectorAll("[data-themekey]").forEach(el => { theme[el.dataset.themekey] = el.value; });
+    const payload = { email: $("email").value.trim(), whatsapp: ($("whatsapp") ? $("whatsapp").value.trim() : ""), theme, photo: currentPhoto, social, texts };
     $("saveBtn").disabled = true; $("saveMsg").textContent = "Enregistrement…"; $("saveMsg").className = "form-msg";
-    fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Password": pw }, body: JSON.stringify(payload) })
+    fetch("/api/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
       .then(r => r.json().then(j => ({ ok: r.ok, j })))
       .then(({ ok, j }) => {
         if (!ok) throw new Error(j.error || "Erreur d'enregistrement.");
@@ -155,7 +167,7 @@
     e.preventDefault();
     const data = Object.fromEntries(new FormData($("articleForm")).entries());
     $("articleMsg").textContent = "Publication…"; $("articleMsg").className = "form-msg";
-    fetch("/api/articles", { method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Password": pw }, body: JSON.stringify(data) })
+    fetch("/api/articles", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
       .then(r => r.json().then(j => ({ ok: r.ok, j })))
       .then(({ ok, j }) => {
         if (!ok) throw new Error(j.error || "Erreur");
@@ -190,7 +202,7 @@
         </div>`).join("");
       list.querySelectorAll("[data-del]").forEach(b => b.addEventListener("click", () => {
         if (!confirm("Supprimer cette publication ?")) return;
-        fetch(`/api/articles/${encodeURIComponent(b.dataset.del)}`, { method: "DELETE", headers: { "X-Admin-Password": pw } })
+        fetch(`/api/articles/${encodeURIComponent(b.dataset.del)}`, { method: "DELETE" })
           .then(r => { if (!r.ok) throw new Error(); loadArticles(); }).catch(() => alert("Suppression impossible."));
       }));
     }).catch(() => { list.innerHTML = `<p class="form-msg err">Chargement impossible.</p>`; });
@@ -213,7 +225,7 @@
 
   let mediaCache = [];
   function loadMedia() {
-    fetch("/api/media", { headers: { "X-Admin-Password": pw } }).then(r => r.json()).then(items => {
+    fetch("/api/media").then(r => r.json()).then(items => {
       mediaCache = Array.isArray(items) ? items : [];
       const grid = $("mediaGrid");
       if (!mediaCache.length) { grid.innerHTML = `<p class="muted">Aucun média. Téléversez votre première image ou vidéo.</p>`; return; }
@@ -225,7 +237,7 @@
       }));
       grid.querySelectorAll(".del").forEach(b => b.addEventListener("click", () => {
         if (!confirm("Supprimer ce média ?")) return;
-        fetch(`/api/media/${encodeURIComponent(b.dataset.name)}`, { method: "DELETE", headers: { "X-Admin-Password": pw } })
+        fetch(`/api/media/${encodeURIComponent(b.dataset.name)}`, { method: "DELETE" })
           .then(r => { if (!r.ok) throw new Error(); loadMedia(); }).catch(() => alert("Suppression impossible."));
       }));
     }).catch(() => { $("mediaGrid").innerHTML = `<p class="form-msg err">Chargement impossible.</p>`; });
@@ -265,7 +277,7 @@
       const file = input.files[0]; if (!file) return;
       uploadRaw(file)
         .then(up => fetch("/api/settings/image", {
-          method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Password": pw },
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ key, path: up.path }),
         }).then(r => r.json().then(j => { if (!r.ok) throw new Error(j.error); return up; })))
         .then(up => { $(key + "Preview").src = up.path; loadMedia(); showToast("Photo de la biographie mise à jour"); })
@@ -304,7 +316,7 @@
     $("galPublish").disabled = true; $("galMsg").textContent = "Publication…"; $("galMsg").className = "form-msg";
     uploadRaw(galFileSel)
       .then(up => fetch("/api/gallery", {
-        method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Password": pw },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ path: up.path, kind: isVideo ? "video" : "image", orientation: orient, caption: $("galCaption").value.trim(), published: true }),
       }).then(r => r.json().then(j => { if (!r.ok) throw new Error(j.error); return j; })))
       .then(() => {
@@ -321,7 +333,7 @@
 
   function loadGalleryAdmin() {
     const grid = $("galAdminGrid");
-    fetch("/api/gallery?all=1", { headers: { "X-Admin-Password": pw } }).then(r => r.json()).then(items => {
+    fetch("/api/gallery?all=1").then(r => r.json()).then(items => {
       if (!Array.isArray(items) || !items.length) { grid.innerHTML = `<p class="muted">Aucun élément. Publiez votre première photo ou vidéo.</p>`; return; }
       grid.innerHTML = items.map(g => {
         const thumb = g.kind === "video"
@@ -338,21 +350,138 @@
       }).join("");
       grid.querySelectorAll(".pub").forEach(b => b.addEventListener("click", () => {
         fetch(`/api/gallery/${encodeURIComponent(b.dataset.id)}`, {
-          method: "POST", headers: { "Content-Type": "application/json", "X-Admin-Password": pw },
+          method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ published: b.dataset.pub !== "1" }),
         }).then(r => { if (!r.ok) throw new Error(); loadGalleryAdmin(); }).catch(() => alert("Action impossible."));
       }));
       grid.querySelectorAll(".del").forEach(b => b.addEventListener("click", () => {
         if (!confirm("Supprimer cet élément de la galerie ?")) return;
-        fetch(`/api/gallery/${encodeURIComponent(b.dataset.id)}`, { method: "DELETE", headers: { "X-Admin-Password": pw } })
+        fetch(`/api/gallery/${encodeURIComponent(b.dataset.id)}`, { method: "DELETE" })
           .then(r => { if (!r.ok) throw new Error(); loadGalleryAdmin(); }).catch(() => alert("Suppression impossible."));
       }));
     }).catch(() => { grid.innerHTML = `<p class="form-msg err">Chargement impossible.</p>`; });
   }
 
+  // ---------- compte : état e-mail (via variables d'environnement) + mot de passe ----------
+  function loadMailConfig() {
+    fetch("/api/mailconfig")
+      .then(r => r.json()).then(c => {
+        // Pré-remplir les champs (jamais le mot de passe : il n'est pas renvoyé)
+        if ($("smtpUser") && c.smtpUser) $("smtpUser").value = c.smtpUser;
+        if ($("smtpHost") && c.smtpHost) $("smtpHost").value = c.smtpHost;
+        if ($("smtpPort") && c.smtpPort) $("smtpPort").value = String(c.smtpPort);
+        if ($("smtpPassState")) {
+          $("smtpPassState").textContent = c.hasPassword
+            ? "✓ Un mot de passe est enregistré. Laissez vide pour le conserver."
+            : "Aucun mot de passe enregistré pour l'instant.";
+          $("smtpPassState").style.color = c.hasPassword ? "#1a7a4c" : "";
+        }
+
+        const el = $("mailStatus"); if (!el) return;
+        const label = { smtp: "votre boîte e-mail (envoi direct)", brevo: "Brevo", sendgrid: "SendGrid" };
+        if (c.active) {
+          el.textContent = "✓ L'envoi d'e-mail est ACTIF — " + (label[c.provider] || c.provider) +
+            ", expéditeur : " + (c.from || "?") + ".";
+          el.style.color = "#1a7a4c";
+        } else {
+          el.textContent = "⚠ Aucune boîte e-mail connectée. Renseignez votre adresse et votre mot de passe d'application ci-dessus. (Vos messages restent visibles dans « Messages & contacts ».)";
+          el.style.color = "#b3261e";
+        }
+        const diag = $("mailDetected");
+        if (diag) diag.innerHTML = "";
+      }).catch(() => {});
+  }
+  // Enregistrer la connexion à la boîte e-mail
+  if ($("mailSave")) $("mailSave").addEventListener("click", () => {
+    const msg = $("mailMsg");
+    const user = $("smtpUser").value.trim();
+    if (!user) { msg.textContent = "Indiquez votre adresse e-mail."; msg.className = "form-msg err"; return; }
+    msg.textContent = "Enregistrement…"; msg.className = "form-msg";
+    fetch("/api/mailconfig", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user: user,
+        pass: $("smtpPass").value,          // vide = on garde celui déjà enregistré
+        host: $("smtpHost").value.trim(),
+        port: $("smtpPort").value,
+        from: user,
+      }),
+    }).then(r => r.json().then(j => ({ ok: r.ok, j }))).then(({ ok, j }) => {
+      if (!ok) throw new Error(j.error || "Erreur");
+      $("smtpPass").value = "";
+      msg.textContent = "✓ Connexion enregistrée. Faites un test d'envoi pour vérifier.";
+      msg.className = "form-msg ok";
+      loadMailConfig();
+    }).catch(err => { msg.textContent = err.message; msg.className = "form-msg err"; });
+  });
+
+  // Déconnecter la boîte e-mail (efface l'adresse et le mot de passe)
+  if ($("mailClear")) $("mailClear").addEventListener("click", () => {
+    if (!confirm("Déconnecter votre boîte e-mail ? Les messages continueront d'arriver dans « Messages & contacts ».")) return;
+    fetch("/api/mailconfig", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ clear: true }),
+    }).then(() => {
+      $("smtpUser").value = ""; $("smtpPass").value = "";
+      $("mailMsg").textContent = "Boîte e-mail déconnectée."; $("mailMsg").className = "form-msg";
+      loadMailConfig();
+    });
+  });
+
+  $("mailTest").addEventListener("click", () => {
+    $("mailMsg").textContent = "Envoi du test…"; $("mailMsg").className = "form-msg";
+    fetch("/api/mailtest", { method: "POST" })
+      .then(r => r.json().then(j => ({ ok: r.ok, j }))).then(({ ok, j }) => {
+        if (ok && j.ok) { $("mailMsg").textContent = "✓ E-mail de test envoyé à " + j.to + ". Vérifiez votre boîte (et les spams)."; $("mailMsg").className = "form-msg ok"; }
+        else throw new Error((j && j.error) || "Échec");
+      }).catch(err => {
+        const t = String(err.message || "");
+        // Distinguer « hébergeur qui bloque » de « identifiants incorrects »
+        let aide;
+        if (/timed out|timeout|unreachable|Network|refus/i.test(t)) {
+          aide = " → Votre hébergeur bloque l'envoi direct (fréquent en offre gratuite). Ce n'est pas votre mot de passe. Vos messages restent dans « Messages & contacts ».";
+        } else if (/auth|credential|password|535|Username/i.test(t)) {
+          aide = " → Mot de passe d'application refusé. Vérifiez les 16 lettres et que la validation en deux étapes est active.";
+        } else {
+          aide = "";
+        }
+        $("mailMsg").textContent = "Échec : " + t + aide;
+        $("mailMsg").className = "form-msg err";
+      });
+  });
+  $("pwSave").addEventListener("click", () => {
+    const a = $("pwNew").value, b = $("pwConfirm").value;
+    if (a.length < 4) { $("pwMsg").textContent = "Au moins 4 caractères."; $("pwMsg").className = "form-msg err"; return; }
+    if (a !== b) { $("pwMsg").textContent = "Les deux mots de passe ne correspondent pas."; $("pwMsg").className = "form-msg err"; return; }
+    fetch("/api/admin/password", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ new: a }),
+    }).then(r => r.json().then(j => ({ ok: r.ok, j }))).then(({ ok, j }) => {
+      if (!ok) throw new Error(j.error || "Erreur");
+      // La session en cours reste valide ; pas besoin de se reconnecter.
+      $("pwNew").value = ""; $("pwConfirm").value = "";
+      $("pwMsg").textContent = "✓ Mot de passe changé."; $("pwMsg").className = "form-msg ok";
+      showToast("Mot de passe administrateur mis à jour");
+    }).catch(err => { $("pwMsg").textContent = err.message; $("pwMsg").className = "form-msg err"; });
+  });
+
+  // ---------- Design & couleurs : aperçu en direct + réinitialisation ----------
+  function currentThemeFromInputs() {
+    const t = {}; document.querySelectorAll("[data-themekey]").forEach(el => { t[el.dataset.themekey] = el.value; });
+    return t;
+  }
+  document.querySelectorAll("[data-themekey]").forEach(el => {
+    el.addEventListener("input", () => { if (window.KBO && window.KBO.applyTheme) window.KBO.applyTheme(currentThemeFromInputs()); });
+  });
+  if ($("themeReset")) $("themeReset").addEventListener("click", () => {
+    document.querySelectorAll("[data-themekey]").forEach(el => { el.value = el.getAttribute("value"); });
+    if (window.KBO && window.KBO.applyTheme) window.KBO.applyTheme({});   // retire les surcharges
+    showToast("Couleurs réinitialisées — cliquez Enregistrer pour appliquer partout");
+  });
+
   // hook into dashboard load + settings fill
   const _origShowDashboard = showDashboard;
-  showDashboard = function () { _origShowDashboard(); loadGalleryAdmin(); };
+  showDashboard = function () { _origShowDashboard(); loadGalleryAdmin(); loadMailConfig(); };
   const _origFill = fillSettings;
   fillSettings = function (s) { _origFill(s); fillBioSlots(s.images); };
 })();

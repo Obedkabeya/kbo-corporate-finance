@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Paiement sécurisé — KBO Corporate Finance</title>
+  <meta name="description" content="Paiement sécurisé de votre formation." />
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/marches.css" />
+</head>
+<body data-page="m-paiement" data-nav="admission">
+  <div id="site-header"></div>
+  <main id="contenu">
+    <section class="page-head" style="border-bottom:0;padding-bottom:24px">
+      <div class="wrap narrow">
+        <div id="payLoading"><p class="muted">Vérification de votre lien…</p></div>
+        <div id="payInvalid" hidden>
+          <p class="eyebrow">Paiement</p>
+          <h1>Lien indisponible.</h1>
+          <p class="lead" id="payInvalidMsg">Ce lien de paiement est invalide ou a déjà été utilisé.</p>
+          <p class="muted" style="margin-top:16px">Ce lien est personnel et à usage unique. Si vous pensez qu'il s'agit d'une erreur, contactez-nous.</p>
+          <div style="margin-top:32px"><a class="btn btn--ghost" data-wa-link data-wa-msg="Bonjour, j'ai un souci avec mon lien de paiement." href="contact.html"><span>Nous contacter</span> <span class="arrow">→</span></a></div>
+        </div>
+        <div id="payPane" hidden>
+          <p class="eyebrow">Paiement sécurisé · lien personnel</p>
+          <h1 id="payTitle">Votre formation</h1>
+          <p class="lead">Montant à régler&nbsp;: <strong class="num" id="payAmount">—</strong> <span id="payCycle" class="muted"></span></p>
+        </div>
+      </div>
+    </section>
+    <section class="block" style="padding-top:24px" id="payMethods" hidden>
+      <div class="wrap narrow">
+        <div id="payEchec" hidden class="pay-alert"><strong>Le paiement n'a pas abouti.</strong> Aucun montant n'a été prélevé. Vous pouvez réessayer ci-dessous.</div>
+        <div class="pay-methods">
+          <div class="pay-card">
+            <h4>Carte bancaire et Mobile Money</h4>
+            <p>Visa, Mastercard, ou Mobile Money (MTN, Moov…), sur une page de paiement sécurisée.</p>
+            <button class="btn" id="payCardBtn" style="width:100%">Payer maintenant <span class="arrow">→</span></button>
+            <p class="muted" id="payCardNote" hidden style="font-size:14px;margin-top:12px">Le paiement en ligne sera actif dès la connexion du compte FedaPay.</p>
+          </div>
+          <div class="pay-card" id="cryptoCard">
+            <h4>Cryptomonnaie (Binance)</h4>
+            <p>Envoyez le montant équivalent, puis indiquez la référence de votre transaction.</p>
+            <p class="muted" id="cryptoId" style="font-size:14px"></p>
+            <form id="cryptoForm">
+              <input type="text" name="ref" placeholder="Référence de la transaction" />
+              <button class="btn btn--ghost" type="submit" style="width:100%">J'ai payé en crypto</button>
+              <span class="form-msg" id="cryptoMsg"></span>
+            </form>
+          </div>
+        </div>
+        <p class="form-note" style="margin-top:32px"><strong>Sécurité.</strong> Nous ne voyons jamais vos codes de carte&nbsp;: le paiement se fait entièrement sur la page sécurisée du prestataire. Après confirmation, vous recevez vos accès.</p>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="js/components.js"></script>
+
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var token = params.get("c") || "";
+      var loading = document.getElementById("payLoading");
+      var invalid = document.getElementById("payInvalid");
+      var pane = document.getElementById("payPane");
+      var FCFA = new Intl.NumberFormat("fr-FR");
+
+      function showInvalid(msg) {
+        loading.hidden = true; pane.hidden = true; invalid.hidden = false; document.getElementById("payMethods").hidden = true;
+        if (msg) document.getElementById("payInvalidMsg").textContent = msg;
+      }
+
+      if (!token) { showInvalid("Aucun lien fourni."); return; }
+
+      fetch("/api/paylink/" + encodeURIComponent(token))
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (o) {
+          if (!o.ok) { showInvalid(o.j && o.j.error); return; }
+          var d = o.j;
+          loading.hidden = true; pane.hidden = false; document.getElementById("payMethods").hidden = false;
+          document.getElementById("payTitle").textContent = d.formation;
+          var amountTxt = FCFA.format(d.amount) + " " + d.currency;
+          if (d.currency !== "XOF" && d.amountXof) {
+            amountTxt += ' <span class="muted" style="font-weight:400">(≈ ' + FCFA.format(d.amountXof) + " FCFA)</span>";
+          }
+          document.getElementById("payAmount").innerHTML = amountTxt;
+          var cyc = { unique: "(paiement unique)", mensuel: "/ mois", annuel: "/ an" };
+          document.getElementById("payCycle").textContent = cyc[d.cycle] || "";
+          if (params.get("echec")) document.getElementById("payEchec").hidden = false;
+
+          // Carte / Mobile Money
+          var btn = document.getElementById("payCardBtn");
+          if (!d.cardReady) {
+            btn.disabled = true;
+            document.getElementById("payCardNote").hidden = false;
+          } else {
+            btn.addEventListener("click", function () {
+              btn.disabled = true; btn.innerHTML = "Redirection en cours…";
+              fetch("/api/pay/start", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: token }),
+              }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+                .then(function (o2) {
+                  if (o2.ok && o2.j.url) { location.href = o2.j.url; }
+                  else { alert((o2.j && o2.j.error) || "Paiement indisponible."); btn.disabled = false; btn.innerHTML = 'Payer maintenant →'; }
+                }).catch(function () { btn.disabled = false; btn.innerHTML = 'Payer maintenant →'; });
+            });
+          }
+
+          // Crypto
+          var cryptoCard = document.getElementById("cryptoCard");
+          if (d.binance) {
+            document.getElementById("cryptoId").innerHTML = "<strong>Binance Pay / adresse :</strong> " + d.binance;
+          } else {
+            cryptoCard.hidden = true;   // pas de compte crypto configuré
+          }
+          document.getElementById("cryptoForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            var msg = document.getElementById("cryptoMsg");
+            var ref = e.target.ref.value.trim();
+            if (!ref) { msg.textContent = "Indiquez la référence de la transaction."; msg.className = "form-msg err"; return; }
+            fetch("/api/pay/crypto", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ token: token, ref: ref }),
+            }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+              .then(function (o3) {
+                if (!o3.ok) throw new Error((o3.j && o3.j.error) || "Erreur");
+                msg.innerHTML = "✓ Merci ! Nous vérifions votre paiement et vous donnons accès rapidement.";
+                msg.className = "form-msg ok";
+                e.target.reset();
+              }).catch(function (err) { msg.textContent = err.message; msg.className = "form-msg err"; });
+          });
+        })
+        .catch(function () { showInvalid("Impossible de vérifier ce lien. Réessayez plus tard."); });
+    })();
+  </script>
+</body>
+</html>

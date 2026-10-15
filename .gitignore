@@ -1,0 +1,31 @@
+# ============================================================
+#  Fichiers qui ne doivent JAMAIS être envoyés sur GitHub.
+#  Le dépôt est PUBLIC : tout ce qui y est envoyé est visible.
+#
+#  Attention : dans ce fichier, un « # » ne marque un commentaire
+#  qu'en DÉBUT de ligne. Ne jamais écrire un commentaire après un
+#  chemin sur la même ligne (le chemin ne serait plus protégé).
+# ============================================================
+
+# Données privées du site : candidatures, élèves, paiements, liens de
+# paiement, mot de passe administrateur, clés FedaPay, réglages e-mail,
+# abonnés… En production, tout est stocké dans PostgreSQL (Railway).
+data/
+
+# Sauvegardes locales : elles restent sur l'iMac uniquement.
+_ancienne_version/
+_pages_en_sommeil/
+
+# Document de travail interne (non destiné au public).
+CAHIER_DES_CHARGES_SITE_KBO.md
+
+# Secrets éventuels : ils passent par les variables d'environnement Railway.
+.env
+.env.*
+*.pem
+
+# Fichiers techniques
+.DS_Store
+*.tmp
+__pycache__/
+*.pyc

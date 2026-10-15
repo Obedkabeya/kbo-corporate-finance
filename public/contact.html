@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact — KBO Corporate Finance</title>
+  <meta name="description" content="Contacter KBO Corporate Finance : WhatsApp, e-mail ou formulaire." />
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/marches.css" />
+</head>
+<body data-page="m-contact" data-nav="contact">
+  <div id="site-header"></div>
+  <main id="contenu">
+    <section class="page-head">
+      <div class="wrap">
+        <div class="crumb"><a href="index.html">Accueil</a> / Contact</div>
+        <p class="eyebrow">Contact</p>
+        <h1>Écrivez-<em>nous</em>.</h1>
+        <p class="lead">Une question sur un parcours, sur l'admission ou sur le paiement&nbsp;? Nous répondons personnellement à chaque message.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap contact-grid">
+        <div>
+          <div class="channels">
+            <a class="channel" href="contact.html" data-wa-link data-wa-msg="Bonjour, je vous contacte depuis le site de KBO Corporate Finance."><span class="eyebrow">Le plus rapide</span><strong data-edit>WhatsApp</strong></a>
+            <a class="channel" href="#" data-email-link><span class="eyebrow">Par e-mail</span><strong data-email-text>obedkabeya1996@gmail.com</strong></a>
+            <div class="channel"><span class="eyebrow">Adresse</span><strong data-edit>Cotonou, Bénin</strong></div>
+          </div>
+        </div>
+        <form id="contactForm" class="form" data-endpoint="/api/contact/general" data-kind="Contact — Général">
+          <div class="fields" style="padding-top:28px">
+            <div class="field"><label for="c_nom">Nom complet <span class="req">*</span></label><input id="c_nom" name="nom" type="text" autocomplete="name" required /></div>
+            <div class="field"><label for="c_email">E-mail <span class="req">*</span></label><input id="c_email" name="email" type="email" autocomplete="email" required /></div>
+            <div class="field field--full"><label for="c_sujet">Sujet</label>
+              <select id="c_sujet" name="sujet">
+                <option value="" disabled selected>Sélectionnez…</option>
+                <option>Fondamentaux des marchés</option><option>Finance des marchés avancée</option>
+                <option>Admission et candidature</option><option>Paiement</option><option>Presse, partenariat</option><option>Autre</option>
+              </select></div>
+            <div class="field field--full"><label for="c_msg">Votre message <span class="req">*</span></label><textarea id="c_msg" name="message" required></textarea></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn" type="submit">Envoyer le message <span class="arrow" aria-hidden="true">→</span></button>
+            <span class="form-msg" id="contactMsg" role="status"></span>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="js/components.js"></script>
+  <script src="js/forms.js"></script>
+</body>
+</html>

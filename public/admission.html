@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admission — KBO Corporate Finance</title>
+  <meta name="description" content="Les étapes d'admission et le dossier de candidature aux formations en finance des marchés de KBO Corporate Finance." />
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/marches.css" />
+</head>
+<body data-page="m-admission" data-nav="admission">
+  <div id="site-header"></div>
+  <main id="contenu">
+    <section class="page-head">
+      <div class="wrap">
+        <div class="crumb"><a href="index.html">Accueil</a> / Admission</div>
+        <p class="eyebrow">Admission</p>
+        <h1>Une place se <em>mérite</em>.</h1>
+        <p class="lead">Les promotions sont volontairement restreintes. Chaque dossier est lu personnellement, et chaque candidat reçoit une réponse.</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap">
+        <div class="sec-head">
+        <div><p class="eyebrow">Les étapes</p></div>
+        <div><h2>Trois étapes, sans surprise.</h2></div>
+      </div>
+        <div class="steps">
+          <div class="step"><span class="n">01</span><h3>Candidature</h3><p>Vous présentez votre parcours, vos objectifs et le temps que vous pouvez consacrer à la formation.</p></div>
+          <div class="step"><span class="n">02</span><h3>Échange</h3><p>Un entretien pour vérifier que le parcours correspond à votre niveau et à vos attentes.</p></div>
+          <div class="step"><span class="n">03</span><h3>Inscription</h3><p>Vous recevez un lien de paiement personnel, puis vos accès dès la confirmation.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block" id="candidature">
+      <div class="wrap">
+        <div class="sec-head">
+        <div><p class="eyebrow">Dossier de candidature</p></div>
+        <div><h2>Prenez le temps de répondre avec précision.</h2><p>Ce formulaire nous permet d'évaluer votre sérieux, votre motivation et votre préparation. Comptez une quinzaine de minutes.</p></div>
+      </div>
+        <form id="admissionForm" class="form" data-endpoint="/api/apply/formation" data-kind="Candidature — Formation">
+          <div class="fgroup">
+            <div><h3>Le parcours</h3><p class="hint">Vous hésitez&nbsp;? <a class="tlink" href="programme.html">Comparer les parcours</a></p></div>
+            <div class="fields">
+              <div class="field field--full"><label for="a_parcours">Parcours souhaité <span class="req">*</span></label>
+                <select id="a_parcours" name="formation" required>
+                  <option value="" disabled selected>Sélectionnez…</option>
+                  <option value="Fondamentaux des marchés" data-p="fondamentaux">Fondamentaux des marchés</option>
+                  <option value="Finance des marchés avancée" data-p="avance">Finance des marchés avancée</option>
+                </select></div>
+            </div>
+          </div>
+          <div class="fgroup">
+            <div><h3>Vous</h3></div>
+            <div class="fields">
+              <div class="field"><label for="a_nom">Nom complet <span class="req">*</span></label><input id="a_nom" name="nom" type="text" autocomplete="name" required /></div>
+              <div class="field"><label for="a_email">Adresse e-mail <span class="req">*</span></label><input id="a_email" name="email" type="email" autocomplete="email" required /></div>
+              <div class="field"><label for="a_tel">Téléphone (WhatsApp) <span class="req">*</span></label><input id="a_tel" name="telephone" type="tel" autocomplete="tel" required /></div>
+              <div class="field"><label for="a_pays">Pays de résidence <span class="req">*</span></label><input id="a_pays" name="pays" type="text" autocomplete="country-name" required /></div>
+            </div>
+          </div>
+          <div class="fgroup">
+            <div><h3>Votre parcours</h3></div>
+            <div class="fields">
+              <div class="field"><label for="a_etudes">Niveau d'études <span class="req">*</span></label>
+                <select id="a_etudes" name="parcours_academique" required>
+                  <option value="" disabled selected>Sélectionnez…</option>
+                  <option>Secondaire / Baccalauréat</option><option>Licence / Bachelor</option><option>Master / Grande école</option>
+                  <option>Doctorat</option><option>Formation professionnelle</option><option>Autodidacte</option>
+                </select></div>
+              <div class="field"><label for="a_domaine">Domaine d'études ou d'activité <span class="req">*</span></label><input id="a_domaine" name="domaine" type="text" placeholder="Finance, ingénierie, droit…" required /></div>
+              <div class="field"><label for="a_niveau">Votre niveau sur les marchés <span class="req">*</span></label>
+                <select id="a_niveau" name="niveau" required>
+                  <option value="" disabled selected>Sélectionnez…</option>
+                  <option>Aucun, je débute</option><option>Notions de base</option><option>Intermédiaire, j'interviens déjà</option><option>Avancé / professionnel</option>
+                </select></div>
+              <div class="field"><label for="a_dispo">Temps disponible par semaine <span class="req">*</span></label>
+                <select id="a_dispo" name="disponibilite" required>
+                  <option value="" disabled selected>Sélectionnez…</option>
+                  <option>Moins de 5 h</option><option>5 à 10 h</option><option>10 à 20 h</option><option>Plus de 20 h</option>
+                </select></div>
+            </div>
+          </div>
+          <div class="fgroup">
+            <div><h3>Vos motivations</h3><p class="hint">120 caractères minimum par réponse.</p></div>
+            <div class="fields">
+              <div class="field field--full"><label for="a_why">Pourquoi souhaitez-vous vous former aux marchés&nbsp;? <span class="req">*</span></label>
+                <textarea id="a_why" name="motivation" minlength="120" required placeholder="Ce qui vous attire dans les marchés, et pourquoi maintenant."></textarea>
+                <span class="char-meter" data-for="a_why"></span></div>
+              <div class="field field--full"><label for="a_goal">Quels sont vos objectifs&nbsp;? <span class="req">*</span></label>
+                <textarea id="a_goal" name="objectifs" minlength="120" required placeholder="Ce que vous comptez faire de cette formation, à 6 mois, 1 an, 3 ans."></textarea>
+                <span class="char-meter" data-for="a_goal"></span></div>
+              <div class="field field--full"><label for="a_eng">Êtes-vous prêt à suivre une discipline stricte&nbsp;? <span class="req">*</span></label>
+                <select id="a_eng" name="engagement" required>
+                  <option value="" disabled selected>Sélectionnez…</option><option>Oui, pleinement</option><option>Oui, avec un accompagnement</option><option>Je ne suis pas certain</option>
+                </select></div>
+            </div>
+          </div>
+          <div class="form-actions">
+            <label class="check"><input type="checkbox" name="serment" value="oui" required /> <span>Je certifie que mes réponses sont sincères et je m'engage à suivre la formation avec sérieux et assiduité.</span></label>
+          </div>
+          <div class="form-actions">
+            <button class="btn" type="submit">Envoyer ma candidature <span class="arrow" aria-hidden="true">→</span></button>
+            <span class="form-msg" id="admissionMsg" role="status"></span>
+          </div>
+          <p class="form-note">Vos informations servent uniquement à étudier votre candidature. Voir notre <a class="tlink" href="confidentialite.html">politique de confidentialité</a>.</p>
+        </form>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="js/components.js"></script>
+  <script src="js/forms.js"></script>
+  <script>
+    (function () {
+      // Présélection du parcours depuis un lien (?parcours=fondamentaux|avance)
+      var want = new URLSearchParams(location.search).get("parcours");
+      var sel = document.getElementById("a_parcours");
+      if (want && sel) { [].forEach.call(sel.options, function (o) { if (o.getAttribute("data-p") === want) sel.value = o.value; }); }
+      // Compteur de caractères
+      document.querySelectorAll(".char-meter").forEach(function (m) {
+        var ta = document.getElementById(m.getAttribute("data-for")); if (!ta) return;
+        var min = parseInt(ta.getAttribute("minlength"), 10) || 0;
+        var up = function () {
+          var n = ta.value.trim().length;
+          if (n >= min) { m.className = "char-meter is-ok"; m.textContent = "Minimum atteint (" + n + " caractères)."; }
+          else { m.className = "char-meter"; m.textContent = n + " / " + min + " caractères minimum"; }
+        };
+        ta.addEventListener("input", up); up();
+      });
+    })();
+  </script>
+</body>
+</html>

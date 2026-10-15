@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Espace admin · KBO Corporate Finance</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&family=PT+Serif:wght@400;700&family=Oswald:wght@400;700&family=Bebas+Neue&family=Dancing+Script:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/chrome.css" />
+</head>
+<body data-page="">
+  <div id="site-header"></div>
+
+  <section class="page-intro">
+    <div class="container">
+      <p class="eyebrow reveal">Espace privé</p>
+      <h1 class="reveal">Tableau de bord</h1>
+      <p class="lead reveal">Gérez tout votre site depuis un seul endroit. Pour modifier n'importe quel texte ou image d'une page, ouvrez cette page puis cliquez sur « Modifier le texte » dans la barre du bas : vos changements s'enregistrent tout seuls.</p>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:2rem">
+    <div class="container">
+
+      <!-- LOGIN -->
+      <div id="loginPane" class="form-wrap reveal" style="max-width:440px;margin:0 auto;">
+        <h3>Connexion sécurisée</h3>
+        <p class="muted" style="font-size:.92rem">Saisissez le mot de passe d'administration.</p>
+        <form id="loginForm" class="stack">
+          <div class="field">
+            <label for="pw">Mot de passe <span class="req">*</span></label>
+            <input type="password" id="pw" autocomplete="current-password" required />
+          </div>
+          <div class="form-actions">
+            <button class="btn btn--primary" type="submit">Se connecter</button>
+            <span class="form-msg" id="loginMsg"></span>
+          </div>
+          <p class="form-note">Mot de passe par défaut : <code>kbo-admin</code> — modifiable via <code>ADMIN_PASSWORD</code>.</p>
+        </form>
+      </div>
+
+      <!-- DASHBOARD -->
+      <div id="dashboard" hidden>
+        <div id="storageWarn" class="storage-warn" hidden>
+          <strong>⚠ Vos modifications ne sont pas permanentes.</strong>
+          <span>Ce site tourne sans base de données : <strong>tout ce que vous modifiez sera effacé au prochain déploiement</strong>. Sur Railway, ajoutez un service <strong>PostgreSQL</strong> et la variable <code>DATABASE_URL</code> au service du site. Une fois branchée, vos textes, images et réglages deviennent définitifs et ne sont plus jamais écrasés par une mise à jour du code.</span>
+        </div>
+        <div class="dash-toolbar">
+          <a class="btn btn--ghost" href="index.html?visitor=1" target="_blank" rel="noopener">👁 Voir en tant que visiteur</a>
+          <span class="muted" style="font-size:.85rem">Ouvre le site tel que le voient vos visiteurs, sans aucun bouton d'édition.</span>
+        </div>
+        <nav class="admin-tabs" id="adminTabs" aria-label="Sections d'administration">
+          <button class="admin-tab is-active" data-tab="identite">Identité &amp; Accueil</button>
+          <button class="admin-tab" data-tab="boite">📥 Messages &amp; contacts</button>
+          <button class="admin-tab" data-tab="contenu">Tous les textes</button>
+          <button class="admin-tab" data-tab="textes">Accueil — raccourcis</button>
+          <button class="admin-tab" data-tab="reseaux">Réseaux &amp; Contact</button>
+          <button class="admin-tab" data-tab="design">Design &amp; couleurs</button>
+          <button class="admin-tab" data-tab="blog">Blog &amp; Histoires</button>
+          <button class="admin-tab" data-tab="galerie">Galerie</button>
+          <button class="admin-tab" data-tab="medias">Médias</button>
+          <button class="admin-tab" data-tab="paiements">💳 Paiements</button>
+          <button class="admin-tab" data-tab="compte">Compte &amp; e-mail</button>
+          <button class="admin-tab admin-tab--logout" id="logoutBtn" type="button">Déconnexion</button>
+        </nav>
+
+        <!-- ===== SETTINGS FORM (identité + textes + réseaux) ===== -->
+        <form id="settingsForm">
+          <!-- Identité & Accueil -->
+          <div class="tabpanel is-active" data-panel="identite">
+            <div class="form-wrap">
+              <h3>Photo de profil</h3>
+              <p class="muted" style="font-size:.92rem">Affichée sur la page d'accueil. JPG, PNG ou WEBP.</p>
+              <div class="photo-editor">
+                <div class="photo-preview"><img id="photoPreview" src="images/portrait.svg" alt="Aperçu de la photo" /></div>
+                <div class="stack">
+                  <span class="btn btn--ghost file-btn">Choisir une image<input type="file" id="photoFile" accept="image/*" /></span>
+                  <span class="hint" id="photoName">Aucune nouvelle image sélectionnée.</span>
+                </div>
+              </div>
+
+              <div class="settings-block">
+                <h3>Logo</h3>
+                <div class="form-grid">
+                  <div class="field"><label for="brandMark">Sigle (ex. KBO)</label><input type="text" id="brandMark" data-textkey="brandMark" maxlength="20" /></div>
+                  <div class="field"><label for="brandSub">Sous-titre (ex. corporate finance)</label><input type="text" id="brandSub" data-textkey="brandSub" maxlength="40" /></div>
+                </div>
+              </div>
+
+              <div class="settings-block">
+                <h3>Titre de l'accueil</h3>
+                <div class="form-grid">
+                  <div class="field field--full"><label for="heroEyebrow">Sur-titre (au-dessus du nom)</label><input type="text" id="heroEyebrow" data-textkey="heroEyebrow" maxlength="80" /></div>
+                  <div class="field"><label for="name">Votre nom <span class="req">*</span></label><input type="text" id="name" data-textkey="name" maxlength="80" /></div>
+                  <div class="field"><label for="role">Votre rôle / accroche</label><input type="text" id="role" data-textkey="role" maxlength="120" placeholder="banquier de marché & trader" /></div>
+                  <div class="field field--full"><label for="presentation">Texte de présentation</label><textarea id="presentation" data-textkey="presentation" maxlength="1200" style="min-height:120px"></textarea></div>
+                </div>
+                <p class="hint">Le titre d'accueil affichera votre nom : <strong id="titlePreviewName">…</strong>, puis votre rôle en dessous : <span id="titlePreviewRole">…</span></p>
+              </div>
+
+              <div class="settings-block">
+                <h3>Photos de la biographie</h3>
+                <p class="muted" style="font-size:.92rem">Remplacez les trois illustrations de la page Personnel par vos propres photos. (Modifiables aussi directement sur la page, une fois connecté.)</p>
+                <div class="bio-slots">
+                  <div class="bio-slot"><div class="photo-preview"><img id="bio1Preview" src="images/journey.svg" alt=""></div><span class="btn btn--ghost file-btn" style="font-size:.82rem;padding:.55em 1em">Photo 1<input type="file" id="bio1File" accept="image/*"></span></div>
+                  <div class="bio-slot"><div class="photo-preview"><img id="bio2Preview" src="images/markets.svg" alt=""></div><span class="btn btn--ghost file-btn" style="font-size:.82rem;padding:.55em 1em">Photo 2<input type="file" id="bio2File" accept="image/*"></span></div>
+                  <div class="bio-slot"><div class="photo-preview"><img id="bio3Preview" src="images/writing.svg" alt=""></div><span class="btn btn--ghost file-btn" style="font-size:.82rem;padding:.55em 1em">Photo 3<input type="file" id="bio3File" accept="image/*"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Textes des pages -->
+          <div class="tabpanel" data-panel="textes">
+            <div class="form-wrap">
+              <h3>Accueil — texte d'introduction (hero)</h3>
+              <p class="muted" style="font-size:.9rem">Le grand titre et les libellés du diagnostic se modifient directement sur la page d'accueil (bouton « Modifier le texte »).</p>
+              <div class="form-grid">
+                <div class="field field--full"><label for="homeHeroLead">Phrase d'accroche sous le titre</label><textarea id="homeHeroLead" data-textkey="homeHeroLead" maxlength="400"></textarea></div>
+              </div>
+              <div class="settings-block">
+                <h3>Prix des formations</h3>
+                <p class="muted" style="font-size:.9rem">Modifiez ici : le changement s'applique <strong>partout</strong> où le prix est affiché (fiches, pages de détail…).</p>
+                <div class="form-grid">
+                  <div class="field"><label for="priceTradingMonth">Fondamentaux des marchés — par mois</label><input type="text" id="priceTradingMonth" data-textkey="priceTradingMonth" maxlength="30" /></div>
+                  <div class="field"><label for="priceTradingYear">Fondamentaux des marchés — par an</label><input type="text" id="priceTradingYear" data-textkey="priceTradingYear" maxlength="30" /></div>
+                  <div class="field"><label for="priceFinance">Finance des marchés avancée</label><input type="text" id="priceFinance" data-textkey="priceFinance" maxlength="30" /></div>
+                </div>
+              </div>
+              <div class="settings-block">
+                <h3>Accueil — les trois pôles</h3>
+                <div class="form-grid">
+                  <div class="field field--full"><label for="homePillarsTitle">Titre de la section</label><input type="text" id="homePillarsTitle" data-textkey="homePillarsTitle" maxlength="160" /></div>
+                </div>
+              </div>
+              <div class="settings-block">
+                <h3>Accueil — section « Le fondateur »</h3>
+                <div class="form-grid">
+                  <div class="field field--full"><label for="homeFounderTitle">Titre</label><input type="text" id="homeFounderTitle" data-textkey="homeFounderTitle" maxlength="160" /></div>
+                  <div class="field field--full"><label for="homeFounderText">Texte</label><textarea id="homeFounderText" data-textkey="homeFounderText" maxlength="700"></textarea></div>
+                </div>
+              </div>
+              <div class="settings-block">
+                <h3>Pied de page &amp; Contact</h3>
+                <div class="form-grid">
+                  <div class="field field--full"><label for="footerAbout">Texte du pied de page</label><textarea id="footerAbout" data-textkey="footerAbout" maxlength="400"></textarea></div>
+                  <div class="field field--full"><label for="contactTitle">Titre de la page Contact</label><input type="text" id="contactTitle" data-textkey="contactTitle" maxlength="120" /></div>
+                  <div class="field field--full"><label for="contactIntro">Introduction de la page Contact</label><textarea id="contactIntro" data-textkey="contactIntro" maxlength="400"></textarea></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Réseaux & Contact -->
+          <div class="tabpanel" data-panel="reseaux">
+            <div class="form-wrap">
+              <h3>Adresse e-mail de réception</h3>
+              <div class="field field--full">
+                <label for="email">Les messages du formulaire arrivent à cette adresse <span class="req">*</span></label>
+                <input type="email" id="email" required placeholder="vous@exemple.com" />
+                <span class="hint" id="emailStatus"></span>
+              </div>
+              <div class="field field--full">
+                <label for="whatsapp">Numéro WhatsApp (bouton vert sur tout le site)</label>
+                <input type="text" inputmode="tel" id="whatsapp" placeholder="Ex. 22990112233 (indicatif pays, sans + ni espaces)" />
+                <span class="hint">Laissez vide pour que le bouton renvoie vers la page Contact. Sinon, il ouvre une conversation WhatsApp.</span>
+              </div>
+              <div class="settings-block">
+                <h3>Réseaux sociaux</h3>
+                <p class="muted" style="font-size:.92rem">Laissez un champ vide pour masquer le réseau sur le site.</p>
+                <div class="form-grid">
+                  <div class="field"><label for="linkedin">LinkedIn</label><input type="text" inputmode="url" id="linkedin" placeholder="linkedin.com/in/…" /></div>
+                  <div class="field"><label for="x">X (Twitter)</label><input type="text" inputmode="url" id="x" placeholder="x.com/…" /></div>
+                  <div class="field"><label for="youtube">YouTube</label><input type="text" inputmode="url" id="youtube" placeholder="youtube.com/@…" /></div>
+                  <div class="field"><label for="facebook">Facebook</label><input type="text" inputmode="url" id="facebook" placeholder="facebook.com/…" /></div>
+                  <div class="field field--full"><label for="instagram">Instagram</label><input type="text" inputmode="url" id="instagram" placeholder="instagram.com/…" /></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Design & couleurs -->
+          <div class="tabpanel" data-panel="design">
+            <div class="form-wrap">
+              <h3>Couleurs du site</h3>
+              <p class="muted" style="font-size:.92rem">Changez les couleurs principales. L'aperçu se met à jour en direct ; cliquez « Enregistrer » en bas pour appliquer partout. « Réinitialiser » revient aux couleurs d'origine du logo.</p>
+              <div class="theme-grid">
+                <div class="theme-field"><label for="th_primaire">Couleur principale (bleu de marque)</label><input type="color" id="th_primaire" data-themekey="primaire" value="#1e3b8b" /></div>
+                <div class="theme-field"><label for="th_accent">Accent (or)</label><input type="color" id="th_accent" data-themekey="accent" value="#b8934a" /></div>
+                <div class="theme-field"><label for="th_texte">Texte</label><input type="color" id="th_texte" data-themekey="texte" value="#14161c" /></div>
+                <div class="theme-field"><label for="th_fond">Fond des pages</label><input type="color" id="th_fond" data-themekey="fond" value="#fbfbfa" /></div>
+                <div class="theme-field"><label for="th_fonce">Bleu foncé (sections &amp; pied de page)</label><input type="color" id="th_fonce" data-themekey="fonce" value="#16255c" /></div>
+              </div>
+              <div style="margin-top:1.2rem"><button type="button" class="btn btn--ghost" id="themeReset">Réinitialiser les couleurs d'origine</button></div>
+            </div>
+          </div>
+
+          <div class="save-bar">
+            <button class="btn btn--primary" type="submit" id="saveBtn">Enregistrer les modifications</button>
+            <span class="form-msg" id="saveMsg"></span>
+          </div>
+        </form>
+
+        <!-- ===== BOÎTE DE RÉCEPTION / CONTACTS / FRÉQUENTATION ===== -->
+        <div class="tabpanel" data-panel="boite">
+          <div class="form-wrap">
+            <h3>Messages reçus <span class="count-pill" id="inboxCount">0</span></h3>
+            <p class="muted" style="font-size:.92rem">Toutes les candidatures, demandes de contact et diagnostics arrivent ici — <strong>même si l'e-mail ne fonctionne pas</strong>. Rien ne se perd. Cliquez sur un message pour le déplier.</p>
+            <div class="form-actions" style="margin-bottom:1rem">
+              <button type="button" class="btn btn--ghost" id="inboxReload">Actualiser</button>
+            </div>
+            <div id="inboxList"></div>
+          </div>
+
+          <div class="form-wrap" style="margin-top:1.6rem">
+            <h3>Inscrits aux actualités <span class="count-pill" id="newsCount">0</span></h3>
+            <p class="muted" style="font-size:.92rem">Les adresses laissées dans le pied de page arrivent ici. Pour un envoi groupé&nbsp;: copiez les adresses et collez-les dans le champ <strong>Cci</strong> de votre messagerie (ainsi personne ne voit les adresses des autres), ou téléchargez le fichier CSV pour un outil d'e-mailing.</p>
+            <div class="form-actions" style="margin-bottom:1rem">
+              <button type="button" class="btn btn--primary" id="newsCopy">Copier toutes les adresses</button>
+              <button type="button" class="btn btn--ghost" id="newsCsv">Télécharger en CSV</button>
+              <span class="form-msg" id="newsMsgAdmin"></span>
+            </div>
+            <div id="newsList"></div>
+          </div>
+
+          <div class="form-wrap" style="margin-top:1.6rem">
+            <h3>Fréquentation du site</h3>
+            <p class="muted" style="font-size:.92rem">Comptage <strong>anonyme</strong> : aucune donnée personnelle, aucun cookie. Vos propres visites (connecté) ne sont pas comptées.</p>
+            <div id="statsBox"></div>
+          </div>
+        </div>
+
+        <!-- ===== TOUS LES TEXTES DU SITE ===== -->
+        <div class="tabpanel" data-panel="contenu">
+          <div class="form-wrap">
+            <h3>Tous les textes du site</h3>
+            <p class="muted" style="font-size:.92rem">Choisissez une page : tous ses textes apparaissent ci-dessous, section par section. Modifiez ce que vous voulez puis cliquez « Enregistrer les textes ». C'est exactement la même chose que de modifier directement sur la page.</p>
+            <div class="field field--full" style="max-width:520px">
+              <label for="contentPage">Page à modifier</label>
+              <select id="contentPage"></select>
+            </div>
+            <div class="form-actions" style="margin-bottom:1rem">
+              <button type="button" class="btn btn--primary" id="contentSave">Enregistrer les textes</button>
+              <button type="button" class="btn btn--ghost" id="contentReload">Recharger</button>
+              <span class="form-msg" id="contentMsg"></span>
+            </div>
+            <div id="contentList"></div>
+          </div>
+        </div>
+
+        <!-- ===== BLOG & HISTOIRES ===== -->
+        <div class="tabpanel" data-panel="blog">
+          <div class="form-wrap" style="margin-bottom:2rem">
+            <h3>Nouvelle publication</h3>
+            <form id="articleForm">
+              <div class="form-grid">
+                <div class="field field--full"><label for="a_title">Titre <span class="req">*</span></label><input type="text" id="a_title" name="title" required maxlength="160" /></div>
+                <div class="field">
+                  <label for="a_type">Type de contenu</label>
+                  <select id="a_type" name="type">
+                    <option value="article">Article / réflexion</option>
+                    <option value="story">Histoire</option>
+                    <option value="video">Vidéo</option>
+                  </select>
+                </div>
+                <div class="field"><label for="a_tag">Rubrique</label><input type="text" id="a_tag" name="tag" maxlength="40" placeholder="Marchés, Écriture…" /></div>
+                <div class="field"><label for="a_date">Date</label><input type="date" id="a_date" name="date" /></div>
+
+                <div class="field field--full">
+                  <label>Image d'aperçu</label>
+                  <div class="media-inline">
+                    <div class="media-inline__preview" id="a_imagePreview"></div>
+                    <div class="stack">
+                      <span class="btn btn--ghost file-btn" style="font-size:.85rem;padding:.6em 1.1em">Téléverser une image<input type="file" id="a_imageFile" accept="image/*" /></span>
+                      <button type="button" class="btn-link" id="a_pickImage">ou choisir dans mes médias</button>
+                      <span class="hint" id="a_imageName">Optionnel.</span>
+                    </div>
+                  </div>
+                  <input type="hidden" id="a_image" name="image" />
+                </div>
+
+                <!-- Champs vidéo -->
+                <div class="field field--full video-only" hidden>
+                  <label>Format de la vidéo</label>
+                  <div class="seg" role="radiogroup">
+                    <label class="seg__opt"><input type="radio" name="orientation" value="vertical" checked /> <span>Verticale (mobile) 9:16</span></label>
+                    <label class="seg__opt"><input type="radio" name="orientation" value="landscape" /> <span>Horizontale 16:9</span></label>
+                  </div>
+                </div>
+                <div class="field field--full video-only" hidden>
+                  <label>Vidéo téléversée (mp4, webm, mov)</label>
+                  <div class="media-inline">
+                    <div class="media-inline__preview" id="a_videoPreview"></div>
+                    <div class="stack">
+                      <span class="btn btn--ghost file-btn" style="font-size:.85rem;padding:.6em 1.1em">Téléverser une vidéo<input type="file" id="a_videoFile" accept="video/*" /></span>
+                      <span class="hint" id="a_videoName">Idéal pour vos vidéos filmées au téléphone.</span>
+                    </div>
+                  </div>
+                  <input type="hidden" id="a_videoPath" name="videoFile" />
+                </div>
+                <div class="field field--full video-only" hidden>
+                  <label for="a_video">…ou lien YouTube / Vimeo (optionnel)</label>
+                  <input type="text" id="a_video" name="video" placeholder="https://youtube.com/watch?v=…" />
+                </div>
+
+                <div class="field field--full"><label for="a_excerpt">Extrait <span class="req">*</span></label><textarea id="a_excerpt" name="excerpt" required maxlength="280" style="min-height:70px"></textarea></div>
+                <div class="field field--full"><label for="a_body">Contenu</label><textarea id="a_body" name="body" style="min-height:170px" placeholder="Séparez les paragraphes par une ligne vide."></textarea></div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn--primary" type="submit">Publier</button>
+                <span class="form-msg" id="articleMsg"></span>
+              </div>
+            </form>
+          </div>
+          <h3>Publications</h3>
+          <div id="adminList" class="stack" style="margin-top:1rem"><p class="muted">Chargement…</p></div>
+        </div>
+
+        <!-- ===== GALERIE / ALBUM ===== -->
+        <div class="tabpanel" data-panel="galerie">
+          <div class="form-wrap" style="margin-bottom:2rem">
+            <h3>Galerie / Album photos & vidéos</h3>
+            <p class="muted" style="font-size:.92rem">Téléversez vos photos d'événements ou avec des personnes importantes, ainsi que vos vidéos (verticales acceptées). Les éléments publiés s'affichent dans la section « En images » de la page Personnel.</p>
+            <div class="form-grid">
+              <div class="field field--full">
+                <label>Fichier (image ou vidéo)</label>
+                <div class="media-inline">
+                  <div class="media-inline__preview is-empty" id="galPreview"></div>
+                  <div class="stack">
+                    <span class="btn btn--ghost file-btn" style="font-size:.85rem;padding:.6em 1.1em">Choisir un fichier<input type="file" id="galFile" accept="image/*,video/*"></span>
+                    <span class="hint" id="galFileName">Aucun fichier sélectionné.</span>
+                  </div>
+                </div>
+              </div>
+              <div class="field field--full"><label for="galCaption">Légende (optionnel)</label><input type="text" id="galCaption" maxlength="200" placeholder="Ex. Conférence à Cotonou, 2025"></div>
+              <div class="field field--full gal-video-only" hidden>
+                <label>Format de la vidéo</label>
+                <div class="seg" role="radiogroup">
+                  <label class="seg__opt"><input type="radio" name="galOrientation" value="vertical" checked> <span>Verticale (mobile) 9:16</span></label>
+                  <label class="seg__opt"><input type="radio" name="galOrientation" value="landscape"> <span>Horizontale 16:9</span></label>
+                </div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn--primary" id="galPublish" type="button" disabled>Publier dans la galerie</button>
+              <span class="form-msg" id="galMsg"></span>
+            </div>
+          </div>
+          <h3>Éléments de la galerie</h3>
+          <div id="galAdminGrid" class="media-grid" style="margin-top:1rem"><p class="muted">Chargement…</p></div>
+        </div>
+
+        <!-- ===== MÉDIAS ===== -->
+        <div class="tabpanel" data-panel="medias">
+          <div class="form-wrap" style="margin-bottom:2rem">
+            <h3>Bibliothèque de médias</h3>
+            <p class="muted" style="font-size:.92rem">Téléversez vos images et vidéos pour les réutiliser partout sur le site. Vidéos verticales acceptées (max 200 Mo).</p>
+            <span class="btn btn--primary file-btn">Téléverser un fichier<input type="file" id="mediaFile" accept="image/*,video/*" multiple /></span>
+            <span class="form-msg" id="mediaMsg" style="margin-left:1rem"></span>
+          </div>
+          <div id="mediaGrid" class="media-grid"><p class="muted">Chargement…</p></div>
+        </div>
+
+        <!-- ===== COMPTE & E-MAIL ===== -->
+        <!-- ===== PAIEMENTS ===== -->
+        <div class="tabpanel" data-panel="paiements">
+          <div class="form-wrap" style="margin-bottom:1.6rem">
+            <h3>Générer un lien de paiement secret</h3>
+            <p class="muted" style="font-size:.92rem">Créez un lien <strong>unique</strong> à envoyer par e-mail au candidat accepté. Il n'est visible nulle part sur le site et ne fonctionne <strong>qu'une seule fois</strong>.</p>
+            <div class="form-grid">
+              <div class="field field--full">
+                <label for="plPrice">Prix</label>
+                <select id="plPrice">
+                  <option value="priceTradingMonth">Fondamentaux des marchés — mensuel (prix du site)</option>
+                  <option value="priceTradingYear">Fondamentaux des marchés — annuel (prix du site)</option>
+                  <option value="priceFinance">Finance des marchés avancée (prix du site)</option>
+                  <option value="">Montant personnalisé…</option>
+                </select>
+                <span class="hint">Choisir « prix du site » = le lien suit automatiquement le prix affiché sur le site. Si tu changes le prix, la page de paiement change aussi.</span>
+              </div>
+              <div class="field"><label for="plFormation">Libellé affiché</label><input type="text" id="plFormation" placeholder="Mentorat Trading" /></div>
+              <div class="field"><label for="plCycle">Type</label><select id="plCycle"><option value="unique">Paiement unique</option><option value="mensuel">Abonnement mensuel</option><option value="annuel">Abonnement annuel</option></select></div>
+              <div class="field" id="plAmountWrap" hidden><label for="plAmount">Montant personnalisé</label><input type="number" id="plAmount" min="1" placeholder="50000" /></div>
+              <div class="field" id="plCurrencyWrap" hidden><label for="plCurrency">Devise</label><select id="plCurrency"><option value="XOF">FCFA (XOF)</option><option value="EUR">Euro (EUR)</option><option value="USD">Dollar (USD)</option></select></div>
+              <div class="field"><label for="plNom">Nom du candidat (facultatif)</label><input type="text" id="plNom" /></div>
+              <div class="field"><label for="plEmail">E-mail du candidat (facultatif)</label><input type="email" id="plEmail" /></div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn--primary" id="plCreate">Générer le lien</button>
+              <span class="form-msg" id="plMsg"></span>
+            </div>
+            <div id="plResult" hidden style="margin-top:1rem"></div>
+            <h3 style="margin-top:1.6rem">Liens générés</h3>
+            <div id="plList"></div>
+          </div>
+
+          <div class="form-wrap" style="margin-bottom:1.6rem">
+            <h3>Connexion FedaPay + Discord</h3>
+            <p class="muted" style="font-size:.92rem">Créez un compte gratuit sur <strong>fedapay.com</strong>, puis copiez vos clés (Paramètres → API). Commencez en <strong>mode test</strong> (<code>pk_test_…</code> / <code>sk_test_…</code>).</p>
+            <div class="form-grid">
+              <div class="field field--full"><label for="fpPublic">Clé publique FedaPay</label><input type="text" id="fpPublic" placeholder="pk_test_…" autocomplete="off" /></div>
+              <div class="field field--full"><label for="fpSecret">Clé secrète FedaPay</label><input type="password" id="fpSecret" placeholder="sk_test_…" autocomplete="new-password" /><span class="hint" id="fpSecretState"></span></div>
+              <div class="field field--full"><label for="fpDiscord">Lien d'invitation Discord (redirection après paiement)</label><input type="text" id="fpDiscord" placeholder="https://discord.gg/…" /></div>
+              <div class="field field--full"><label for="fpBinance">Binance Pay / adresse crypto (facultatif)</label><input type="text" id="fpBinance" placeholder="ID Binance Pay ou adresse" /></div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn btn--primary" id="fpSave">Enregistrer</button>
+              <button type="button" class="btn btn--ghost" id="fpClear">Déconnecter FedaPay</button>
+              <span class="form-msg" id="fpMsg"></span>
+            </div>
+            <p class="hint">🔒 La clé secrète est enregistrée uniquement sur votre serveur, jamais réaffichée, jamais envoyée sur GitHub.</p>
+          </div>
+
+          <div class="form-wrap">
+            <h3>Abonnés &amp; accès <span class="count-pill" id="subCount">0</span></h3>
+            <p class="muted" style="font-size:.92rem">Toute personne ayant payé apparaît ici. Pour les abonnements mensuels, la date d'expiration vous indique qui renouveler ou retirer.</p>
+            <div class="form-actions" style="margin-bottom:1rem"><button type="button" class="btn btn--ghost" id="subReload">Actualiser</button></div>
+            <div id="subList"></div>
+          </div>
+        </div>
+
+        <div class="tabpanel" data-panel="compte">
+          <div class="form-wrap" style="margin-bottom:2rem">
+            <h3>Connecter votre boîte e-mail</h3>
+            <p class="muted" style="font-size:.92rem">Reliez directement votre adresse Gmail pour recevoir les messages du site. Vous avez besoin d'un <strong>mot de passe d'application</strong> (16 lettres) — ce n'est pas le mot de passe habituel de votre compte.</p>
+            <details style="margin:.6rem 0 1.2rem">
+              <summary style="cursor:pointer;font-weight:600;color:var(--navy)">Comment obtenir le mot de passe d'application Gmail&nbsp;?</summary>
+              <ol class="muted" style="font-size:.92rem;line-height:1.9;margin-top:.6rem">
+                <li>Activez la <strong>validation en deux étapes</strong> sur votre compte Google (obligatoire).</li>
+                <li>Allez sur <strong>myaccount.google.com/apppasswords</strong>.</li>
+                <li>Donnez un nom (ex. « Site KBO ») et validez.</li>
+                <li>Google affiche <strong>16 lettres</strong> : copiez-les et collez-les ci-dessous.</li>
+              </ol>
+            </details>
+
+            <div class="form-grid">
+              <div class="field"><label for="smtpUser">Votre adresse e-mail (Gmail)</label><input type="email" id="smtpUser" placeholder="vous@gmail.com" autocomplete="off" /></div>
+              <div class="field"><label for="smtpPass">Mot de passe d'application (16 lettres)</label><input type="password" id="smtpPass" placeholder="••••••••••••••••" autocomplete="new-password" /><span class="hint" id="smtpPassState"></span></div>
+              <div class="field"><label for="smtpHost">Serveur d'envoi</label><input type="text" id="smtpHost" value="smtp.gmail.com" /></div>
+              <div class="field">
+                <label for="smtpPort">Port</label>
+                <select id="smtpPort">
+                  <option value="465">465 (SSL — recommandé)</option>
+                  <option value="587">587 (TLS)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn--primary" id="mailSave" type="button">Enregistrer la connexion</button>
+              <button class="btn btn--ghost" id="mailTest" type="button">Envoyer un e-mail de test</button>
+              <button class="btn btn--ghost" id="mailClear" type="button">Déconnecter</button>
+              <span class="form-msg" id="mailMsg"></span>
+            </div>
+            <p class="hint" id="mailStatus" style="margin:.8rem 0 .2rem">Vérification de l'état…</p>
+            <div id="mailDetected" style="margin:0 0 1rem"></div>
+            <p class="hint">🔒 Votre mot de passe est enregistré uniquement sur votre serveur, n'est jamais réaffiché, et n'est jamais inclus dans les fichiers envoyés sur GitHub.</p>
+            <p class="hint"><strong>Important&nbsp;:</strong> certains hébergeurs (dont Railway en offre gratuite) bloquent l'envoi direct. Si le test échoue avec « délai dépassé » ou « réseau inaccessible », c'est l'hébergeur qui bloque, pas votre mot de passe. Dans ce cas vos messages restent tous consultables dans <strong>📥 Messages &amp; contacts</strong>.</p>
+          </div>
+
+          <div class="form-wrap">
+            <h3>Mot de passe administrateur</h3>
+            <p class="muted" style="font-size:.92rem">Changez le mot de passe qui protège cet espace. Vous seul y avez accès — les visiteurs ne voient aucun bouton d'administration.</p>
+            <div class="form-grid">
+              <div class="field"><label for="pwNew">Nouveau mot de passe</label><input type="password" id="pwNew" autocomplete="new-password" /></div>
+              <div class="field"><label for="pwConfirm">Confirmer</label><input type="password" id="pwConfirm" autocomplete="new-password" /></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn--primary" id="pwSave" type="button">Changer le mot de passe</button>
+              <span class="form-msg" id="pwMsg"></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Media picker modal -->
+  <div id="pickerModal" class="modal" hidden>
+    <div class="modal__box">
+      <div class="modal__head"><h3>Choisir une image</h3><button class="modal__close" id="pickerClose" aria-label="Fermer">×</button></div>
+      <div id="pickerGrid" class="media-grid media-grid--picker"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"><span class="check">✓</span><span id="toastText">Modifications enregistrées</span></div>
+
+  <div id="site-footer"></div>
+  <script src="js/components.js"></script>
+  <script src="js/admin.js"></script>
+  <script src="js/admin-content.js"></script>
+  <script src="js/admin-inbox.js"></script>
+  <script src="js/admin-pay.js"></script>
+</body>
+</html>
