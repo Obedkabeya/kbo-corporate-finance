@@ -46,7 +46,9 @@ from urllib.parse import urlparse
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(ROOT, "public")
-DATA_DIR = os.path.join(ROOT, "data")
+# Sur le serveur, KBO_DATA_DIR place les données HORS du dossier du code, pour
+# qu'une mise à jour depuis GitHub ne puisse jamais les toucher.
+DATA_DIR = os.environ.get("KBO_DATA_DIR", "").strip() or os.path.join(ROOT, "data")
 UPLOAD_DIR = os.path.join(PUBLIC_DIR, "images", "uploads")   # base64 photo uploads (compat)
 MEDIA_DIR = os.path.join(PUBLIC_DIR, "uploads")              # media library (images + vidéos)
 ARTICLES_FILE = os.path.join(DATA_DIR, "articles.json")
@@ -179,6 +181,8 @@ def _file_delete(rel_path):
     _db_exec(run)
 
 PORT = int(os.environ.get("PORT", "8000"))
+# Sur le serveur, HOST=127.0.0.1 : le site n'est joignable qu'à travers Nginx.
+HOST = os.environ.get("HOST", "0.0.0.0").strip() or "0.0.0.0"
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "kbo-admin")
 
 # NOTE : la configuration e-mail (BREVO_API_KEY, SENDGRID_API_KEY, MAIL_FROM,
@@ -2350,7 +2354,7 @@ def main():
     except Exception:
         pass
     _ensure_data()
-    server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
+    server = ThreadingHTTPServer((HOST, PORT), Handler)
     print("―" * 60)
     print("  KBO Corporate Finance")
     print("  Stockage   : %s" % ("PostgreSQL (permanent)" if DB_ENABLED
