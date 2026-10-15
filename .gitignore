@@ -16,8 +16,9 @@ data/
 _ancienne_version/
 _pages_en_sommeil/
 
-# Document de travail interne (non destiné au public).
+# Documents de travail internes (non destinés au public).
 CAHIER_DES_CHARGES_SITE_KBO.md
+MIGRATION_HOSTINGER.md
 
 # Secrets éventuels : ils passent par les variables d'environnement Railway.
 .env
