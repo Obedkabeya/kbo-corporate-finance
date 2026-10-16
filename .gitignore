@@ -32,3 +32,6 @@ CORRECTIONS_SITE_KBO_ETAPE1.md
 *.tmp
 __pycache__/
 *.pyc
+
+# Captures d'écran de contrôle (restent sur l'iMac).
+_captures_etape_A/
