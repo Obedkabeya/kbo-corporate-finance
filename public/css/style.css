@@ -23,15 +23,12 @@
   --gold: #B8934A;            /* Or antique — accent de signature, usage rare */
   --gold-soft: #EFE4CC;
 
-  /* Type — les GRANDS TITRES utilisent Archivo : une grotesque solide, établie,
-     corporate (pas de serif « habillé »). Le sigle « KBO » garde une serif forte
-     (--display) pour rester fidèle au logo. Inter pour le corps, IBM Plex Mono
-     pour les chiffres financiers (rigueur : les nombres traités comme des données). */
-  --title: "Archivo", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-  --display: "Fraunces", Georgia, "Times New Roman", serif; /* sigle KBO uniquement */
-  --serif: var(--display); /* alias historique */
-  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Type — deux polices seulement, sans empattements : Inter Tight (titres,
+     logo, chiffres mis en avant) et Inter (texte courant). */
+  --title: "Inter Tight", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --display: var(--title);
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: var(--sans);
 
   /* Rhythm */
   --maxw: 1140px;
@@ -60,10 +57,10 @@ body {
 img { max-width: 100%; display: block; }
 /* Accessibilité : focus clavier toujours visible */
 :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 2px; }
-a { color: var(--blue); text-decoration: none; transition: color 0.2s var(--ease); }
+a, a:visited { color: var(--blue); text-decoration: none; transition: color 0.2s var(--ease); }
 a:hover { color: var(--blue-bright); }
 h1, h2, h3, h4 { font-family: var(--title); font-weight: 800; color: var(--navy); line-height: 1.1; margin: 0 0 0.5em; letter-spacing: -0.02em; }
-h1 { font-size: clamp(2.2rem, 5.4vw, 3.6rem); font-weight: 900; }
+h1 { font-size: clamp(2.2rem, 5.4vw, 3.6rem); font-weight: 800; }
 h2 { font-size: clamp(1.7rem, 3.6vw, 2.45rem); font-weight: 800; }
 h3 { font-size: clamp(1.25rem, 2.3vw, 1.55rem); font-weight: 700; }
 p { margin: 0 0 1.1em; }
@@ -138,7 +135,7 @@ p { margin: 0 0 1.1em; }
 /* Wordmark : reproduit le logo — « KBO » serif navy, filet vertical, « corporate
    finance » sans-serif graphite. Le filet vertical est la signature de la marque. */
 .brand { display: inline-flex; align-items: center; gap: 0.6em; font-family: var(--display); line-height: 1; }
-.brand__mark { font-family: var(--display); font-size: 1.5rem; font-weight: 900; letter-spacing: -0.01em; color: var(--navy); }
+.brand__mark { font-family: var(--display); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; color: var(--navy); }
 .brand__sub {
   font-family: var(--sans); font-size: 0.66rem; font-weight: 700; line-height: 1.15;
   letter-spacing: 0.14em; text-transform: uppercase; color: var(--black);

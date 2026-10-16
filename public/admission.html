@@ -8,7 +8,7 @@
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/marches.css" />
 </head>
 <body data-page="m-admission" data-nav="admission">
@@ -23,16 +23,29 @@
       </div>
     </section>
 
-    <section class="block">
+    <section class="block block--tight" id="parcours">
       <div class="wrap">
-        <div class="sec-head">
-        <div><p class="eyebrow">Les étapes</p></div>
-        <div><h2>Trois étapes, sans surprise.</h2></div>
-      </div>
-        <div class="steps">
-          <div class="step"><span class="n">01</span><h3>Candidature</h3><p>Vous présentez votre parcours, vos objectifs et le temps que vous pouvez consacrer à la formation.</p></div>
-          <div class="step"><span class="n">02</span><h3>Échange</h3><p>Un entretien pour vérifier que le parcours correspond à votre niveau et à vos attentes.</p></div>
-          <div class="step"><span class="n">03</span><h3>Inscription</h3><p>Vous recevez un lien de paiement personnel, puis vos accès dès la confirmation.</p></div>
+        <div class="offers">
+          <article class="offer">
+            <p class="eyebrow eyebrow--navy">Parcours 1</p>
+            <h2>Finance des marchés</h2>
+            <p class="offer__line" data-edit>Microstructure, dérivés, risque et construction de stratégies, pour les professionnels du secteur financier.</p>
+            <dl class="offer__facts">
+              <div><dt>Durée</dt><dd data-edit>6 modules</dd></div>
+              <div><dt>Prix</dt><dd><span class="num" data-text="priceFinance">900 €</span></dd></div>
+            </dl>
+            <button class="btn offer__btn" type="button" data-choose="finance">Choisir ce parcours <span class="arrow" aria-hidden="true">→</span></button>
+          </article>
+          <article class="offer">
+            <p class="eyebrow eyebrow--navy">Parcours 2</p>
+            <h2>Trading institutionnel</h2>
+            <p class="offer__line" data-edit>Lire le marché comme une institution&nbsp;: contexte, plan de trading, gestion du risque et discipline.</p>
+            <dl class="offer__facts">
+              <div><dt>Durée</dt><dd data-edit>6 modules, à votre rythme</dd></div>
+              <div><dt>Prix</dt><dd><span class="num" data-text="priceTradingMonth">89 €</span> par mois ou <span class="num" data-text="priceTradingYear">800 €</span> par an</dd></div>
+            </dl>
+            <button class="btn offer__btn" type="button" data-choose="trading">Choisir ce parcours <span class="arrow" aria-hidden="true">→</span></button>
+          </article>
         </div>
       </div>
     </section>
@@ -45,13 +58,13 @@
       </div>
         <form id="admissionForm" class="form" data-endpoint="/api/apply/formation" data-kind="Candidature — Formation">
           <div class="fgroup">
-            <div><h3>Le parcours</h3><p class="hint">Vous hésitez&nbsp;? <a class="tlink" href="programme.html">Comparer les parcours</a></p></div>
+            <div><h3>Le parcours</h3><p class="hint">Vous hésitez&nbsp;? <a href="#parcours">Revoir les deux parcours</a></p></div>
             <div class="fields">
               <div class="field field--full"><label for="a_parcours">Parcours souhaité <span class="req">*</span></label>
                 <select id="a_parcours" name="formation" required>
                   <option value="" disabled selected>Sélectionnez…</option>
-                  <option value="Fondamentaux des marchés" data-p="fondamentaux">Fondamentaux des marchés</option>
-                  <option value="Finance des marchés avancée" data-p="avance">Finance des marchés avancée</option>
+                  <option value="Finance des marchés" data-p="finance">Finance des marchés</option>
+                  <option value="Trading institutionnel" data-p="trading">Trading institutionnel</option>
                 </select></div>
             </div>
           </div>
@@ -108,8 +121,21 @@
             <button class="btn" type="submit">Envoyer ma candidature <span class="arrow" aria-hidden="true">→</span></button>
             <span class="form-msg" id="admissionMsg" role="status"></span>
           </div>
-          <p class="form-note">Vos informations servent uniquement à étudier votre candidature. Voir notre <a class="tlink" href="confidentialite.html">politique de confidentialité</a>.</p>
+          <p class="form-note">Vos informations servent uniquement à étudier votre candidature. Voir notre <a href="confidentialite.html">politique de confidentialité</a>.</p>
         </form>
+      </div>
+    </section>
+    <section class="block">
+      <div class="wrap">
+        <div class="sec-head">
+        <div><p class="eyebrow">Les étapes</p></div>
+        <div><h2>Trois étapes, sans surprise.</h2></div>
+      </div>
+        <div class="steps">
+          <div class="step"><span class="n">01</span><h3>Candidature</h3><p>Vous présentez votre parcours, vos objectifs et le temps que vous pouvez consacrer à la formation.</p></div>
+          <div class="step"><span class="n">02</span><h3>Échange</h3><p>Un entretien pour vérifier que le parcours correspond à votre niveau et à vos attentes.</p></div>
+          <div class="step"><span class="n">03</span><h3>Inscription</h3><p>Vous recevez un lien de paiement personnel, puis vos accès dès la confirmation.</p></div>
+        </div>
       </div>
     </section>
   </main>
@@ -118,10 +144,20 @@
   <script src="js/forms.js"></script>
   <script>
     (function () {
-      // Présélection du parcours depuis un lien (?parcours=fondamentaux|avance)
-      var want = new URLSearchParams(location.search).get("parcours");
+      // Présélection du parcours depuis un lien (?parcours=finance|trading).
+      // Les anciens liens (?parcours=avance|fondamentaux) restent valables.
+      var OLD = { avance: "finance", fondamentaux: "trading" };
       var sel = document.getElementById("a_parcours");
-      if (want && sel) { [].forEach.call(sel.options, function (o) { if (o.getAttribute("data-p") === want) sel.value = o.value; }); }
+      function choose(p) { [].forEach.call(sel.options, function (o) { if (o.getAttribute("data-p") === p) sel.value = o.value; }); }
+      var want = new URLSearchParams(location.search).get("parcours");
+      if (want && sel) choose(OLD[want] || want);
+      // Bouton « Choisir ce parcours » : sélectionne le parcours et descend au formulaire.
+      document.querySelectorAll("[data-choose]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          choose(b.getAttribute("data-choose"));
+          sel.closest(".fgroup").scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      });
       // Compteur de caractères
       document.querySelectorAll(".char-meter").forEach(function (m) {
         var ta = document.getElementById(m.getAttribute("data-for")); if (!ta) return;

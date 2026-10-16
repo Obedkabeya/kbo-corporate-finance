@@ -8,7 +8,7 @@
   <link rel="icon" href="images/favicon.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800;900&family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Roboto:wght@400;700&family=Open+Sans:wght@400;700&family=Lato:wght@400;700&family=Montserrat:wght@400;700&family=Poppins:wght@400;700&family=Raleway:wght@400;700&family=Nunito:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Lora:wght@400;700&family=PT+Serif:wght@400;700&family=Oswald:wght@400;700&family=Bebas+Neue&family=Dancing+Script:wght@400;700&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/admin.css" />
   <link rel="stylesheet" href="css/chrome.css" />
@@ -40,7 +40,28 @@
             <button class="btn btn--primary" type="submit">Se connecter</button>
             <span class="form-msg" id="loginMsg"></span>
           </div>
-          <p class="form-note">Mot de passe par défaut : <code>kbo-admin</code> — modifiable via <code>ADMIN_PASSWORD</code>.</p>
+          <button class="btn-quiet" id="forgotBtn" type="button">Mot de passe oublié ?</button>
+          <span class="form-msg" id="forgotMsg"></span>
+        </form>
+      </div>
+
+      <!-- NOUVEAU MOT DE PASSE (lien reçu par e-mail) -->
+      <div id="resetPane" class="form-wrap reveal" style="max-width:440px;margin:0 auto;" hidden>
+        <h3>Choisir un nouveau mot de passe</h3>
+        <p class="muted" style="font-size:.92rem">Au moins 10 caractères. Tous les appareils connectés seront déconnectés.</p>
+        <form id="resetForm" class="stack">
+          <div class="field">
+            <label for="rpNew">Nouveau mot de passe <span class="req">*</span></label>
+            <input type="password" id="rpNew" autocomplete="new-password" minlength="10" required />
+          </div>
+          <div class="field">
+            <label for="rpConfirm">Confirmer <span class="req">*</span></label>
+            <input type="password" id="rpConfirm" autocomplete="new-password" minlength="10" required />
+          </div>
+          <div class="form-actions">
+            <button class="btn btn--primary" type="submit">Enregistrer</button>
+            <span class="form-msg" id="resetMsg"></span>
+          </div>
         </form>
       </div>
 
@@ -127,9 +148,9 @@
                 <h3>Prix des formations</h3>
                 <p class="muted" style="font-size:.9rem">Modifiez ici : le changement s'applique <strong>partout</strong> où le prix est affiché (fiches, pages de détail…).</p>
                 <div class="form-grid">
-                  <div class="field"><label for="priceTradingMonth">Fondamentaux des marchés — par mois</label><input type="text" id="priceTradingMonth" data-textkey="priceTradingMonth" maxlength="30" /></div>
-                  <div class="field"><label for="priceTradingYear">Fondamentaux des marchés — par an</label><input type="text" id="priceTradingYear" data-textkey="priceTradingYear" maxlength="30" /></div>
-                  <div class="field"><label for="priceFinance">Finance des marchés avancée</label><input type="text" id="priceFinance" data-textkey="priceFinance" maxlength="30" /></div>
+                  <div class="field"><label for="priceTradingMonth">Trading institutionnel — par mois</label><input type="text" id="priceTradingMonth" data-textkey="priceTradingMonth" maxlength="30" /></div>
+                  <div class="field"><label for="priceTradingYear">Trading institutionnel — par an</label><input type="text" id="priceTradingYear" data-textkey="priceTradingYear" maxlength="30" /></div>
+                  <div class="field"><label for="priceFinance">Finance des marchés</label><input type="text" id="priceFinance" data-textkey="priceFinance" maxlength="30" /></div>
                 </div>
               </div>
               <div class="settings-block">
@@ -376,9 +397,9 @@
               <div class="field field--full">
                 <label for="plPrice">Prix</label>
                 <select id="plPrice">
-                  <option value="priceTradingMonth">Fondamentaux des marchés — mensuel (prix du site)</option>
-                  <option value="priceTradingYear">Fondamentaux des marchés — annuel (prix du site)</option>
-                  <option value="priceFinance">Finance des marchés avancée (prix du site)</option>
+                  <option value="priceTradingMonth">Trading institutionnel — mensuel (prix du site)</option>
+                  <option value="priceTradingYear">Trading institutionnel — annuel (prix du site)</option>
+                  <option value="priceFinance">Finance des marchés (prix du site)</option>
                   <option value="">Montant personnalisé…</option>
                 </select>
                 <span class="hint">Choisir « prix du site » = le lien suit automatiquement le prix affiché sur le site. Si tu changes le prix, la page de paiement change aussi.</span>

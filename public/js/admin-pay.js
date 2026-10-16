@@ -16,9 +16,9 @@
   var CYCLE = { unique: "Unique", mensuel: "Mensuel", annuel: "Annuel" };
 
   var PRICE_LABEL = {
-    priceTradingMonth: "Fondamentaux des marchés",
-    priceTradingYear: "Fondamentaux des marchés (annuel)",
-    priceFinance: "Finance des marchés avancée",
+    priceTradingMonth: "Trading institutionnel",
+    priceTradingYear: "Trading institutionnel (annuel)",
+    priceFinance: "Finance des marchés",
   };
   var PRICE_CYCLE = { priceTradingMonth: "mensuel", priceTradingYear: "annuel", priceFinance: "unique" };
 

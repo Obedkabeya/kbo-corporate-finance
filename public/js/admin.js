@@ -48,6 +48,44 @@
       })
       .catch(() => { loginMsg.textContent = "Serveur injoignable. Démarrez « python3 server.py »."; loginMsg.className = "form-msg err"; });
   });
+  // ---------- mot de passe oublié ----------
+  $("forgotBtn").addEventListener("click", () => {
+    const msg = $("forgotMsg");
+    msg.textContent = "Envoi en cours…"; msg.className = "form-msg";
+    fetch("/api/admin/forgot", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" })
+      .then(r => r.json().then(j => ({ ok: r.ok, j })))
+      .then(({ ok, j }) => {
+        msg.textContent = ok ? j.message : (j.error || "Envoi impossible.");
+        msg.className = "form-msg " + (ok ? "ok" : "err");
+      })
+      .catch(() => { msg.textContent = "Serveur injoignable."; msg.className = "form-msg err"; });
+  });
+
+  // Lien reçu par e-mail : admin.html#reinitialiser=<jeton>
+  const resetToken = (location.hash.match(/^#reinitialiser=([\w-]+)$/) || [])[1];
+  if (resetToken) {
+    history.replaceState(null, "", location.pathname);   // le jeton ne reste pas dans la barre d'adresse
+    loginPane.hidden = true; $("resetPane").hidden = false;
+    $("resetForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const a = $("rpNew").value, b = $("rpConfirm").value, msg = $("resetMsg");
+      if (a !== b) { msg.textContent = "Les deux mots de passe ne correspondent pas."; msg.className = "form-msg err"; return; }
+      msg.textContent = "Enregistrement…"; msg.className = "form-msg";
+      fetch("/api/admin/reset", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: resetToken, new: a }),
+      })
+        .then(r => r.json().then(j => ({ ok: r.ok, j })))
+        .then(({ ok, j }) => {
+          if (!ok) { msg.textContent = j.error || "Erreur."; msg.className = "form-msg err"; return; }
+          $("rpNew").value = ""; $("rpConfirm").value = "";
+          $("resetPane").hidden = true; loginPane.hidden = false;
+          loginMsg.textContent = "✓ Mot de passe changé. Connectez-vous."; loginMsg.className = "form-msg ok";
+        })
+        .catch(() => { msg.textContent = "Serveur injoignable."; msg.className = "form-msg err"; });
+    });
+  }
+
   $("logoutBtn").addEventListener("click", () => {
     fetch("/api/logout", { method: "POST" }).finally(() => {
       dashboard.hidden = true; loginPane.hidden = false; $("pw").value = "";
@@ -451,7 +489,7 @@
   });
   $("pwSave").addEventListener("click", () => {
     const a = $("pwNew").value, b = $("pwConfirm").value;
-    if (a.length < 4) { $("pwMsg").textContent = "Au moins 4 caractères."; $("pwMsg").className = "form-msg err"; return; }
+    if (a.length < 10) { $("pwMsg").textContent = "Au moins 10 caractères."; $("pwMsg").className = "form-msg err"; return; }
     if (a !== b) { $("pwMsg").textContent = "Les deux mots de passe ne correspondent pas."; $("pwMsg").className = "form-msg err"; return; }
     fetch("/api/admin/password", {
       method: "POST", headers: { "Content-Type": "application/json" },

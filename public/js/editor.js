@@ -4,59 +4,22 @@
 (function () {
   function $(id) { return document.getElementById(id); }
 
-  // Liste de polices (façon traitement de texte). Les polices Google sont
-  // chargées sur le site ; les polices « système » s'affichent si elles sont
-  // installées sur l'appareil du visiteur.
+  // Liste de polices (façon traitement de texte). Les polices « système »
+  // s'affichent si elles sont installées sur l'appareil du visiteur.
   function fontSelectHTML() {
+    // Uniquement des polices sans empattements (charte KBO) : les deux polices
+    // du site, puis quelques polices système équivalentes.
     var groups = [
       ["Polices du site", [
-        ["Archivo (titres)", "var(--title)"],
+        ["Inter Tight (titres)", "var(--title)"],
         ["Inter (texte)", "var(--sans)"],
-        ["Fraunces", "'Fraunces', serif"],
-        ["IBM Plex Mono", "var(--mono)"],
       ]],
-      ["Sans-serif", [
-        ["Roboto", "'Roboto', sans-serif"],
-        ["Open Sans", "'Open Sans', sans-serif"],
-        ["Lato", "'Lato', sans-serif"],
-        ["Montserrat", "'Montserrat', sans-serif"],
-        ["Poppins", "'Poppins', sans-serif"],
-        ["Raleway", "'Raleway', sans-serif"],
-        ["Nunito", "'Nunito', sans-serif"],
-      ]],
-      ["Serif (élégantes)", [
-        ["Merriweather", "'Merriweather', serif"],
-        ["Playfair Display", "'Playfair Display', serif"],
-        ["Lora", "'Lora', serif"],
-        ["PT Serif", "'PT Serif', serif"],
-      ]],
-      ["Titres / Impact", [
-        ["Oswald", "'Oswald', sans-serif"],
-        ["Bebas Neue", "'Bebas Neue', sans-serif"],
-      ]],
-      ["Manuscrite", [
-        ["Dancing Script", "'Dancing Script', cursive"],
-      ]],
-      ["Monospace", [
-        ["Roboto Mono", "'Roboto Mono', monospace"],
-      ]],
-      ["Système (Word)", [
+      ["Système (sans empattements)", [
         ["Arial", "Arial, sans-serif"],
-        ["Calibri", "Calibri, sans-serif"],
         ["Helvetica", "Helvetica, Arial, sans-serif"],
         ["Verdana", "Verdana, sans-serif"],
         ["Tahoma", "Tahoma, sans-serif"],
         ["Trebuchet MS", "'Trebuchet MS', sans-serif"],
-        ["Times New Roman", "'Times New Roman', serif"],
-        ["Cambria", "Cambria, serif"],
-        ["Georgia", "Georgia, serif"],
-        ["Garamond", "Garamond, serif"],
-        ["Palatino", "'Palatino Linotype', Palatino, serif"],
-        ["Book Antiqua", "'Book Antiqua', serif"],
-        ["Century Gothic", "'Century Gothic', sans-serif"],
-        ["Courier New", "'Courier New', monospace"],
-        ["Comic Sans MS", "'Comic Sans MS', cursive"],
-        ["Impact", "Impact, sans-serif"],
       ]],
     ];
     var opts = '<option value="">Police…</option>';

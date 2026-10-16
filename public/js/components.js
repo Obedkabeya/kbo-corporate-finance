@@ -10,7 +10,6 @@
   // Un seul compartiment : la finance des marchés.
   const links = [
     { href: "ecole.html", label: "L'école", key: "ecole" },
-    { href: "programme.html", label: "Le programme", key: "programme" },
     { href: "admission.html", label: "Admission", key: "admission" },
     { href: "publications.html", label: "Publications", key: "publications" },
     { href: "contact.html", label: "Contact", key: "contact" },
@@ -58,7 +57,6 @@
           </div>
           <div><h4>L'école</h4><ul>
             <li><a href="ecole.html">Notre approche</a></li>
-            <li><a href="programme.html">Le programme</a></li>
             <li><a href="admission.html">Admission</a></li>
             <li><a href="publications.html">Publications</a></li>
           </ul></div>
@@ -177,8 +175,9 @@
       else { a.style.display = "none"; }
     });
     if (s.email) {
-      document.querySelectorAll("[data-email-link]").forEach(a => { a.href = "mailto:" + s.email; });
-      document.querySelectorAll("[data-email-text]").forEach(el => { el.textContent = s.email; });
+      document.querySelectorAll("[data-email-link]").forEach(a => { a.href = "mailto:" + String(s.email).trim().toLowerCase(); });
+      // L'adresse s'affiche comme une information de contact, toujours en minuscules.
+      document.querySelectorAll("[data-email-text]").forEach(el => { el.textContent = String(s.email).trim().toLowerCase(); el.classList.add("mail"); });
     }
     // WhatsApp : numéro international sans « + » ni espaces (ex. 22990112233).
     const waRaw = (s.whatsapp || (s.social && s.social.whatsapp) || "").toString();

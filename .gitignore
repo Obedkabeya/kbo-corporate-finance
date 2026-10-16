@@ -19,6 +19,8 @@ _pages_en_sommeil/
 # Documents de travail internes (non destinés au public).
 CAHIER_DES_CHARGES_SITE_KBO.md
 MIGRATION_HOSTINGER.md
+AUDIT_SITE_KBO.md
+CORRECTIONS_SITE_KBO_ETAPE1.md
 
 # Secrets éventuels : ils passent par les variables d'environnement Railway.
 .env

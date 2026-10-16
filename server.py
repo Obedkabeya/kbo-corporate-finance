@@ -30,12 +30,16 @@ Envoi d'e-mail (optionnel, pour recevoir les messages du formulaire) :
 
 import base64
 import hashlib
+import hmac
 import json
 import os
 import re
+import secrets
 import smtplib
 import socket
 import ssl
+import threading
+import time
 import uuid
 import urllib.request
 import urllib.error
@@ -71,6 +75,19 @@ SUBSCRIBERS_FILE = os.path.join(DATA_DIR, "subscribers.json") # accès accordés
 PAYCFG_FILE = os.path.join(DATA_DIR, "pay.json")             # clés FedaPay + Discord (JAMAIS sur GitHub)
 AUTH_FILE = os.path.join(DATA_DIR, "auth.json")            # mot de passe admin (haché)
 SESSIONS_FILE = os.path.join(DATA_DIR, "sessions.json")   # sessions d'authentification (rôle admin)
+
+# Pages déplacées : redirection permanente (301), pour que les anciens liens
+# partagés continuent de fonctionner. Le programme est désormais présenté
+# en tête de la page Admission.
+MOVED_PAGES = {
+    "/programme": "/admission.html#parcours",
+    "/parcours-avance": "/admission.html?parcours=finance#parcours",
+    "/parcours-fondamentaux": "/admission.html?parcours=trading#parcours",
+    "/formation": "/admission.html#parcours",
+    "/formation-finance": "/admission.html?parcours=finance#parcours",
+    "/formation-trading": "/admission.html?parcours=trading#parcours",
+    "/professionnel": "/admission.html#parcours",
+}
 
 SESSION_COOKIE = "kbo_session"
 SESSION_MAX_AGE = 30 * 24 * 3600  # 30 jours
@@ -384,9 +401,9 @@ def _pay_cfg():
 
 # Prix « du site » qu'un lien de paiement peut suivre automatiquement.
 PRICE_KEYS = {
-    "priceTradingMonth": "Fondamentaux des marchés — mensuel",
-    "priceTradingYear": "Fondamentaux des marchés — annuel",
-    "priceFinance": "Finance des marchés avancée",
+    "priceTradingMonth": "Trading institutionnel — mensuel",
+    "priceTradingYear": "Trading institutionnel — annuel",
+    "priceFinance": "Finance des marchés",
 }
 
 
@@ -683,8 +700,20 @@ def _drain(rfile, length):
 
 
 # ----------------------------- auth (mot de passe) -----------------------------
+# Le mot de passe n'est jamais stocké : seule son empreinte PBKDF2 (lente à
+# calculer, donc très difficile à deviner par essais) est enregistrée.
+PW_ALGO = "pbkdf2_sha256"
+PW_ITERATIONS = 600_000
+PW_MIN_LEN = 10
+
+
 def _hash_pw(pw, salt):
+    """Ancienne empreinte (SHA-256 simple), gardée pour lire les anciens mots de passe."""
     return hashlib.sha256((salt + ":" + pw).encode("utf-8")).hexdigest()
+
+
+def _pbkdf2(pw, salt, iterations):
+    return hashlib.pbkdf2_hmac("sha256", pw.encode("utf-8"), salt.encode("utf-8"), iterations).hex()
 
 
 def _check_password(pw):
@@ -693,13 +722,83 @@ def _check_password(pw):
         return False
     auth = _read_json(AUTH_FILE, None)
     if isinstance(auth, dict) and auth.get("hash") and auth.get("salt"):
-        return _hash_pw(pw, auth["salt"]) == auth["hash"]
-    return pw == ADMIN_PASSWORD  # aucun mot de passe personnalisé → valeur par défaut/env
+        if auth.get("algo") == PW_ALGO:
+            calc = _pbkdf2(pw, auth["salt"], int(auth.get("iterations") or PW_ITERATIONS))
+            return hmac.compare_digest(calc, auth["hash"])
+        if hmac.compare_digest(_hash_pw(pw, auth["salt"]), auth["hash"]):
+            _set_password(pw)  # ancienne empreinte → remplacée par une empreinte solide
+            return True
+        return False
+    return hmac.compare_digest(pw, ADMIN_PASSWORD)  # aucun mot de passe personnalisé → valeur par défaut/env
 
 
 def _set_password(pw):
-    salt = uuid.uuid4().hex
-    _write_json(AUTH_FILE, {"salt": salt, "hash": _hash_pw(pw, salt)})
+    salt = secrets.token_hex(16)
+    _write_json(AUTH_FILE, {"algo": PW_ALGO, "iterations": PW_ITERATIONS, "salt": salt,
+                            "hash": _pbkdf2(pw, salt, PW_ITERATIONS),
+                            "changed": datetime.utcnow().isoformat() + "Z"})
+
+
+def _password_problem(pw):
+    """Message d'erreur si le mot de passe est trop faible, sinon None."""
+    if len(pw) < PW_MIN_LEN:
+        return "Le mot de passe doit faire au moins %d caractères." % PW_MIN_LEN
+    if pw.strip() != pw:
+        return "Le mot de passe ne doit pas commencer ni finir par une espace."
+    return None
+
+
+# Limite des essais : au-delà, on bloque un moment (protection contre les robots
+# qui essaient des milliers de mots de passe). Gardé en mémoire uniquement.
+_ATTEMPTS = {}
+_ATTEMPTS_LOCK = threading.Lock()
+
+
+def _too_many(bucket, limit, window):
+    """True si `bucket` a déjà atteint `limit` essais pendant les `window` dernières secondes."""
+    now = time.time()
+    with _ATTEMPTS_LOCK:
+        hits = [t for t in _ATTEMPTS.get(bucket, []) if now - t < window]
+        _ATTEMPTS[bucket] = hits
+        return len(hits) >= limit
+
+
+def _note_attempt(bucket):
+    with _ATTEMPTS_LOCK:
+        _ATTEMPTS.setdefault(bucket, []).append(time.time())
+
+
+# Lien « Mot de passe oublié » : valable 30 minutes, une seule fois. Seule
+# l'empreinte du jeton est enregistrée, jamais le jeton lui-même.
+RESET_FILE = os.path.join(DATA_DIR, "adminreset.json")
+RESET_MAX_AGE = 30 * 60
+
+
+def _new_reset_token():
+    token = secrets.token_urlsafe(32)
+    _write_json(RESET_FILE, {"hash": hashlib.sha256(token.encode()).hexdigest(),
+                             "exp": time.time() + RESET_MAX_AGE})
+    return token
+
+
+def _use_reset_token(token):
+    """True si le jeton est valide ; il est alors effacé (usage unique)."""
+    rec = _read_json(RESET_FILE, {})
+    if not (token and isinstance(rec, dict) and rec.get("hash")):
+        return False
+    if time.time() > float(rec.get("exp") or 0):
+        _write_json(RESET_FILE, {})
+        return False
+    if not hmac.compare_digest(hashlib.sha256(token.encode()).hexdigest(), rec["hash"]):
+        return False
+    _write_json(RESET_FILE, {})
+    return True
+
+
+def _admin_email():
+    """Adresse qui reçoit le lien « Mot de passe oublié »."""
+    return (os.environ.get("KBO_ADMIN_EMAIL", "").strip()
+            or str(_get_settings().get("email") or "").strip()).lower()
 
 
 # ----------------------------- sessions (rôles) -----------------------------
@@ -738,6 +837,12 @@ def _destroy_session(token):
     if token in sessions:
         del sessions[token]
         _write_json(SESSIONS_FILE, sessions)
+
+
+def _destroy_all_sessions(keep=None):
+    """Déconnecte tous les appareils (sauf éventuellement la session `keep`)."""
+    sessions = _load_sessions()
+    _write_json(SESSIONS_FILE, {t: v for t, v in sessions.items() if keep and t == keep})
 
 
 # ============================================================
@@ -1041,14 +1146,18 @@ class Handler(BaseHTTPRequestHandler):
         return None
 
     def _role(self):
-        """Rôle de la requête : 'admin' si session valide (ou en-tête mot de passe
-        pour les outils/API), sinon 'visitor'."""
+        """Rôle de la requête : 'admin' si session valide, sinon 'visitor'."""
         role = _session_role(self._get_cookie(SESSION_COOKIE))
         if role == "admin":
             return "admin"
-        if _check_password(self.headers.get("X-Admin-Password", "")):
-            return "admin"
         return "visitor"
+
+    def _client_ip(self):
+        """Adresse du visiteur. Derrière Nginx (connexion locale), on lit X-Real-IP."""
+        ip = self.client_address[0] if self.client_address else ""
+        if ip in ("127.0.0.1", "::1"):
+            ip = (self.headers.get("X-Real-IP") or ip).strip()
+        return ip
 
     def _is_admin(self):
         return self._role() == "admin"
@@ -1065,6 +1174,9 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path.startswith("/api/"):
             return self._api_get(path)
+        moved = MOVED_PAGES.get(path[:-5] if path.endswith(".html") else path)
+        if moved:
+            return self._redirect(moved, permanent=True)
         return self._serve_static(path)
 
     def do_POST(self):
@@ -1224,6 +1336,12 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/api/logout":
             return self._logout()
+
+        if path == "/api/admin/forgot":
+            return self._forgot_password()
+
+        if path == "/api/admin/reset":
+            return self._reset_password()
 
         if path == "/api/articles":
             return self._create_article()
@@ -1397,8 +1515,8 @@ class Handler(BaseHTTPRequestHandler):
         return self._send_json({"ok": True}, 201)
 
     # ================= PAIEMENT =================
-    def _redirect(self, url):
-        self.send_response(302)
+    def _redirect(self, url, permanent=False):
+        self.send_response(301 if permanent else 302)
         self.send_header("Location", url)
         self.send_header("Content-Length", "0")
         self.end_headers()
@@ -1782,11 +1900,62 @@ class Handler(BaseHTTPRequestHandler):
     def _login(self):
         """Authentifie le propriétaire et ouvre une session (cookie HttpOnly)."""
         data = self._read_body()
+        bucket = "login:" + self._client_ip()
+        # 5 erreurs par adresse en 15 min, et 30 au total : au-delà, on bloque.
+        if _too_many(bucket, 5, 900) or _too_many("login:*", 30, 900):
+            return self._send_json({"error": "Trop d'essais. Réessayez dans 15 minutes."}, 429)
         if not _check_password(str(data.get("password") or "")):
+            _note_attempt(bucket)
+            _note_attempt("login:*")
             return self._send_json({"error": "Mot de passe incorrect."}, 401)
         token = _new_session("admin")
         cookie = self._set_cookie(SESSION_COOKIE, token, SESSION_MAX_AGE)
         return self._send_json({"ok": True, "role": "admin"}, cookies=[cookie])
+
+    def _forgot_password(self):
+        """« Mot de passe oublié » : envoie un lien à usage unique à l'adresse
+        de l'administrateur. Rien n'est révélé au visiteur sur cette adresse."""
+        self._read_body()
+        if _too_many("forgot", 3, 3600):
+            return self._send_json({"error": "Un lien a déjà été demandé récemment. Réessayez dans une heure."}, 429)
+        _note_attempt("forgot")
+        to = _admin_email()
+        if not to or not _get_mail()["active"]:
+            return self._send_json({"ok": False, "error":
+                "L'envoi d'e-mails n'est pas encore activé sur le site. "
+                "La réinitialisation se fait alors depuis le serveur."}, 503)
+        token = _new_reset_token()
+        base = os.environ.get("KBO_PUBLIC_URL", "").strip().rstrip("/") or self._public_base()
+        link = "%s/admin.html#reinitialiser=%s" % (base, token)
+        body = ("Bonjour,\n\n"
+                "Une demande de nouveau mot de passe a été faite pour l'administration du site "
+                "KBO Corporate Finance.\n\n"
+                "Pour choisir un nouveau mot de passe, ouvrez ce lien (valable 30 minutes, une seule fois) :\n"
+                "%s\n\n"
+                "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail : "
+                "votre mot de passe actuel reste valable.\n" % link)
+        ok, _detail = _send_email(to, "KBO — Nouveau mot de passe d'administration", body)
+        if not ok:
+            return self._send_json({"ok": False, "error": "L'e-mail n'a pas pu être envoyé. Réessayez plus tard."}, 502)
+        return self._send_json({"ok": True, "message":
+            "Un lien vient d'être envoyé à l'adresse de l'administrateur. Il est valable 30 minutes."})
+
+    def _reset_password(self):
+        """Choix du nouveau mot de passe à partir du lien reçu par e-mail."""
+        data = self._read_body()
+        bucket = "reset:" + self._client_ip()
+        if _too_many(bucket, 5, 900):
+            return self._send_json({"error": "Trop d'essais. Réessayez dans 15 minutes."}, 429)
+        new = str(data.get("new") or "")
+        problem = _password_problem(new)
+        if problem:
+            return self._send_json({"error": problem}, 400)
+        if not _use_reset_token(str(data.get("token") or "")):
+            _note_attempt(bucket)
+            return self._send_json({"error": "Ce lien n'est plus valable. Demandez-en un nouveau."}, 400)
+        _set_password(new)
+        _destroy_all_sessions()
+        return self._send_json({"ok": True})
 
     def _logout(self):
         _destroy_session(self._get_cookie(SESSION_COOKIE))
@@ -1797,10 +1966,13 @@ class Handler(BaseHTTPRequestHandler):
         if not self._is_admin():
             return self._send_json({"error": "Non autorisé"}, 401)
         data = self._read_body()
-        new = str(data.get("new") or "").strip()
-        if len(new) < 4:
-            return self._send_json({"error": "Le nouveau mot de passe doit faire au moins 4 caractères."}, 400)
+        new = str(data.get("new") or "")
+        problem = _password_problem(new)
+        if problem:
+            return self._send_json({"error": problem}, 400)
         _set_password(new)
+        # Les autres appareils connectés sont déconnectés ; celui-ci reste connecté.
+        _destroy_all_sessions(keep=self._get_cookie(SESSION_COOKIE))
         return self._send_json({"ok": True})
 
     def _send_test_email(self):
@@ -2361,9 +2533,10 @@ def main():
           else "fichiers JSON locaux (dossier data/)"))
     print("  Site       : http://localhost:%d" % PORT)
     print("  Admin      : http://localhost:%d/admin.html  (tableau de bord complet)" % PORT)
-    _pw_custom = os.path.exists(AUTH_FILE)
-    print("  Mot de passe admin : %s" % ("(personnalisé dans le tableau de bord)" if _pw_custom
-          else (os.environ.get("ADMIN_PASSWORD") or "kbo-admin")))
+    # Le mot de passe n'est jamais écrit dans le journal.
+    _pw_custom = isinstance(_read_json(AUTH_FILE, None), dict) and bool(_read_json(AUTH_FILE, {}).get("hash"))
+    print("  Mot de passe admin : %s" % ("personnalisé (empreinte enregistrée)" if _pw_custom
+          else "valeur initiale (à changer dans le tableau de bord)"))
     _mail = _get_mail()
     print("  E-mail (formulaire): %s" % ("actif via %s" % _mail["provider"] if _mail["active"]
           else "non configuré (ajoutez BREVO_API_KEY, ou SENDGRID_API_KEY, ou les variables SMTP)"))

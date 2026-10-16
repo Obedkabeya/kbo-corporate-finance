@@ -23,6 +23,6 @@
     <circle cx="240" cy="250" r="86" fill="url(#pfig)"/>
     <circle cx="240" cy="250" r="86" fill="none" stroke="#7ea6e8" stroke-width="1.5" opacity="0.5"/>
   </g>
-  <text x="240" y="560" text-anchor="middle" font-family="Georgia, serif" font-size="26" fill="#dfe6f2" letter-spacing="3">OBED KABEYA</text>
+  <text x="240" y="560" text-anchor="middle" font-family="'Inter Tight', Inter, Helvetica, Arial, sans-serif" font-weight="800" font-size="26" fill="#dfe6f2" letter-spacing="3">OBED KABEYA</text>
   <text x="240" y="588" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" fill="#7ea6e8" letter-spacing="4">BANQUIER DE MARCHÉ · TRADER</text>
 </svg>
