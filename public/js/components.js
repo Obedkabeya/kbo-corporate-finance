@@ -71,7 +71,7 @@
             <li><a href="confidentialite.html">Confidentialité</a></li>
           </ul></div>
           <div><h4>Contact</h4><ul>
-            <li><a href="contact.html" data-wa-link data-wa-msg="Bonjour, je vous contacte depuis le site de KBO Corporate Finance.">WhatsApp</a></li>
+            <li><a href="contact.html" data-wa-link data-wa-msg="Bonjour, je souhaite des informations sur les formations KBO.">WhatsApp</a></li>
             <li><a href="#" data-email-link data-email-text>E-mail</a></li>
             <li><a href="contact.html">Formulaire de contact</a></li>
           </ul></div>
@@ -188,7 +188,7 @@
     const waNum = waRaw.replace(/[^\d]/g, "");
     document.querySelectorAll("[data-wa-link]").forEach(a => {
       if (waNum) {
-        const msg = a.getAttribute("data-wa-msg") || "Bonjour, je vous contacte depuis le site KBO Corporate Finance.";
+        const msg = a.getAttribute("data-wa-msg") || "Bonjour, je souhaite des informations sur les formations KBO.";
         a.href = "https://wa.me/" + waNum + "?text=" + encodeURIComponent(msg);
         a.target = "_blank"; a.rel = "noopener";
       } else {
