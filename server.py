@@ -1251,6 +1251,8 @@ def _discord_apply(sub, reason="Accès KBO"):
             _sub_save(sub)
         _discord_log("%s rôle « %s » → %s (%s)" % ("Ajout du" if ok else "ÉCHEC ajout du", sub.get("formation"), qui, code))
         return "rôle donné" if ok else "échec (%s)" % code
+    if uid in _membres_proteges():
+        return "membre protégé (membre historique) : rien n'est retiré"
     if sub.get("roleManuel") or not sub.get("roleDonneParRobot"):
         return "rôle laissé en place (non donné par le robot)"
     # Un autre accès actif du même élève pour la même formation garde le rôle.
@@ -1264,7 +1266,36 @@ def _discord_apply(sub, reason="Accès KBO"):
         sub["roleDonneParRobot"] = False
         _sub_save(sub)
     _discord_log("%s rôle « %s » → %s (%s)" % ("Retrait du" if ok else "ÉCHEC retrait du", sub.get("formation"), qui, code))
+    if ok and _discord_expulser_si_besoin(sub):
+        return "rôle retiré et élève sorti du serveur"
     return "rôle retiré" if ok else "échec (%s)" % code
+
+
+def _membres_proteges():
+    """Membres présents avant le système de paiement, ou invités par Obed : jamais touchés."""
+    cfg = _read_json(DISCORD_FILE, {})
+    return set((cfg.get("membres_proteges") or {}).keys()) if isinstance(cfg, dict) else set()
+
+
+def _discord_expulser_si_besoin(sub):
+    """Révocation complète : l'élève sort du serveur, mais SEULEMENT si le robot l'y a
+    lui-même fait entrer par le site, qu'il n'est pas protégé, qu'il n'a plus aucun
+    accès actif et qu'aucun autre rôle ne lui a été donné à la main."""
+    c = _discord_cfg()
+    uid = sub.get("discordId")
+    if not (uid and sub.get("ajouteParRobot")) or uid in _membres_proteges():
+        return False
+    if any(o.get("discordId") == uid and _sub_active(o) for o in _subs()):
+        return False
+    st, member = _discord_req("GET", "/guilds/%s/members/%s" % (c["guild_id"], uid))
+    if st != 200 or not isinstance(member, dict):
+        return False
+    if member.get("roles"):              # un rôle donné à la main par Obed : on ne l'expulse pas
+        return False
+    code, _ = _discord_req("DELETE", "/guilds/%s/members/%s" % (c["guild_id"], uid), reason="Accès terminé (paiement)")
+    ok = code in (200, 204)
+    _discord_log("%s %s du serveur (accès terminé)" % ("Sortie de" if ok else "ÉCHEC sortie de", sub.get("discordName") or uid))
+    return ok
 
 
 def _subs():
