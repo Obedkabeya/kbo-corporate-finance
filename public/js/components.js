@@ -45,6 +45,7 @@
     youtube: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23 12s0-3.2-.4-4.7a2.5 2.5 0 0 0-1.8-1.8C19.3 5 12 5 12 5s-7.3 0-8.8.5A2.5 2.5 0 0 0 1.4 7.3C1 8.8 1 12 1 12s0 3.2.4 4.7a2.5 2.5 0 0 0 1.8 1.8C4.7 19 12 19 12 19s7.3 0 8.8-.5a2.5 2.5 0 0 0 1.8-1.8C23 15.2 23 12 23 12zM9.8 15.3V8.7l5.7 3.3z"/></svg>',
     facebook: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0 0 22 12z"/></svg>',
     instagram: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" stroke="none"/></svg>',
+    tiktok: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 3c.3 2.3 1.6 3.9 3.9 4.1v3.1a7.7 7.7 0 0 1-3.8-1.2v6.4c0 3.5-2.5 6.1-6 6.1a5.9 5.9 0 0 1-6-6c0-3.6 3-6.3 6.7-5.9v3.3a2.8 2.8 0 0 0-3.5 2.7 2.8 2.8 0 0 0 2.8 2.8c1.7 0 2.9-1.2 2.9-3.3V3z"/></svg>',
   };
   const socialAnchor = (key, label) =>
     `<a href="#" data-social="${key}" aria-label="${label}" target="_blank" rel="noopener" style="display:none">${ic[key]}</a>`;
@@ -56,7 +57,7 @@
           <div>
             ${logo()}
             <p class="about" data-text="footerTagline">École de finance des marchés. Cotonou, Bénin.</p>
-            <div class="social">${socialAnchor("linkedin", "LinkedIn")}${socialAnchor("x", "X")}${socialAnchor("youtube", "YouTube")}${socialAnchor("facebook", "Facebook")}${socialAnchor("instagram", "Instagram")}</div>
+            <div class="social">${socialAnchor("linkedin", "LinkedIn")}${socialAnchor("x", "X")}${socialAnchor("youtube", "YouTube")}${socialAnchor("facebook", "Facebook")}${socialAnchor("instagram", "Instagram")}${socialAnchor("tiktok", "TikTok")}</div>
           </div>
           <div><h4>L'école</h4><ul>
             <li><a href="ecole.html">Notre approche</a></li>

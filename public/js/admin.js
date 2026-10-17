@@ -5,7 +5,7 @@
 
   const loginPane = $("loginPane"), dashboard = $("dashboard");
   const loginForm = $("loginForm"), loginMsg = $("loginMsg");
-  const SOCIAL = ["linkedin", "x", "youtube", "facebook", "instagram"];
+  const SOCIAL = ["linkedin", "x", "youtube", "facebook", "instagram", "tiktok"];
 
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmt = (iso) => { try { return new Date(iso).toLocaleDateString("fr-FR", { day: "2-digit", month: "long", year: "numeric" }); } catch { return iso; } };

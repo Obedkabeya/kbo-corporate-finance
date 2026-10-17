@@ -295,17 +295,19 @@ DEFAULT_TEXTS = {
 
 # Réglages par défaut du site (modifiables via le tableau de bord /admin.html).
 DEFAULT_SETTINGS = {
-    "email": "Obedkabeya1996@gmail.com",
+    "email": "obedkabeya1996@gmail.com",
     "whatsapp": "",   # numéro international sans « + » (ex. 22990112233) — widget WhatsApp
     "theme": {},      # surcharges de couleurs (design) : primaire, accent, texte, fond, fonce
     "presentation": DEFAULT_TEXTS["presentation"],
     "photo": "images/portrait.svg",
+    # Liens vides par défaut : une icône n'apparaît que si son lien est rempli.
     "social": {
-        "linkedin": "https://www.linkedin.com",
-        "x": "https://x.com",
-        "youtube": "https://youtube.com",
+        "linkedin": "",
+        "x": "",
+        "youtube": "",
         "facebook": "",
         "instagram": "",
+        "tiktok": "",
     },
     "texts": dict(DEFAULT_TEXTS),
     "images": {
