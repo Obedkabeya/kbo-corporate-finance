@@ -46,7 +46,7 @@ import urllib.error
 from email.message import EmailMessage
 from datetime import datetime, date, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(ROOT, "public")
@@ -1131,6 +1131,194 @@ def _store_upload(rel_path, data, mime, disk_path):
 
 
 # ----------------------------- request handler -----------------------------
+# ============================================================
+#  ACCÈS DES ÉLÈVES ET DISCORD
+#  Paiement confirmé (Lemon Squeezy ou crypto, par notification signée)
+#  → accès ouvert → l'élève relie son Discord en un clic → rôle donné.
+#  Fin d'accès (abonnement non renouvelé, remboursement) → rôle retiré.
+#  Les clés sont dans /etc/kbo/kbo.env (jamais dans le code ni sur GitHub).
+# ============================================================
+DISCORD_API = "https://discord.com/api/v10"
+DISCORD_FILE = os.path.join(DATA_DIR, "discord.json")   # serveur, rôles par formation, journal
+DISCORD_UA = "KBO-Site (https://kbo-corporate-finance, 1.0)"
+
+
+def _discord_cfg():
+    cfg = _read_json(DISCORD_FILE, {})
+    if not isinstance(cfg, dict):
+        cfg = {}
+    env = os.environ.get
+    return {
+        "client_id": env("DISCORD_CLIENT_ID", "").strip(),
+        "client_secret": env("DISCORD_CLIENT_SECRET", "").strip(),
+        "bot_token": env("DISCORD_BOT_TOKEN", "").strip(),
+        "guild_id": (env("DISCORD_GUILD_ID", "").strip() or str(cfg.get("guild_id") or "")),
+        "roles": cfg.get("roles") if isinstance(cfg.get("roles"), dict) else {},
+        "configured": bool(env("DISCORD_CLIENT_ID") and env("DISCORD_CLIENT_SECRET") and env("DISCORD_BOT_TOKEN")),
+    }
+
+
+def _discord_log(msg):
+    cfg = _read_json(DISCORD_FILE, {})
+    if not isinstance(cfg, dict):
+        cfg = {}
+    log = cfg.get("journal") if isinstance(cfg.get("journal"), list) else []
+    log.insert(0, {"date": datetime.utcnow().isoformat(timespec="seconds") + "Z", "message": msg})
+    cfg["journal"] = log[:200]
+    _write_json(DISCORD_FILE, cfg)
+    print("  [Discord] " + msg, flush=True)
+
+
+def _discord_req(method, path, body=None, bearer=None, form=None, reason=None):
+    """Appel à l'API Discord. Renvoie (code HTTP, réponse décodée ou texte)."""
+    c = _discord_cfg()
+    headers = {"User-Agent": DISCORD_UA}
+    if bearer:
+        headers["Authorization"] = "Bearer " + bearer
+    elif c["bot_token"]:
+        headers["Authorization"] = "Bot " + c["bot_token"]
+    data = None
+    if form is not None:
+        from urllib.parse import urlencode
+        data = urlencode(form).encode()
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
+    elif body is not None:
+        data = json.dumps(body).encode()
+        headers["Content-Type"] = "application/json"
+    if reason:
+        from urllib.parse import quote
+        headers["X-Audit-Log-Reason"] = quote(reason)
+    req = urllib.request.Request(DISCORD_API + path, data=data, method=method, headers=headers)
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            raw = r.read()
+            return r.status, (json.loads(raw) if raw else None)
+    except urllib.error.HTTPError as e:
+        raw = e.read()
+        try:
+            return e.code, json.loads(raw)
+        except ValueError:
+            return e.code, raw.decode("utf-8", "replace")[:300]
+    except Exception as e:  # noqa: BLE001
+        return 0, str(e)
+
+
+def _formation_key(label):
+    """« Trading institutionnel — mensuel » → « trading » ; « Finance des marchés » → « finance »."""
+    t = (label or "").lower()
+    if "trading" in t:
+        return "trading"
+    if "finance" in t:
+        return "finance"
+    return ""
+
+
+def _sub_active(sub):
+    if sub.get("status") != "actif":
+        return False
+    exp = sub.get("expires")
+    return not exp or exp >= datetime.utcnow().date().isoformat()
+
+
+def _discord_apply(sub, reason="Accès KBO"):
+    """Donne ou retire le rôle Discord selon l'état de l'accès. Renvoie un message."""
+    c = _discord_cfg()
+    uid, role = sub.get("discordId"), c["roles"].get(sub.get("formationKey") or "")
+    if not (c["configured"] and c["guild_id"] and uid and role):
+        return "rien à faire (Discord non relié ou rôle inconnu)"
+    path = "/guilds/%s/members/%s/roles/%s" % (c["guild_id"], uid, role)
+    if _sub_active(sub):
+        code, _ = _discord_req("PUT", path, reason=reason)
+        ok = code in (200, 204)
+        _discord_log("%s rôle « %s » → %s (%s)" % ("Ajout du" if ok else "ÉCHEC ajout du", sub.get("formation"), sub.get("discordName") or uid, code))
+        return "rôle donné" if ok else "échec (%s)" % code
+    code, _ = _discord_req("DELETE", path, reason=reason)
+    ok = code in (200, 204, 404)
+    _discord_log("%s rôle « %s » → %s (%s)" % ("Retrait du" if ok else "ÉCHEC retrait du", sub.get("formation"), sub.get("discordName") or uid, code))
+    return "rôle retiré" if ok else "échec (%s)" % code
+
+
+def _subs():
+    subs = _read_json(SUBSCRIBERS_FILE, [])
+    return subs if isinstance(subs, list) else []
+
+
+def _sub_by(field, value):
+    for s in _subs():
+        if value and s.get(field) == value:
+            return s
+    return None
+
+
+def _sub_save(sub):
+    subs = _subs()
+    for i, s in enumerate(subs):
+        if s.get("id") == sub.get("id"):
+            subs[i] = sub
+            break
+    else:
+        subs.append(sub)
+    _write_json(SUBSCRIBERS_FILE, subs)
+
+
+def _acces_url(sub):
+    return (_public_url() or "") + "/acces.html?t=" + sub["acces"]
+
+
+def _sign(value):
+    key = (_discord_cfg()["client_secret"] or ADMIN_PASSWORD).encode()
+    return hmac.new(key, value.encode(), hashlib.sha256).hexdigest()[:32]
+
+
+def _acces_revoke(sub, reason):
+    if sub.get("status") == "actif":
+        sub["status"] = "retire"
+        sub["endedAt"] = datetime.utcnow().isoformat() + "Z"
+        sub["endReason"] = reason
+        _sub_save(sub)
+        return _discord_apply(sub, reason="Fin d'accès : " + reason)
+    return "déjà inactif"
+
+
+def _acces_nightly():
+    """Vérification de chaque nuit : accès expirés → rôle retiré ; accès actifs → rôle remis s'il manque."""
+    today = datetime.utcnow().date().isoformat()
+    done = []
+    for sub in _subs():
+        if sub.get("status") == "actif" and sub.get("expires") and sub["expires"] < today:
+            sub["status"] = "expire"
+            sub["endedAt"] = datetime.utcnow().isoformat() + "Z"
+            sub["endReason"] = "abonnement arrivé à échéance"
+            _sub_save(sub)
+            done.append("%s : expiré, %s" % (sub.get("email") or sub.get("nom"), _discord_apply(sub, "Abonnement expiré")))
+        elif _sub_active(sub) and sub.get("discordId"):
+            done.append("%s : %s" % (sub.get("email") or sub.get("nom"), _discord_apply(sub, "Vérification quotidienne")))
+    _discord_log("Vérification quotidienne : %d accès examinés" % len(done))
+    return done
+
+
+# ---------- Notifications de paiement (webhooks signés) ----------
+def _verify_lemonsqueezy(raw, signature):
+    secret = os.environ.get("LEMONSQUEEZY_WEBHOOK_SECRET", "").strip()
+    if not (secret and signature):
+        return False
+    calc = hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
+    return hmac.compare_digest(calc, signature.strip())
+
+
+def _verify_nowpayments(raw, signature):
+    secret = os.environ.get("NOWPAYMENTS_IPN_SECRET", "").strip()
+    if not (secret and signature):
+        return False
+    try:
+        body = json.loads(raw.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return False
+    canon = json.dumps(body, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
+    calc = hmac.new(secret.encode(), canon.encode("utf-8"), hashlib.sha512).hexdigest()
+    return hmac.compare_digest(calc, signature.strip())
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "KBO"      # on ne révèle pas la version exacte du serveur
 
@@ -1173,6 +1361,15 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Set-Cookie", c)
         self.end_headers()
         self.wfile.write(body)
+
+    def _read_raw(self, limit=1_000_000):
+        try:
+            length = int(self.headers.get("Content-Length", 0))
+        except ValueError:
+            length = 0
+        if length <= 0 or length > limit:
+            return b""
+        return self.rfile.read(length)
 
     def _read_body(self):
         try:
@@ -1225,6 +1422,10 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path.startswith("/api/"):
             return self._api_get(path)
+        if path == "/discord/connect":
+            return self._discord_connect()
+        if path == "/discord/callback":
+            return self._discord_callback()
         if path in HOME_PATHS:
             query = urlparse(self.path).query
             return self._redirect(HOME_TARGET + ("?" + query if query else ""))
@@ -1254,6 +1455,12 @@ class Handler(BaseHTTPRequestHandler):
 
     # ---- API: GET ----
     def _api_get(self, path):
+        if path == "/api/acces":
+            return self._acces_status()
+
+        if path == "/api/admin/discord":
+            return self._admin_discord()
+
         if path == "/api/me":
             return self._send_json({"role": self._role()})
 
@@ -1385,6 +1592,15 @@ class Handler(BaseHTTPRequestHandler):
 
     # ---- API: POST ----
     def _api_post(self, path):
+        if path == "/api/webhooks/lemonsqueezy":
+            return self._webhook_lemonsqueezy()
+
+        if path == "/api/webhooks/crypto":
+            return self._webhook_crypto()
+
+        if path == "/api/admin/acces":
+            return self._admin_acces_action()
+
         if path == "/api/login":
             return self._login()
 
@@ -1744,8 +1960,13 @@ class Handler(BaseHTTPRequestHandler):
               % (link["formation"], link["amount"], link["currency"]), flush=True)
         return self._send_json({"ok": True})
 
-    def _grant_access(self, token, link, method, ref):
-        """Marque le lien comme utilisé et enregistre l'accès (abonné)."""
+    def _grant_access(self, token, link, method, ref, extra=None):
+        """Ouvre l'accès après un paiement confirmé (une seule fois par référence).
+        Renvoie l'accès créé, ou celui déjà enregistré pour cette référence."""
+        if ref:
+            known = _sub_by("reference", ref)
+            if known:
+                return known
         links = _read_json(PAYLINKS_FILE, {})
         if token in links:
             links[token]["used"] = True
@@ -1755,31 +1976,233 @@ class Handler(BaseHTTPRequestHandler):
         cycle = link.get("cycle", "unique")
         expires = None
         if cycle == "mensuel":
-            expires = (now + timedelta(days=30)).date().isoformat()
+            expires = (now + timedelta(days=31)).date().isoformat()
         elif cycle == "annuel":
-            expires = (now + timedelta(days=365)).date().isoformat()
-        subs = _read_json(SUBSCRIBERS_FILE, [])
-        if not isinstance(subs, list):
-            subs = []
+            expires = (now + timedelta(days=366)).date().isoformat()
         g_amount, g_currency = _resolve_price(link)
-        subs.append({
+        email = (link.get("email") or "").strip().lower()
+        sub = {
             "id": uuid.uuid4().hex[:12],
-            "nom": link.get("nom", ""), "email": link.get("email", ""),
-            "formation": link.get("formation", ""), "cycle": cycle,
+            "acces": secrets.token_urlsafe(18),           # lien personnel de l'élève (page d'accès)
+            "paylink": token,
+            "nom": link.get("nom", ""), "email": email,
+            "formation": link.get("formation", ""), "formationKey": _formation_key(link.get("formation", "")),
+            "cycle": cycle,
             "amount": g_amount, "currency": g_currency,
             "method": method, "reference": ref,
             "paidAt": now.isoformat() + "Z", "expires": expires, "status": "actif",
-        })
-        _write_json(SUBSCRIBERS_FILE, subs)
-        # Notifier l'administrateur par e-mail (si configuré).
+        }
+        sub.update(extra or {})
+        # Élève déjà relié à Discord (accès précédent avec le même e-mail) : rôle donné tout de suite.
+        if email:
+            for old in _subs():
+                if old.get("email") == email and old.get("discordId"):
+                    sub["discordId"], sub["discordName"] = old["discordId"], old.get("discordName", "")
+                    break
+        _sub_save(sub)
+        if sub.get("discordId"):
+            _discord_apply(sub, "Paiement confirmé")
+        lien = _acces_url(sub)
         try:
             _send_email(_get_settings()["email"],
                         "Nouveau paiement — " + link.get("formation", ""),
-                        "Paiement %s confirmé.\nFormation : %s\nMontant : %s %s\nClient : %s <%s>\nCycle : %s"
-                        % (method, link.get("formation", ""), link.get("amount"), link.get("currency", ""),
-                           link.get("nom", "?"), link.get("email", "?"), cycle))
+                        "Paiement %s confirmé.\nFormation : %s\nMontant : %s %s\nClient : %s <%s>\nCycle : %s\nRéférence : %s"
+                        % (method, link.get("formation", ""), g_amount, g_currency,
+                           link.get("nom", "?"), email or "?", cycle, ref))
         except Exception:
             pass
+        if email:
+            try:
+                _send_email(email, "Votre accès KBO Corporate Finance est ouvert",
+                            "Bonjour %s,\n\nVotre paiement pour « %s » est confirmé. Merci de votre confiance.\n\n"
+                            "Dernière étape : reliez votre compte Discord pour rejoindre la formation. "
+                            "Un seul clic suffit, depuis votre page personnelle :\n%s\n\n"
+                            "Rappel : les marchés financiers comportent un risque de perte en capital. "
+                            "Nos formations ont une vocation pédagogique.\n\nL'équipe KBO Corporate Finance"
+                            % (link.get("nom") or "", link.get("formation", ""), lien))
+            except Exception:
+                pass
+        return sub
+
+    # ---------------- Accès élève et Discord ----------------
+    def _acces_status(self):
+        """Page d'accès de l'élève : état de son accès (sans données personnelles)."""
+        t = (parse_qs(urlparse(self.path).query).get("t") or [""])[0]
+        sub = _sub_by("acces", t) if t else None
+        if not sub:
+            return self._send_json({"error": "Lien d'accès inconnu."}, 404)
+        c = _discord_cfg()
+        return self._send_json({
+            "formation": sub.get("formation"), "actif": _sub_active(sub), "statut": sub.get("status"),
+            "expire": sub.get("expires"), "discord": bool(sub.get("discordId")),
+            "discordNom": sub.get("discordName") or "", "discordPret": c["configured"] and bool(c["guild_id"]),
+            "serveur": "https://discord.com/channels/" + c["guild_id"] if c["guild_id"] else "",
+        })
+
+    def _discord_redirect_uri(self):
+        return (_public_url() or self._public_base()) + "/discord/callback"
+
+    def _discord_connect(self):
+        t = (parse_qs(urlparse(self.path).query).get("t") or [""])[0]
+        sub = _sub_by("acces", t) if t else None
+        c = _discord_cfg()
+        if not sub or not _sub_active(sub):
+            return self._redirect("/acces.html?t=%s&discord=inactif" % t)
+        if not c["configured"]:
+            return self._redirect("/acces.html?t=%s&discord=indisponible" % t)
+        from urllib.parse import urlencode
+        q = urlencode({"client_id": c["client_id"], "redirect_uri": self._discord_redirect_uri(),
+                       "response_type": "code", "scope": "identify guilds.join",
+                       "state": t + "." + _sign(t), "prompt": "consent"})
+        return self._redirect("https://discord.com/oauth2/authorize?" + q)
+
+    def _discord_callback(self):
+        qs = parse_qs(urlparse(self.path).query)
+        state = (qs.get("state") or [""])[0]
+        t, _, sig = state.partition(".")
+        if not (t and sig and hmac.compare_digest(_sign(t), sig)):
+            return self._redirect("/acces.html?discord=erreur")
+        back = "/acces.html?t=" + t
+        sub = _sub_by("acces", t)
+        if not sub or not _sub_active(sub):
+            return self._redirect(back + "&discord=inactif")
+        if qs.get("error"):
+            return self._redirect(back + "&discord=refuse")
+        code = (qs.get("code") or [""])[0]
+        c = _discord_cfg()
+        st, tok = _discord_req("POST", "/oauth2/token", form={
+            "client_id": c["client_id"], "client_secret": c["client_secret"], "grant_type": "authorization_code",
+            "code": code, "redirect_uri": self._discord_redirect_uri()})
+        if st != 200 or not isinstance(tok, dict) or not tok.get("access_token"):
+            _discord_log("ÉCHEC échange du code Discord (%s) pour %s" % (st, sub.get("email")))
+            return self._redirect(back + "&discord=erreur")
+        st, me = _discord_req("GET", "/users/@me", bearer=tok["access_token"])
+        if st != 200 or not isinstance(me, dict):
+            return self._redirect(back + "&discord=erreur")
+        role = c["roles"].get(sub.get("formationKey") or "")
+        # Ajoute l'élève au serveur avec son rôle (ou, s'il y est déjà, lui donne le rôle).
+        st, _ = _discord_req("PUT", "/guilds/%s/members/%s" % (c["guild_id"], me["id"]),
+                             body={"access_token": tok["access_token"], "roles": [role] if role else []},
+                             reason="Élève KBO : " + (sub.get("formation") or ""))
+        sub["discordId"] = me["id"]
+        sub["discordName"] = me.get("global_name") or me.get("username") or ""
+        sub["discordLinkedAt"] = datetime.utcnow().isoformat() + "Z"
+        _sub_save(sub)
+        if st == 201:
+            _discord_log("Nouvel élève ajouté au serveur : %s (%s)" % (sub["discordName"], sub.get("formation")))
+        res = _discord_apply(sub, "Paiement confirmé")
+        return self._redirect(back + ("&discord=ok" if res in ("rôle donné", "rien à faire (Discord non relié ou rôle inconnu)") else "&discord=erreur"))
+
+    def _webhook_lemonsqueezy(self):
+        """Notification de Lemon Squeezy (carte bancaire), signée avec la clé du webhook."""
+        raw = self._read_raw()
+        if not _verify_lemonsqueezy(raw, self.headers.get("X-Signature", "")):
+            return self._send_json({"error": "signature invalide"}, 401)
+        try:
+            ev = json.loads(raw.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            return self._send_json({"error": "contenu invalide"}, 400)
+        meta, data = ev.get("meta") or {}, ev.get("data") or {}
+        name, attrs = meta.get("event_name", ""), data.get("attributes") or {}
+        t = str((meta.get("custom_data") or {}).get("t") or "")
+        links = _read_json(PAYLINKS_FILE, {})
+        result = "ignoré"
+        if name == "order_created" and attrs.get("status") == "paid":
+            link = links.get(t)
+            if link:
+                sub = self._grant_access(t, link, "carte (Lemon Squeezy)", "ls-order-%s" % data.get("id"),
+                                         {"lsOrder": str(data.get("id"))})
+                result = "accès ouvert : " + sub["id"]
+            else:
+                result = "lien de paiement inconnu"
+        elif name == "subscription_created":
+            sub = _sub_by("paylink", t)
+            if sub:
+                sub["lsSubscription"] = str(data.get("id"))
+                _sub_save(sub)
+                result = "abonnement relié"
+        elif name == "subscription_payment_success":
+            sub = _sub_by("lsSubscription", str(attrs.get("subscription_id") or ""))
+            if sub:
+                days = 366 if sub.get("cycle") == "annuel" else 31
+                sub["expires"] = (datetime.utcnow() + timedelta(days=days)).date().isoformat()
+                sub["status"] = "actif"
+                _sub_save(sub)
+                result = "renouvelé : " + _discord_apply(sub, "Abonnement renouvelé")
+        elif name in ("subscription_expired", "order_refunded", "subscription_payment_refunded"):
+            key = ("lsOrder", str(data.get("id"))) if name == "order_refunded" else \
+                  ("lsSubscription", str(attrs.get("subscription_id") or data.get("id")))
+            sub = _sub_by(*key)
+            if sub:
+                result = _acces_revoke(sub, "remboursement" if "refund" in name else "abonnement terminé")
+        elif name == "subscription_cancelled":
+            sub = _sub_by("lsSubscription", str(data.get("id")))
+            if sub and attrs.get("ends_at"):
+                sub["expires"] = str(attrs["ends_at"])[:10]      # l'accès reste ouvert jusqu'à la fin de la période payée
+                _sub_save(sub)
+                result = "résiliation enregistrée, fin le " + sub["expires"]
+        _discord_log("Lemon Squeezy « %s » : %s" % (name, result))
+        return self._send_json({"ok": True, "resultat": result})
+
+    def _webhook_crypto(self):
+        """Notification du service de paiement crypto (NOWPayments), signée (HMAC-SHA512)."""
+        raw = self._read_raw()
+        if not _verify_nowpayments(raw, self.headers.get("x-nowpayments-sig", "")):
+            return self._send_json({"error": "signature invalide"}, 401)
+        ev = json.loads(raw.decode("utf-8"))
+        status, t = ev.get("payment_status"), str(ev.get("order_id") or "")
+        ref = "np-%s" % ev.get("payment_id")
+        result = "ignoré (%s)" % status
+        if status == "finished":
+            link = _read_json(PAYLINKS_FILE, {}).get(t)
+            if link:
+                sub = self._grant_access(t, link, "crypto (%s)" % str(ev.get("pay_currency") or "").upper(), ref)
+                result = "accès ouvert : " + sub["id"]
+            else:
+                result = "lien de paiement inconnu"
+        elif status == "refunded":
+            sub = _sub_by("reference", ref)
+            if sub:
+                result = _acces_revoke(sub, "remboursement crypto")
+        _discord_log("Crypto « %s » : %s" % (status, result))
+        return self._send_json({"ok": True, "resultat": result})
+
+    def _admin_discord(self):
+        if not self._is_admin():
+            return self._send_json({"error": "Non autorisé"}, 401)
+        c = _discord_cfg()
+        info = {"configure": c["configured"], "serveur": c["guild_id"], "roles": c["roles"], "robot": None}
+        if c["configured"]:
+            st, me = _discord_req("GET", "/users/@me")
+            info["robot"] = me.get("username") if st == 200 and isinstance(me, dict) else "hors service (%s)" % st
+        cfg = _read_json(DISCORD_FILE, {})
+        info["journal"] = (cfg.get("journal") or [])[:30] if isinstance(cfg, dict) else []
+        info["acces"] = [{k: s.get(k) for k in ("id", "nom", "email", "formation", "status", "expires", "method",
+                                                   "discordName", "paidAt")} | {"actif": _sub_active(s), "lien": _acces_url(s) if s.get("acces") else ""}
+                         for s in _subs()]
+        return self._send_json(info)
+
+    def _admin_acces_action(self):
+        """Boutons manuels : retirer l'accès, rouvrir l'accès, revérifier le rôle."""
+        if not self._is_admin():
+            return self._send_json({"error": "Non autorisé"}, 401)
+        data = self._read_body() or {}
+        sub = _sub_by("id", str(data.get("id") or ""))
+        if not sub:
+            return self._send_json({"error": "Accès introuvable."}, 404)
+        action = data.get("action")
+        if action == "retirer":
+            return self._send_json({"ok": True, "resultat": _acces_revoke(sub, "retiré par l'administrateur")})
+        if action == "donner":
+            sub["status"] = "actif"
+            if sub.get("expires") and sub["expires"] < datetime.utcnow().date().isoformat():
+                days = 366 if sub.get("cycle") == "annuel" else 31
+                sub["expires"] = (datetime.utcnow() + timedelta(days=days)).date().isoformat()
+            _sub_save(sub)
+            return self._send_json({"ok": True, "resultat": _discord_apply(sub, "Accès donné par l'administrateur")})
+        if action == "verifier":
+            return self._send_json({"ok": True, "resultat": _discord_apply(sub, "Vérification manuelle")})
+        return self._send_json({"error": "Action inconnue."}, 400)
 
     def _remove_subscriber(self):
         if not self._is_admin():

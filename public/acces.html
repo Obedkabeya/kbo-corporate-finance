@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Votre accès — KBO Corporate Finance</title>
+  <meta name="description" content="Votre accès à la formation KBO Corporate Finance et à la communauté Discord." />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="assets/logo/favicon.ico" sizes="16x16 32x32 48x48" />
+  <link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png" />
+  <link rel="manifest" href="assets/logo/site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/marches.css" />
+</head>
+<body data-page="m-acces" data-nav="">
+  <div id="site-header"></div>
+  <main id="contenu">
+    <section class="page-head">
+      <div class="wrap">
+        <p class="eyebrow">Votre accès</p>
+        <h1 id="accesTitre">Votre formation</h1>
+        <p class="lead" id="accesIntro">Chargement de votre accès…</p>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="wrap narrow">
+        <div class="acces-card" id="accesCarte" hidden>
+          <dl class="offer__facts">
+            <div><dt>Formation</dt><dd id="accesFormation"></dd></div>
+            <div><dt>Accès</dt><dd id="accesEtat"></dd></div>
+            <div><dt>Discord</dt><dd id="accesDiscord"></dd></div>
+          </dl>
+          <p class="form-msg" id="accesMessage" role="status"></p>
+          <div class="acces-actions">
+            <a class="btn" id="accesConnecter" href="#" hidden>Connecter mon Discord <span class="arrow" aria-hidden="true">→</span></a>
+            <a class="btn" id="accesOuvrir" href="#" target="_blank" rel="noopener" hidden>Ouvrir le serveur Discord <span class="arrow" aria-hidden="true">→</span></a>
+          </div>
+          <p class="form-note" id="accesAide">Pas encore de compte Discord&nbsp;? Créez-le gratuitement sur discord.com (deux minutes), puis revenez sur cette page et cliquez sur «&nbsp;Connecter mon Discord&nbsp;».</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="js/components.js"></script>
+  <script src="js/acces.js"></script>
+</body>
+</html>

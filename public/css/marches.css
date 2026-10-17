@@ -720,3 +720,9 @@ body.is-admin .admin-only { display: revert !important; }
 .home-photo .site-header:not(.is-solid) .logo__img--clair{display:none}
 .home-photo .site-header:not(.is-solid) .logo__img--fonce{display:block}
 @media (max-width:980px){.logo .logo__img{height:36px}.site-footer .logo .logo__img--fonce{height:38px}}
+
+/* Page d'accès de l'élève */
+.acces-card{border-top:2px solid var(--navy);background:#fff;padding:28px 32px 32px}
+.acces-card .offer__facts{margin-top:0}
+.acces-actions{display:flex;gap:16px;flex-wrap:wrap;margin:22px 0 6px}
+@media (max-width:767px){.acces-card{padding:22px 20px 24px}.acces-actions .btn{width:100%}}
