@@ -1484,6 +1484,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._api_get(path)
         if path == "/discord/connect":
             return self._discord_connect()
+        if path == "/discord/invitation":
+            return self._discord_invitation()
         if path == "/discord/callback":
             return self._discord_callback()
         if path in HOME_PATHS:
@@ -2149,9 +2151,57 @@ class Handler(BaseHTTPRequestHandler):
                        "state": t + "." + _sign(t), "prompt": "consent"})
         return self._redirect("https://discord.com/oauth2/authorize?" + q)
 
+    def _discord_invitation(self):
+        """Lien spécial d'Obed pour ses invités : entrée sur le serveur avec « Membre historique »."""
+        code = (parse_qs(urlparse(self.path).query).get("code") or [""])[0]
+        cfg = _read_json(DISCORD_FILE, {}) or {}
+        c = _discord_cfg()
+        if not (code and cfg.get("code_invitation") and hmac.compare_digest(code, cfg["code_invitation"])):
+            return self._redirect("/invitation.html?etat=invalide")
+        if not c["configured"]:
+            return self._redirect("/invitation.html?etat=erreur")
+        from urllib.parse import urlencode
+        q = urlencode({"client_id": c["client_id"], "redirect_uri": self._discord_redirect_uri(),
+                       "response_type": "code", "scope": "identify guilds.join",
+                       "state": "inv." + _sign("inv:" + code), "prompt": "consent"})
+        return self._redirect("https://discord.com/oauth2/authorize?" + q)
+
+    def _discord_invitation_callback(self, sig, code):
+        cfg = _read_json(DISCORD_FILE, {}) or {}
+        inv = cfg.get("code_invitation") or ""
+        if not (inv and hmac.compare_digest(_sign("inv:" + inv), sig)):
+            return self._redirect("/invitation.html?etat=invalide")
+        c = _discord_cfg()
+        st, tok = _discord_req("POST", "/oauth2/token", form={
+            "client_id": c["client_id"], "client_secret": c["client_secret"], "grant_type": "authorization_code",
+            "code": code, "redirect_uri": self._discord_redirect_uri()})
+        if st != 200 or not isinstance(tok, dict) or not tok.get("access_token"):
+            return self._redirect("/invitation.html?etat=erreur")
+        st, me = _discord_req("GET", "/users/@me", bearer=tok["access_token"])
+        if st != 200 or not isinstance(me, dict):
+            return self._redirect("/invitation.html?etat=erreur")
+        hist = cfg.get("role_historique")
+        st, _ = _discord_req("PUT", "/guilds/%s/members/%s" % (c["guild_id"], me["id"]),
+                             body={"access_token": tok["access_token"], "roles": [hist] if hist else []},
+                             reason="Invité d'Obed (lien spécial)")
+        if st == 204 and hist:              # déjà membre : on lui donne simplement le rôle
+            _discord_req("PUT", "/guilds/%s/members/%s/roles/%s" % (c["guild_id"], me["id"], hist), reason="Invité d'Obed")
+        nom = me.get("global_name") or me.get("username") or me["id"]
+        cfg = _read_json(DISCORD_FILE, {}) or {}
+        prot = cfg.get("membres_proteges") or {}
+        prot[me["id"]] = nom
+        cfg["membres_proteges"] = prot
+        _write_json(DISCORD_FILE, cfg)
+        _discord_log("Invité d'Obed entré avec « Membre historique » : %s (protégé)" % nom)
+        return self._redirect("/invitation.html?etat=ok")
+
     def _discord_callback(self):
         qs = parse_qs(urlparse(self.path).query)
         state = (qs.get("state") or [""])[0]
+        if state.startswith("inv."):
+            if qs.get("error"):
+                return self._redirect("/invitation.html?etat=refuse")
+            return self._discord_invitation_callback(state[4:], (qs.get("code") or [""])[0])
         t, _, sig = state.partition(".")
         if not (t and sig and hmac.compare_digest(_sign(t), sig)):
             return self._redirect("/acces.html?discord=erreur")
@@ -2294,7 +2344,11 @@ class Handler(BaseHTTPRequestHandler):
         if not self._is_admin():
             return self._send_json({"error": "Non autorisé"}, 401)
         c = _discord_cfg()
-        info = {"configure": c["configured"], "serveur": c["guild_id"], "roles": c["roles"], "robot": None}
+        cfgd = _read_json(DISCORD_FILE, {}) or {}
+        info = {"configure": c["configured"], "serveur": c["guild_id"], "roles": c["roles"], "robot": None,
+                "lienInvitation": ((_public_url() or self._public_base()) + "/discord/invitation?code=" + cfgd["code_invitation"])
+                                  if cfgd.get("code_invitation") else "",
+                "membresProteges": len(cfgd.get("membres_proteges") or {})}
         if c["configured"]:
             st, me = _discord_req("GET", "/users/@me")
             info["robot"] = me.get("username") if st == 200 and isinstance(me, dict) else "hors service (%s)" % st
