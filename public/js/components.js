@@ -63,6 +63,7 @@
             <li><a href="ecole.html">Notre approche</a></li>
             <li><a href="admission.html">Admission</a></li>
             <li><a href="publications.html">Publications</a></li>
+            <li><a href="analyse-du-matin.html">L'analyse du matin</a></li>
           </ul></div>
           <div><h4>Informations</h4><ul>
             <li><a href="faq.html">Questions fréquentes</a></li>

@@ -69,9 +69,28 @@
         </div>
       </div>
     </section>
+    <section class="block analyse-bande" id="analyse-du-matin">
+      <div class="wrap narrow">
+        <p class="eyebrow">L'analyse du matin</p>
+        <h2 class="analyse-archives-titre">Recevez chaque matin l'analyse fondamentale KBO.</h2>
+        <p class="lead" style="margin:14px 0 6px">Gratuit, chaque matin de semaine : la lecture du jour, l'agenda à l'heure du Bénin et une notion expliquée simplement.</p>
+        <form class="analyse-form" data-source="ecole" novalidate>
+            <div class="fields">
+              <div class="field"><label for="ecole_prenom">Prénom</label><input id="ecole_prenom" name="prenom" type="text" autocomplete="given-name" maxlength="60" /></div>
+              <div class="field"><label for="ecole_email">Adresse e-mail <span class="req">*</span></label><input id="ecole_email" name="email" type="email" autocomplete="email" required maxlength="200" /></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn" type="submit">Recevoir l'analyse <span class="arrow" aria-hidden="true">→</span></button>
+              <span class="form-msg" role="status"></span>
+            </div>
+            <p class="form-note">Un e-mail de confirmation vous sera envoyé. Désinscription en un clic dans chaque envoi. Contenu éducatif, pas un conseil en investissement. Voir notre <a href="confidentialite.html">politique de confidentialité</a>.</p>
+          </form>
+      </div>
+    </section>
   </main>
   <div id="site-footer"></div>
   <script src="js/components.js"></script>
+  <script src="js/analyse.js" defer></script>
   <script src="js/visuel.js" defer></script>
 </body>
 </html>

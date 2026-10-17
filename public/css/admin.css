@@ -94,3 +94,7 @@
   .admin-tab { padding: 0.7em 0.7em; font-size: 0.82rem; }
   .admin-tab--logout { width: 100%; margin-left: 0; text-align: left; order: 9; }
 }
+/* Tableaux de l'administration (élèves, newsletter) */
+.compare { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.compare th, .compare td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line, #DCDFE5); vertical-align: top; }
+.compare thead th { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray, #5B6472); }

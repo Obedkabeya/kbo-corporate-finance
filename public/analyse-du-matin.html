@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>L'analyse du matin — KBO Corporate Finance</title>
+  <meta name="description" content="Recevez chaque matin l'analyse fondamentale des marchés de KBO Corporate Finance : la lecture du jour, l'agenda et une notion expliquée simplement." />
+  <link rel="icon" href="assets/logo/favicon.ico" sizes="16x16 32x32 48x48" />
+  <link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png" />
+  <link rel="manifest" href="assets/logo/site.webmanifest" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/marches.css" />
+</head>
+<body data-page="m-analyse" data-nav="publications">
+  <div id="site-header"></div>
+  <main id="contenu">
+    <section class="page-head">
+      <div class="wrap">
+        <div class="crumb"><a href="ecole.html">Accueil</a> / <a href="publications.html">Publications</a> / L'analyse du matin</div>
+        <p class="eyebrow">L'analyse du matin</p>
+        <h1>Recevez chaque matin l'analyse fondamentale KBO.</h1>
+        <p class="lead">La lecture du jour, ce qui a changé et pourquoi, l'agenda de la journée à l'heure du Bénin et une notion expliquée simplement. Gratuit, chaque matin de semaine.</p>
+      </div>
+    </section>
+    <section class="block" id="inscription">
+      <div class="wrap narrow">
+        <p class="form-msg" id="analyseEtat" role="status" hidden></p>
+        <form class="analyse-form" data-source="page" novalidate>
+            <div class="fields">
+              <div class="field"><label for="p_prenom">Prénom</label><input id="p_prenom" name="prenom" type="text" autocomplete="given-name" maxlength="60" /></div>
+              <div class="field"><label for="p_email">Adresse e-mail <span class="req">*</span></label><input id="p_email" name="email" type="email" autocomplete="email" required maxlength="200" /></div>
+            </div>
+            <div class="form-actions">
+              <button class="btn" type="submit">Recevoir l'analyse <span class="arrow" aria-hidden="true">→</span></button>
+              <span class="form-msg" role="status"></span>
+            </div>
+            <p class="form-note">Un e-mail de confirmation vous sera envoyé. Désinscription en un clic dans chaque envoi. Contenu éducatif, pas un conseil en investissement. Voir notre <a href="confidentialite.html">politique de confidentialité</a>.</p>
+          </form>
+      </div>
+    </section>
+    <section class="block block--soft" id="archives">
+      <div class="wrap narrow">
+        <div id="analyseLecture" hidden></div>
+        <p class="eyebrow">Archives</p>
+        <h2 class="analyse-archives-titre">Les analyses précédentes</h2>
+        <ul class="analyse-liste" id="analyseListe"><li class="muted">Les premières analyses apparaîtront ici.</li></ul>
+      </div>
+    </section>
+  </main>
+  <div id="site-footer"></div>
+  <script src="js/components.js"></script>
+  <script src="js/analyse.js"></script>
+</body>
+</html>

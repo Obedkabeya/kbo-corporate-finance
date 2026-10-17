@@ -89,6 +89,8 @@
           <button class="admin-tab" data-tab="galerie">Galerie</button>
           <button class="admin-tab" data-tab="medias">Médias</button>
           <button class="admin-tab" data-tab="paiements">💳 Paiements</button>
+          <button class="admin-tab" data-tab="analyse">📰 Analyse du matin</button>
+          <button class="admin-tab" data-tab="eleves">🎓 Élèves &amp; Discord</button>
           <button class="admin-tab" data-tab="compte">Compte &amp; e-mail</button>
           <button class="admin-tab admin-tab--logout" id="logoutBtn" type="button">Déconnexion</button>
         </nav>
@@ -449,6 +451,35 @@
           </div>
         </div>
 
+        <div class="tabpanel" data-panel="analyse">
+          <div class="form-wrap">
+            <h3>L'analyse du matin</h3>
+            <p class="muted" style="font-size:.92rem">Envoyée chaque matin de semaine, entre 7 h 45 et 9 h (heure du Bénin), dès que le fichier du jour est dans le dossier Drive « KBO ANALYSE PUBLIQUE ».</p>
+            <div class="stat-cards" id="anStats"></div>
+            <div class="form-actions" style="padding-top:18px">
+              <button class="btn btn--primary" type="button" id="anSuspendre">Suspendre l'envoi de demain</button>
+              <a class="btn btn--ghost" href="/api/admin/analyse.csv" id="anExport">Télécharger la liste (CSV)</a>
+              <span class="form-msg" id="anMsg"></span>
+            </div>
+          </div>
+          <div class="form-wrap"><h3>Historique des envois</h3><div id="anEnvois" class="muted">Chargement…</div></div>
+          <div class="form-wrap"><h3>Inscrits</h3><div id="anInscrits" class="muted">Chargement…</div></div>
+        </div>
+
+        <div class="tabpanel" data-panel="eleves">
+          <div class="form-wrap">
+            <h3>Robot Discord</h3>
+            <div id="dcEtat" class="muted">Chargement…</div>
+          </div>
+          <div class="form-wrap">
+            <h3>Accès des élèves (venus par le paiement du site)</h3>
+            <p class="muted" style="font-size:.92rem">Le robot ne gère que ces élèves. Vos membres historiques et vos invités ne sont jamais touchés.</p>
+            <div id="dcAcces" class="muted">Chargement…</div>
+            <span class="form-msg" id="dcMsg"></span>
+          </div>
+          <div class="form-wrap"><h3>Journal Discord</h3><div id="dcJournal" class="muted">Chargement…</div></div>
+        </div>
+
         <div class="tabpanel" data-panel="compte">
           <div class="form-wrap" style="margin-bottom:2rem">
             <h3>Connecter votre boîte e-mail</h3>
@@ -521,5 +552,6 @@
   <script src="js/admin-content.js"></script>
   <script src="js/admin-inbox.js"></script>
   <script src="js/admin-pay.js"></script>
+  <script src="js/admin-eleves.js"></script>
 </body>
 </html>

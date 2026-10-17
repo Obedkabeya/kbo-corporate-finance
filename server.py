@@ -1379,6 +1379,219 @@ def _verify_nowpayments(raw, signature):
     return hmac.compare_digest(calc, signature.strip())
 
 
+# ============================================================
+#  NEWSLETTER « L'ANALYSE DU MATIN »
+#  Inscription (prénom + e-mail) avec double validation, désinscription en un
+#  clic, envoi chaque matin du fichier analyse_AAAA-MM-JJ.html déposé dans le
+#  dossier Google Drive « KBO ANALYSE PUBLIQUE » (partagé par lien), archive
+#  publique sur le site. Jamais deux envois de la même analyse.
+# ============================================================
+ANALYSE_FILE = os.path.join(DATA_DIR, "analyse.json")          # inscrits, envois, suspensions
+ANALYSES_ARCHIVE_FILE = os.path.join(DATA_DIR, "analyses.json") # analyses publiées (archive)
+BREVO_LIMITE_JOUR = 300          # offre gratuite de Brevo : environ 300 e-mails par jour
+ANALYSE_HEURE_DEBUT = (7, 45)    # heure du Bénin
+ANALYSE_HEURE_LIMITE = (9, 0)
+
+
+def _analyse_data():
+    d = _read_json(ANALYSE_FILE, {})
+    if not isinstance(d, dict):
+        d = {}
+    d.setdefault("inscrits", [])
+    d.setdefault("envois", [])
+    d.setdefault("suspendus", [])        # dates (AAAA-MM-JJ) sans envoi
+    d.setdefault("alertes", {})
+    return d
+
+
+def _analyse_save(d):
+    _write_json(ANALYSE_FILE, d)
+
+
+def _analyse_archive():
+    a = _read_json(ANALYSES_ARCHIVE_FILE, [])
+    return a if isinstance(a, list) else []
+
+
+def _send_html(to_addr, subject, html, text, unsubscribe=None):
+    """E-mail HTML (newsletter) : Brevo en priorité, sinon la boîte SMTP. Renvoie (ok, détail)."""
+    e = _mail_env()
+    from_email = e["from"] or _get_settings().get("email", "")
+    if e["brevo"]:
+        payload = {"sender": {"name": e["from_name"], "email": from_email}, "to": [{"email": to_addr}],
+                   "subject": subject, "htmlContent": html, "textContent": text}
+        if unsubscribe:
+            payload["headers"] = {"List-Unsubscribe": "<%s>" % unsubscribe,
+                                  "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}
+        ok, detail = _http_post_json("https://api.brevo.com/v3/smtp/email",
+                                     {"api-key": e["brevo"], "accept": "application/json"}, payload)
+        return ok, ("envoyé (Brevo)" if ok else "erreur Brevo : " + detail)
+    if e["smtp_host"] and e["smtp_user"] and e["smtp_pass"]:
+        return _send_via_smtp(e, from_email, to_addr, subject, text)
+    return False, "aucun service d'envoi d'e-mails configuré"
+
+
+def _gabarit_analyse(contenu, lien_desinscription, titre=""):
+    """Gabarit e-mail aux couleurs KBO : logo, police sans empattements, lisible sur téléphone."""
+    base = _public_url() or ""
+    return (
+        '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">'
+        '<title>' + titre.replace("<", "&lt;") + '</title></head>'
+        '<body style="margin:0;padding:0;background:#F3F4F6">'
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6"><tr><td align="center" style="padding:24px 10px">'
+        '<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#FFFFFF">'
+        '<tr><td style="padding:24px 28px 18px;border-bottom:3px solid #0D1A3A">'
+        '<img src="' + base + '/assets/logo/kbo-logo-horizontal-clair-600.png" width="180" alt="KBO Corporate Finance" style="display:block;border:0;width:180px;height:auto">'
+        '<p style="margin:14px 0 0;font:600 12px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#1E3A8A">L\'analyse du matin</p></td></tr>'
+        '<tr><td class="analyse" style="padding:22px 28px 26px;font:16px/1.65 Arial,Helvetica,sans-serif;color:#14161C">' + contenu + '</td></tr>'
+        '<tr><td style="padding:18px 28px 24px;background:#0D1A3A;font:13px/1.6 Arial,Helvetica,sans-serif;color:#C9D0E0">'
+        '<p style="margin:0 0 8px"><strong style="color:#FFFFFF">Contenu éducatif, pas un conseil en investissement.</strong> '
+        'Les marchés financiers comportent un risque de perte en capital.</p>'
+        '<p style="margin:0">KBO Corporate Finance · École de finance des marchés · Cotonou, Bénin<br>'
+        '<a href="' + lien_desinscription + '" style="color:#FFFFFF">Se désinscrire en un clic</a></p></td></tr>'
+        '</table></td></tr></table></body></html>')
+
+
+_ANALYSE_TAGS = {"h1", "h2", "h3", "h4", "p", "ul", "ol", "li", "strong", "b", "em", "i", "a", "br", "hr",
+                 "blockquote", "table", "thead", "tbody", "tr", "td", "th", "span", "small", "div"}
+
+
+def _nettoyer_analyse(html):
+    """Ne garde que le contenu lisible de l'analyse (pas de script, de style ni de lien piégé)."""
+    body = re.search(r"<body[^>]*>(.*)</body>", html, re.S | re.I)
+    html = body.group(1) if body else html
+    html = re.sub(r"<!--.*?-->", "", html, flags=re.S)
+    html = re.sub(r"<(script|style|iframe|object|embed|form|svg|head|title)\b.*?</\1\s*>", "", html, flags=re.S | re.I)
+
+    def tag(m):
+        close, name, attrs = m.group(1), m.group(2).lower(), m.group(3) or ""
+        if name not in _ANALYSE_TAGS:
+            return ""
+        if close:
+            return "</%s>" % name
+        if name == "a":
+            href = re.search(r'href\s*=\s*["\']([^"\']+)["\']', attrs, re.I)
+            if href and re.match(r"^(https?:|mailto:)", href.group(1).strip(), re.I):
+                return '<a href="%s" style="color:#1E3A8A">' % href.group(1).strip().replace('"', "&quot;")
+            return "<a>"
+        styles = {"h1": "font:800 24px/1.2 Arial,Helvetica,sans-serif;color:#0D1A3A;margin:0 0 12px",
+                  "h2": "font:700 19px/1.3 Arial,Helvetica,sans-serif;color:#0D1A3A;margin:22px 0 8px",
+                  "h3": "font:700 16px/1.35 Arial,Helvetica,sans-serif;color:#1E3A8A;margin:18px 0 6px",
+                  "p": "margin:0 0 12px", "td": "padding:6px 8px;border-bottom:1px solid #DCDFE5",
+                  "th": "padding:6px 8px;text-align:left;border-bottom:2px solid #0D1A3A"}
+        st = styles.get(name)
+        return "<%s%s>" % (name, ' style="%s"' % st if st else "")
+    html = re.sub(r"<(/?)\s*([a-zA-Z0-9]+)([^>]*)>", tag, html)
+    return html.strip()
+
+
+def _titre_analyse(html, jour):
+    m = re.search(r"<h1[^>]*>(.*?)</h1>", html, re.S | re.I) or re.search(r"<title[^>]*>(.*?)</title>", html, re.S | re.I)
+    t = re.sub(r"<[^>]+>", "", m.group(1)).strip() if m else ""
+    return t[:160] or "L'analyse du matin du %s" % jour
+
+
+def _drive_trouver(dossier, nom):
+    """Cherche un fichier par son nom dans un dossier Google Drive partagé par lien."""
+    url = "https://drive.google.com/embeddedfolderview?id=" + dossier
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (KBO-Site)"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        page = r.read().decode("utf-8", "replace")
+    for m in re.finditer(r'<div class="flip-entry" id="entry-([\w-]+)".*?<div class="flip-entry-title">([^<]+)</div>', page, re.S):
+        if m.group(2).strip() == nom:
+            return m.group(1)
+    return None
+
+
+def _drive_telecharger(fid):
+    url = "https://drive.google.com/uc?export=download&id=" + fid
+    req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (KBO-Site)"})
+    with urllib.request.urlopen(req, timeout=60) as r:
+        return r.read(2_000_000).decode("utf-8", "replace")
+
+
+def _analyse_alerter(d, cle, sujet, texte):
+    """Alerte à Obed, une seule fois par clé (ex. absence de fichier tel jour)."""
+    if d["alertes"].get(cle):
+        return
+    d["alertes"][cle] = datetime.utcnow().isoformat() + "Z"
+    _analyse_save(d)
+    try:
+        _send_email(_get_settings()["email"], sujet, texte)
+    except Exception:
+        pass
+
+
+def _analyse_matin(maintenant=None, jour=None, seulement_a=None):
+    """Tâche du matin. `seulement_a` : envoi d'essai à une seule adresse (rien n'est archivé)."""
+    now = maintenant or datetime.now()
+    jour = jour or now.date().isoformat()
+    d = _analyse_data()
+    if not seulement_a:
+        if (now.hour, now.minute) < ANALYSE_HEURE_DEBUT:
+            return "trop tôt (envoi à partir de %02dh%02d)" % ANALYSE_HEURE_DEBUT
+        if any(e.get("jour") == jour and e.get("statut") == "envoyée" for e in d["envois"]):
+            return "déjà envoyée aujourd'hui"
+        if jour in d["suspendus"]:
+            return "envoi suspendu pour aujourd'hui"
+    dossier = os.environ.get("KBO_DRIVE_ANALYSE", "").strip()
+    if not dossier:
+        return "dossier Drive non réglé"
+    nom = "analyse_%s.html" % jour
+    try:
+        fid = _drive_trouver(dossier, nom)
+    except Exception as e:  # noqa: BLE001
+        return "dossier Drive injoignable : %s" % e
+    if not fid:
+        if not seulement_a and (now.hour, now.minute) >= ANALYSE_HEURE_LIMITE and now.weekday() < 5:
+            _analyse_alerter(d, "absente-" + jour, "L'analyse du matin n'a pas été envoyée",
+                             "Bonjour,\n\nÀ 9 h 00, le fichier %s n'était pas dans le dossier Drive « KBO ANALYSE PUBLIQUE ». "
+                             "Rien n'a été envoyé aux inscrits aujourd'hui.\n" % nom)
+            return "fichier absent à 9 h : rien envoyé, Obed prévenu"
+        return "fichier %s pas encore déposé" % nom
+    brut = _drive_telecharger(fid)
+    contenu = _nettoyer_analyse(brut)
+    titre = _titre_analyse(brut, jour)
+    base = _public_url() or ""
+    cibles = ([{"prenom": "", "email": seulement_a, "desinscription": "essai"}] if seulement_a
+              else [i for i in d["inscrits"] if i.get("statut") == "confirme"])
+    envoyes, echecs = 0, []
+    for i in cibles:
+        lien = base + "/api/analyse/desinscrire?j=" + i.get("desinscription", "")
+        html = _gabarit_analyse(contenu, lien, titre)
+        texte = re.sub(r"\n{3,}", "\n\n", re.sub(r"<[^>]+>", "\n", contenu)).strip() + \
+            "\n\nContenu éducatif, pas un conseil en investissement.\nSe désinscrire : " + lien
+        ok, detail = _send_html(i["email"], titre, html, texte, unsubscribe=lien)
+        if ok:
+            envoyes += 1
+        else:
+            echecs.append(detail)
+    if seulement_a:
+        return "envoi d'essai à %s : %s" % (seulement_a, "réussi" if envoyes else (echecs[0] if echecs else "échec"))
+    d = _analyse_data()
+    d["envois"].insert(0, {"jour": jour, "titre": titre, "fichier": nom, "destinataires": len(cibles),
+                           "envoyes": envoyes, "echecs": len(echecs),
+                           "statut": "envoyée" if envoyes or not cibles else "échec",
+                           "date": datetime.utcnow().isoformat() + "Z",
+                           "erreur": echecs[0] if echecs else ""})
+    d["envois"] = d["envois"][:400]
+    _analyse_save(d)
+    arch = [a for a in _analyse_archive() if a.get("jour") != jour]
+    arch.insert(0, {"jour": jour, "titre": titre, "contenu": contenu})
+    _write_json(ANALYSES_ARCHIVE_FILE, arch)
+    if echecs and not envoyes and cibles:
+        _analyse_alerter(d, "echec-" + jour, "L'analyse du matin n'a pas pu être envoyée",
+                         "Bonjour,\n\nL'envoi de l'analyse du %s a échoué : %s\nElle est tout de même publiée sur le site.\n"
+                         % (jour, echecs[0]))
+    confirmes = sum(1 for i in d["inscrits"] if i.get("statut") == "confirme")
+    if confirmes >= BREVO_LIMITE_JOUR - 50:
+        _analyse_alerter(d, "limite-%d" % (confirmes // 25), "Newsletter : vous approchez de la limite gratuite de Brevo",
+                         "Bonjour,\n\nVous avez %d inscrits confirmés. L'offre gratuite de Brevo permet environ %d e-mails "
+                         "par jour. Au-delà, une offre payante sera nécessaire (rien n'a été souscrit).\n"
+                         % (confirmes, BREVO_LIMITE_JOUR))
+    return "analyse du %s : %d envoyée(s), %d échec(s), archivée sur le site" % (jour, envoyes, len(echecs))
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = "KBO"      # on ne révèle pas la version exacte du serveur
 
@@ -1519,6 +1732,20 @@ class Handler(BaseHTTPRequestHandler):
     def _api_get(self, path):
         if path == "/api/acces":
             return self._acces_status()
+
+        if path == "/api/analyse/confirmer":
+            return self._analyse_confirmer()
+        if path == "/api/analyse/desinscrire":
+            return self._analyse_desinscrire()
+        if path == "/api/analyses":
+            return self._analyses_liste()
+        m = re.match(r"^/api/analyses/(\d{4}-\d{2}-\d{2})$", path)
+        if m:
+            return self._analyse_publique(m.group(1))
+        if path == "/api/admin/analyse":
+            return self._admin_analyse()
+        if path == "/api/admin/analyse.csv":
+            return self._admin_analyse_export()
 
         if path == "/api/pay/etat":
             return self._pay_state()
@@ -1665,6 +1892,13 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/api/admin/acces":
             return self._admin_acces_action()
+
+        if path == "/api/analyse/inscription":
+            return self._analyse_inscription()
+        if path == "/api/analyse/desinscrire":
+            return self._analyse_desinscrire()
+        if path == "/api/admin/analyse":
+            return self._admin_analyse_action()
 
         if path == "/api/login":
             return self._login()
@@ -2380,6 +2614,125 @@ class Handler(BaseHTTPRequestHandler):
         if action == "verifier":
             return self._send_json({"ok": True, "resultat": _discord_apply(sub, "Vérification manuelle")})
         return self._send_json({"error": "Action inconnue."}, 400)
+
+    # ---------------- Newsletter « L'analyse du matin » ----------------
+    def _analyse_inscription(self):
+        data = self._read_body() or {}
+        if _too_many("analyse:" + self._client_ip(), 5, 3600):
+            return self._send_json({"error": "Trop de demandes. Réessayez plus tard."}, 429)
+        _note_attempt("analyse:" + self._client_ip())
+        email = _clean(data.get("email"), 200).lower()
+        prenom = _clean(data.get("prenom"), 60)
+        if not email or not EMAIL_RE.match(email):
+            return self._send_json({"error": "Adresse e-mail invalide."}, 400)
+        d = _analyse_data()
+        ins = next((i for i in d["inscrits"] if i.get("email") == email), None)
+        if ins and ins.get("statut") == "confirme":
+            return self._send_json({"ok": True})            # déjà inscrit : on ne dit rien de plus
+        if not ins:
+            ins = {"id": uuid.uuid4().hex[:12], "email": email, "desinscription": secrets.token_urlsafe(18)}
+            d["inscrits"].append(ins)
+        ins.update({"prenom": prenom, "statut": "en_attente", "confirmation": secrets.token_urlsafe(18),
+                    "inscrit": datetime.utcnow().isoformat() + "Z", "source": _clean(data.get("source"), 40)})
+        _analyse_save(d)
+        base = _public_url() or self._public_base()
+        lien = base + "/api/analyse/confirmer?j=" + ins["confirmation"]
+        contenu = ('<h1 style="font:800 22px/1.25 Arial,Helvetica,sans-serif;color:#0D1A3A;margin:0 0 12px">Confirmez votre inscription</h1>'
+                   '<p style="margin:0 0 12px">Bonjour %s,</p><p style="margin:0 0 18px">Vous avez demandé à recevoir chaque matin '
+                   "l'analyse fondamentale des marchés de KBO Corporate Finance. Pour confirmer, cliquez sur le bouton :</p>"
+                   '<p style="margin:0 0 18px"><a href="%s" style="display:inline-block;background:#1E3A8A;color:#FFFFFF;'
+                   'padding:13px 22px;text-decoration:none;font-weight:600">Confirmer mon inscription</a></p>'
+                   "<p style=\"margin:0;color:#5B6472;font-size:14px\">Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail : "
+                   "vous ne recevrez rien.</p>") % ((prenom or "").replace("<", "&lt;"), lien)
+        html = _gabarit_analyse(contenu, base + "/api/analyse/desinscrire?j=" + ins["desinscription"], "Confirmez votre inscription")
+        ok, detail = _send_html(email, "Confirmez votre inscription à L'analyse du matin", html,
+                                "Bonjour %s,\n\nPour confirmer votre inscription à L'analyse du matin de KBO, ouvrez ce lien :\n%s\n"
+                                % (prenom, lien))
+        if not ok:
+            print("  [Analyse] confirmation non envoyée à %s : %s" % (email, detail), flush=True)
+        return self._send_json({"ok": True, "envoye": ok})
+
+    def _analyse_confirmer(self):
+        j = (parse_qs(urlparse(self.path).query).get("j") or [""])[0]
+        d = _analyse_data()
+        ins = next((i for i in d["inscrits"] if j and i.get("confirmation") == j), None)
+        if not ins:
+            return self._redirect("/analyse-du-matin.html?etat=lien-invalide")
+        ins["statut"], ins["confirme"], ins["confirmation"] = "confirme", datetime.utcnow().isoformat() + "Z", ""
+        _analyse_save(d)
+        return self._redirect("/analyse-du-matin.html?etat=confirme")
+
+    def _analyse_desinscrire(self):
+        j = (parse_qs(urlparse(self.path).query).get("j") or [""])[0]
+        d = _analyse_data()
+        ins = next((i for i in d["inscrits"] if j and i.get("desinscription") == j), None)
+        if ins and ins.get("statut") != "desinscrit":
+            ins["statut"], ins["desinscrit"] = "desinscrit", datetime.utcnow().isoformat() + "Z"
+            _analyse_save(d)
+        if self.command == "POST":                      # désinscription « en un clic » des messageries
+            return self._send_json({"ok": True})
+        return self._redirect("/analyse-du-matin.html?etat=desinscrit")
+
+    def _analyses_liste(self):
+        return self._send_json([{"jour": a["jour"], "titre": a.get("titre", "")} for a in _analyse_archive()])
+
+    def _analyse_publique(self, jour):
+        a = next((x for x in _analyse_archive() if x.get("jour") == jour), None)
+        if not a:
+            return self._send_json({"error": "Analyse introuvable."}, 404)
+        return self._send_json(a)
+
+    def _admin_analyse(self):
+        if not self._is_admin():
+            return self._send_json({"error": "Non autorisé"}, 401)
+        d = _analyse_data()
+        demain = (datetime.now() + timedelta(days=1)).date().isoformat()
+        ins = d["inscrits"]
+        return self._send_json({
+            "confirmes": sum(1 for i in ins if i.get("statut") == "confirme"),
+            "enAttente": sum(1 for i in ins if i.get("statut") == "en_attente"),
+            "desinscrits": sum(1 for i in ins if i.get("statut") == "desinscrit"),
+            "limiteBrevo": BREVO_LIMITE_JOUR,
+            "inscrits": [{k: i.get(k) for k in ("prenom", "email", "statut", "inscrit", "confirme", "desinscrit")} for i in ins],
+            "envois": d["envois"][:60], "demain": demain, "demainSuspendu": demain in d["suspendus"],
+            "dossierDrive": os.environ.get("KBO_DRIVE_ANALYSE", ""),
+        })
+
+    def _admin_analyse_action(self):
+        if not self._is_admin():
+            return self._send_json({"error": "Non autorisé"}, 401)
+        data = self._read_body() or {}
+        d = _analyse_data()
+        demain = (datetime.now() + timedelta(days=1)).date().isoformat()
+        act = data.get("action")
+        if act == "suspendre":
+            if demain not in d["suspendus"]:
+                d["suspendus"].append(demain)
+            _analyse_save(d)
+            return self._send_json({"ok": True, "message": "L'envoi du %s est suspendu." % demain})
+        if act == "reprendre":
+            d["suspendus"] = [x for x in d["suspendus"] if x != demain]
+            _analyse_save(d)
+            return self._send_json({"ok": True, "message": "L'envoi du %s est rétabli." % demain})
+        if act == "essai":
+            to = _clean(data.get("email"), 200) or _get_settings()["email"]
+            return self._send_json({"ok": True, "message": _analyse_matin(seulement_a=to, jour=_clean(data.get("jour"), 10) or None)})
+        return self._send_json({"error": "Action inconnue."}, 400)
+
+    def _admin_analyse_export(self):
+        if not self._is_admin():
+            return self._send_json({"error": "Non autorisé"}, 401)
+        lignes = ["prenom;email;statut;inscrit;confirme;desinscrit"]
+        for i in _analyse_data()["inscrits"]:
+            lignes.append(";".join(str(i.get(k) or "").replace(";", ",") for k in ("prenom", "email", "statut", "inscrit", "confirme", "desinscrit")))
+        body = ("﻿" + "\n".join(lignes)).encode("utf-8")
+        self.send_response(200)
+        self.send_header("Content-Type", "text/csv; charset=utf-8")
+        self.send_header("Content-Disposition", 'attachment; filename="inscrits-analyse-du-matin.csv"')
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
 
     def _remove_subscriber(self):
         if not self._is_admin():

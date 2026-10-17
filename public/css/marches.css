@@ -726,3 +726,20 @@ body.is-admin .admin-only { display: revert !important; }
 .acces-card .offer__facts{margin-top:0}
 .acces-actions{display:flex;gap:16px;flex-wrap:wrap;margin:22px 0 6px}
 @media (max-width:767px){.acces-card{padding:22px 20px 24px}.acces-actions .btn{width:100%}}
+
+/* L'analyse du matin */
+.analyse-form{border-top:1px solid var(--ink);padding-top:8px}
+.analyse-form .fields{padding-top:20px}
+.analyse-liste{list-style:none;border-top:1px solid var(--ink);margin-top:20px}
+.analyse-liste li{border-bottom:1px solid var(--rule);padding:16px 0}
+.analyse-liste a{display:block;color:var(--ink);font-weight:600}
+.analyse-liste a:hover{color:var(--navy)}
+.analyse-date{display:block;font:500 12px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--slate);margin-bottom:4px}
+.analyse-archives-titre{font:700 30px/1.15 var(--title);letter-spacing:-.02em;margin-top:12px}
+#analyseLecture{background:#fff;border-top:2px solid var(--navy);padding:26px 30px;margin-bottom:56px}
+.analyse-texte{margin-top:12px;color:var(--body)}
+.analyse-texte h1{font:800 28px/1.15 var(--title);letter-spacing:-.02em;color:var(--ink)!important}
+.analyse-texte h2,.analyse-texte h3{font-family:var(--title)!important;color:var(--ink)!important}
+.analyse-texte p,.analyse-texte li{font-family:var(--sans)!important}
+.analyse-bande{background:var(--paper-2)}
+@media (max-width:767px){#analyseLecture{padding:20px}.analyse-archives-titre{font-size:24px}}
