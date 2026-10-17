@@ -95,6 +95,9 @@ MOVED_PAGES = {
 HOME_PATHS = ("/", "/index.html", "/index")
 HOME_TARGET = "/ecole.html"
 
+# Image de partage sur les réseaux (Open Graph) : logo blanc sur bleu nuit.
+SHARE_IMAGE = "assets/logo/kbo-partage-1200x630.png"
+
 SESSION_COOKIE = "kbo_session"
 SESSION_MAX_AGE = 30 * 24 * 3600  # 30 jours
 
@@ -336,6 +339,7 @@ CONTENT_TYPES = {
     ".svg": "image/svg+xml",
     ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
     ".gif": "image/gif", ".webp": "image/webp", ".ico": "image/x-icon",
+    ".webmanifest": "application/manifest+json",
     ".woff": "font/woff", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8",
     ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime", ".m4v": "video/x-m4v",
 }
@@ -942,6 +946,36 @@ def _http_post_json(url, headers, payload, timeout=25):
         return False, "%s" % exc
 
 
+def _public_url():
+    """Adresse publique du site (réglage serveur KBO_PUBLIC_URL), sans « / » final."""
+    return os.environ.get("KBO_PUBLIC_URL", "").strip().rstrip("/")
+
+
+def _email_html(body):
+    """Version HTML d'un e-mail : le logo KBO (image PNG, car beaucoup de
+    messageries n'affichent pas le SVG) au-dessus du même texte. Sans adresse
+    publique du site, l'image ne serait pas joignable : on n'envoie alors que
+    le texte."""
+    base = _public_url()
+    if not base:
+        return None
+    def esc(t):
+        return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    paras = "".join(
+        '<p style="margin:0 0 14px">%s</p>' % esc(p).replace("\n", "<br>")
+        for p in body.strip().split("\n\n"))
+    return (
+        '<!doctype html><html lang="fr"><body style="margin:0;padding:0;background:#F3F4F6">'
+        '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6">'
+        '<tr><td align="center" style="padding:28px 12px">'
+        '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF">'
+        '<tr><td style="padding:28px 32px 20px;border-bottom:1px solid #DCDFE5">'
+        '<img src="' + base + '/assets/logo/kbo-logo-horizontal-clair-600.png" width="210" height="90" '
+        'alt="KBO Corporate Finance" style="display:block;border:0;width:210px;height:auto"></td></tr>'
+        '<tr><td style="padding:24px 32px 30px;font:15px/1.6 Arial,Helvetica,sans-serif;color:#14161C">'
+        + paras + '</td></tr></table></td></tr></table></body></html>')
+
+
 def _send_via_brevo(api_key, from_email, from_name, to_addr, subject, body, reply_to=None):
     payload = {
         "sender": {"name": from_name, "email": from_email},
@@ -949,6 +983,9 @@ def _send_via_brevo(api_key, from_email, from_name, to_addr, subject, body, repl
         "subject": subject,
         "textContent": body,
     }
+    html = _email_html(body)
+    if html:
+        payload["htmlContent"] = html
     if reply_to:
         payload["replyTo"] = {"email": reply_to}
     ok, detail = _http_post_json("https://api.brevo.com/v3/smtp/email",
@@ -963,6 +1000,9 @@ def _send_via_sendgrid(api_key, from_email, from_name, to_addr, subject, body, r
         "subject": subject,
         "content": [{"type": "text/plain", "value": body}],
     }
+    html = _email_html(body)
+    if html:
+        payload["content"].append({"type": "text/html", "value": html})
     if reply_to:
         payload["reply_to"] = {"email": reply_to}
     ok, detail = _http_post_json("https://api.sendgrid.com/v3/mail/send",
@@ -1008,6 +1048,9 @@ def _send_via_smtp(e, from_email, to_addr, subject, body, reply_to=None):
         if reply_to:
             msg["Reply-To"] = reply_to
         msg.set_content(body)
+        html = _email_html(body)
+        if html:
+            msg.add_alternative(html, subtype="html")
         context = ssl.create_default_context()
         if port == 465:
             server = _SMTP_SSL_IPv4(host=host, port=port, context=context, timeout=30)
@@ -2374,15 +2417,20 @@ class Handler(BaseHTTPRequestHandler):
         def esc(s):
             return (s.replace("&", "&amp;").replace('"', "&quot;")
                      .replace("<", "&lt;").replace(">", "&gt;"))
+        image = (_public_url() or self._public_base()) + "/" + SHARE_IMAGE
         tags = (
             '<meta property="og:type" content="website">'
             '<meta property="og:site_name" content="KBO Corporate Finance">'
             '<meta property="og:title" content="%s">'
             '<meta property="og:description" content="%s">'
-            '<meta name="twitter:card" content="summary">'
+            '<meta property="og:image" content="%s">'
+            '<meta property="og:image:width" content="1200">'
+            '<meta property="og:image:height" content="630">'
+            '<meta name="twitter:card" content="summary_large_image">'
             '<meta name="twitter:title" content="%s">'
             '<meta name="twitter:description" content="%s">'
-        ) % (esc(title), esc(desc), esc(title), esc(desc))
+            '<meta name="twitter:image" content="%s">'
+        ) % (esc(title), esc(desc), esc(image), esc(title), esc(desc), esc(image))
         text = text.replace("</head>", tags + "</head>", 1)
         return text.encode("utf-8")
 
@@ -2406,7 +2454,7 @@ class Handler(BaseHTTPRequestHandler):
         scheme = "https" if self.headers.get("X-Forwarded-Proto") == "https" else "http"
         base = "%s://%s/" % (scheme, host)
         url = base + "article.html?id=" + aid
-        img = article.get("image") or "images/post-default.svg"
+        img = article.get("image") or SHARE_IMAGE
         img_abs = img if img.startswith("http") else base + img.lstrip("/")
         settings = _get_settings()
         author = settings["texts"].get("name", "")

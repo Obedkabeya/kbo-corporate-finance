@@ -67,3 +67,12 @@
 .site-header .wrap,.site-footer .wrap{max-width:var(--wrap);margin:0 auto;padding:0 var(--gut)}
 .site-footer h4,.site-footer p,.site-footer ul{margin:0;padding:0}
 @media (max-width:980px){:root{--gut:20px}}
+
+/* Logo officiel KBO (assets/logo/) : 42 px de haut sur ordinateur, 36 px sur téléphone. */
+.logo .logo__img{display:block;height:42px;width:auto}
+.logo .logo__img--fonce{display:none}
+.site-footer .logo .logo__img--clair{display:none}
+.site-footer .logo .logo__img--fonce{display:block;height:44px}
+.home-photo .site-header:not(.is-solid) .logo__img--clair{display:none}
+.home-photo .site-header:not(.is-solid) .logo__img--fonce{display:block}
+@media (max-width:980px){.logo .logo__img{height:36px}.site-footer .logo .logo__img--fonce{height:38px}}

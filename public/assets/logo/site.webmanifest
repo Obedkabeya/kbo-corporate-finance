@@ -1,0 +1,20 @@
+{
+  "name": "KBO Corporate Finance",
+  "short_name": "KBO",
+  "start_url": "/ecole.html",
+  "display": "standalone",
+  "background_color": "#FBFBFA",
+  "theme_color": "#0D1A3A",
+  "icons": [
+    {
+      "src": "/assets/logo/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logo/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

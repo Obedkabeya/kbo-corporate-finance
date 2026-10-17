@@ -15,9 +15,12 @@
     { href: "contact.html", label: "Contact", key: "contact" },
   ];
 
+  // Logo officiel (assets/logo/) : version claire, et version foncée pour les
+  // fonds bleu nuit (pied de page, menu transparent posé sur une photo).
   const logo = (extra) => `
     <a class="logo ${extra || ""}" href="ecole.html" aria-label="KBO Corporate Finance — accueil">
-      <span class="k" data-text="brandMark">KBO</span><span class="sep" aria-hidden="true"></span><span class="cf">Corporate<br>Finance</span>
+      <img class="logo__img logo__img--clair" src="assets/logo/kbo-logo-horizontal-clair.svg" alt="" width="935" height="400">
+      <img class="logo__img logo__img--fonce" src="assets/logo/kbo-logo-horizontal-fonce.svg" alt="" width="935" height="400">
     </a>`;
 
   const header = `
