@@ -281,16 +281,23 @@
   // Un emplacement peut contenir une image OU une vidéo (ou plusieurs, en
   // carrousel). On détecte la vidéo à l'extension du fichier.
   function isVideoPath(p) { return /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(p || ""); }
-  function mediaTag(p, lazy) {
+  function mediaTag(p, lazy, alt) {
     if (isVideoPath(p)) {
       return '<video src="' + p + '" muted loop autoplay playsinline preload="metadata"' +
         (lazy ? ' loading="lazy"' : "") + '></video>';
     }
-    return '<img src="' + p + '" alt="ceci est une image du site"' + (lazy ? ' loading="lazy"' : "") + ">";
+    const txt = String(alt || "ceci est une image du site").replace(/"/g, "&quot;");
+    return '<img src="' + p + '" alt="' + txt + '"' + (lazy ? ' loading="lazy"' : "") + ">";
   }
   function renderSlot(slot, arr) {
+    // Emplacements « data-keep » (photos du site) : tant qu'aucune image n'a été
+    // choisie dans l'administration, on garde le balisage d'origine (tailles
+    // adaptées à l'écran, description de l'image).
+    if (slot.hasAttribute("data-keep") && slot.__orig == null) slot.__orig = slot.innerHTML;
+    const alt = slot.getAttribute("data-alt");
     slot.__images = Array.isArray(arr) ? arr.slice() : null;
     const list = (slot.__images && slot.__images.length) ? slot.__images : null;
+    if (!list && slot.__orig != null) { if (slot.innerHTML !== slot.__orig) slot.innerHTML = slot.__orig; return; }
     if (!list) {
       // aucun override : garder / restaurer le média par défaut
       const def = defaultSlotImage(slot);
@@ -298,10 +305,10 @@
       return;
     }
     if (list.length === 1) {
-      slot.innerHTML = mediaTag(list[0], false);
+      slot.innerHTML = mediaTag(list[0], false, alt);
       return;
     }
-    const media = list.map(p => mediaTag(p, true)).join("");
+    const media = list.map(p => mediaTag(p, true, alt)).join("");
     const dots = list.map((_, i) => '<button type="button" class="slot-dot' + (i === 0 ? " is-on" : "") + '" data-i="' + i + '" aria-label="Média ' + (i + 1) + '"></button>').join("");
     slot.innerHTML = '<div class="slot-carousel"><div class="slot-track">' + media + '</div><div class="slot-dots">' + dots + '</div></div>';
     wireSlotCarousel(slot);

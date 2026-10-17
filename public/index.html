@@ -11,10 +11,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/marches.css" />
 </head>
-<body data-page="m-accueil" data-nav="accueil">
+<body data-page="m-accueil" data-nav="accueil" class="home-photo">
   <div id="site-header"></div>
   <main id="contenu">
-    <section class="hero">
+    <section class="hero with-ph">
       <div class="wrap hero-grid">
         <div>
           <p class="eyebrow">Formation en finance des marchés · Cotonou</p>
@@ -29,6 +29,7 @@
           </div>
         </div>
       </div>
+      <div class="ph" data-slot="accueil-ouverture" data-keep data-alt="Gratte-ciel d'un quartier d'affaires illuminés la nuit"><img src="images/site/home-hero-1280.webp" srcset="images/site/home-hero-768.webp 768w, images/site/home-hero-1280.webp 1280w, images/site/home-hero-1920.webp 1920w" sizes="100vw" alt="Gratte-ciel d'un quartier d'affaires illuminés la nuit" fetchpriority="high" decoding="async"></div>
     </section>
 
     <section class="block block--tight">
@@ -47,7 +48,34 @@
       </div>
     </section>
 
-    <section class="stance">
+    <section class="block duo-sec">
+      <div class="wrap">
+        <div class="sec-head">
+        <div><p class="eyebrow">Le programme</p></div>
+        <div><h2>Deux parcours, une même exigence.</h2></div>
+      </div>
+        <div class="duo">
+          <div class="media" data-slot="accueil-parcours-finance" data-keep data-alt="Deux professionnels de la finance se serrent la main autour d'une table de réunion"><img src="images/site/home-finance-1080.webp" srcset="images/site/home-finance-640.webp 640w, images/site/home-finance-1080.webp 1080w" sizes="(max-width: 980px) 100vw, 50vw" alt="Deux professionnels de la finance se serrent la main autour d'une table de réunion" loading="lazy" decoding="async"></div>
+          <div class="duo__text">
+            <p class="eyebrow eyebrow--navy">Parcours 1</p>
+            <h3>Finance des marchés</h3>
+            <p>Microstructure, dérivés, risque et construction de stratégies, pour les professionnels du secteur financier.</p>
+            <a class="btn" href="admission.html?parcours=finance#parcours"><span data-edit>Choisir ce parcours</span> <span class="arrow" aria-hidden="true">→</span></a>
+          </div>
+        </div>
+        <div class="duo duo--rev">
+          <div class="media" data-slot="accueil-parcours-trading" data-keep data-alt="Un jeune homme étudie attentivement devant son ordinateur portable"><img src="images/site/home-trading-1080.webp" srcset="images/site/home-trading-640.webp 640w, images/site/home-trading-1080.webp 1080w" sizes="(max-width: 980px) 100vw, 50vw" alt="Un jeune homme étudie attentivement devant son ordinateur portable" loading="lazy" decoding="async"></div>
+          <div class="duo__text">
+            <p class="eyebrow eyebrow--navy">Parcours 2</p>
+            <h3>Trading institutionnel</h3>
+            <p>Lire le marché comme une institution&nbsp;: contexte, plan de trading, gestion du risque et discipline.</p>
+            <a class="btn" href="admission.html?parcours=trading#parcours"><span data-edit>Choisir ce parcours</span> <span class="arrow" aria-hidden="true">→</span></a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stance with-ph">
       <div class="wrap grid">
         <div>
           <p class="eyebrow">Notre position</p>
@@ -62,9 +90,20 @@
           <a class="tlink more" href="ecole.html"><span data-edit>Découvrir notre approche</span></a>
         </div>
       </div>
+      <div class="ph ph--deep" data-slot="accueil-position" data-keep data-alt="Silhouette d'une grande ville la nuit, en noir et blanc"><img src="images/site/home-position-1280.webp" srcset="images/site/home-position-768.webp 768w, images/site/home-position-1280.webp 1280w, images/site/home-position-1920.webp 1920w" sizes="100vw" alt="Silhouette d'une grande ville la nuit, en noir et blanc" loading="lazy" decoding="async"></div>
     </section>
 
-    <section class="closing">
+    <section class="block pubs" id="dernieres-publications" hidden>
+      <div class="wrap">
+        <div class="pubs__head">
+          <div><p class="eyebrow">Publications</p><h2>Nos lectures des marchés.</h2></div>
+          <div class="pubs__nav"><button type="button" class="pubs__arrow" id="pubsPrev" aria-label="Publications précédentes">←</button><button type="button" class="pubs__arrow" id="pubsNext" aria-label="Publications suivantes">→</button></div>
+        </div>
+        <div class="pubs__track" id="pubsTrack"></div>
+      </div>
+    </section>
+
+    <section class="closing with-ph">
       <div class="wrap">
         <p class="eyebrow">Prochaine promotion</p>
         <h2>Vous voulez comprendre les marchés avant d'y engager votre capital&nbsp;?</h2>
@@ -73,9 +112,11 @@
           <a class="tlink" href="contact.html" data-wa-link data-wa-msg="Bonjour, j'ai une question sur la formation en finance des marchés."><span data-edit>Poser une question sur WhatsApp</span></a>
         </div>
       </div>
+      <div class="ph" data-slot="accueil-appel" data-keep data-alt="Vue aérienne de Cotonou sous un ciel nuageux"><img src="images/site/home-appel-1280.webp" srcset="images/site/home-appel-768.webp 768w, images/site/home-appel-1280.webp 1280w, images/site/home-appel-1920.webp 1920w" sizes="100vw" alt="Vue aérienne de Cotonou sous un ciel nuageux" loading="lazy" decoding="async"></div>
     </section>
   </main>
   <div id="site-footer"></div>
   <script src="js/components.js"></script>
+  <script src="js/visuel.js" defer></script>
 </body>
 </html>

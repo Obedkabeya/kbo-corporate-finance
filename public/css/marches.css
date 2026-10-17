@@ -582,8 +582,127 @@ body.is-admin .admin-only { display: revert !important; }
 .fmt-bar__font {
   background: rgba(255,255,255,.12); border: 0; color: #e7edfa; border-radius: 100px;
   font-family: var(--sans); font-size: .82rem; font-weight: 600; padding: .42em .7em; cursor: pointer;
+}
 
 /* Emplacements médias polyvalents : la vidéo se comporte comme une image */
 [data-slot] video, .slot-track video, .hero__portrait video,
 .feature__media video, .svc-hero__media video { width: 100%; height: 100%; object-fit: cover; display: block; }
 .menu-panel .btn span{font:inherit;color:inherit}
+
+/* =========================================================
+   Enrichissement visuel — mise en scène du modèle Rothschild & Co :
+   grandes photos sous voile bleu nuit, alternance des fonds, blocs
+   photo/texte alternés, carrousel des publications, animations sobres.
+   (Ajout pur : les règles existantes ci-dessus ne sont pas modifiées.)
+   ========================================================= */
+.with-ph{position:relative;isolation:isolate;overflow:hidden}
+.with-ph>*:not(.ph):not(.candles){position:relative;z-index:1}
+.ph{position:absolute;inset:0;z-index:0;background:var(--night)}
+.ph img,.ph video{width:100%;height:100%;object-fit:cover;filter:grayscale(.35)}
+.ph::after{content:"";position:absolute;inset:0;background:rgba(13,26,58,.6);pointer-events:none}
+.ph--deep::after{background:rgba(13,26,58,.86)}
+.ph .slot-admin{z-index:8}
+
+/* Textes posés sur une photo : blanc, lisible grâce au voile */
+.with-ph,.with-ph h1,.with-ph h2,.with-ph .lead{color:#fff}
+.with-ph h1 em,.with-ph h2 em{color:#C9D6F5}
+.with-ph .eyebrow,.with-ph .crumb,.with-ph .crumb a{color:#C9D0E0}
+.with-ph .crumb a:hover{color:#fff}
+.with-ph .lead{color:#E6E9F1}
+.with-ph .vline{background:var(--gold)}
+.with-ph .btn{background:#fff;color:var(--navy);border-color:#fff}
+.with-ph .btn:hover{background:transparent;color:#fff}
+.with-ph .tlink,.with-ph .lead a{color:#fff}
+.with-ph .tlink:hover{color:#fff;border-color:var(--gold)}
+
+/* Bandeau d'ouverture plein écran (accueil) */
+.hero.with-ph{min-height:100vh;min-height:100svh;display:flex;align-items:center;padding:150px 0 110px;border-bottom:0}
+.hero.with-ph>.wrap{width:100%}
+.hero.with-ph .ph::after{background:linear-gradient(180deg,rgba(13,26,58,.72) 0%,rgba(13,26,58,.55) 45%,rgba(13,26,58,.7) 100%)}
+
+/* Ligne de chandeliers décorative, très discrète */
+.candles{position:absolute;left:0;right:0;bottom:9%;height:200px;z-index:0;overflow:hidden;pointer-events:none;opacity:.14}
+.candles__track{display:flex;width:200%;height:100%;animation:kbo-candles 90s linear infinite}
+.candles svg{width:50%;height:100%;flex:none}
+.candles line{stroke:#fff;stroke-width:1.5}
+.candles rect{fill:#fff}.candles rect.b{fill:none;stroke:#fff;stroke-width:1.5}
+@keyframes kbo-candles{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* Menu transparent posé sur la photo (accueil), plein dès qu'on défile */
+.home-photo .site-header{position:fixed;left:0;right:0;background:transparent;border-bottom-color:transparent;transition:background .3s,border-color .3s}
+.home-photo .site-header:not(.is-solid) .logo,.home-photo .site-header:not(.is-solid) .mnav a{color:#fff}
+.home-photo .site-header:not(.is-solid) .mnav a:hover{border-color:var(--gold)}
+.home-photo .site-header:not(.is-solid) .cta-top{color:#fff;border-color:rgba(255,255,255,.7)}
+.home-photo .site-header:not(.is-solid) .cta-top:hover{background:#fff;color:var(--navy)}
+.home-photo .site-header:not(.is-solid) .menu-btn{color:#fff;border-color:#fff}
+.home-photo .site-header.is-solid{background:rgba(251,251,250,.97);border-bottom-color:var(--rule)}
+
+/* Bandeaux photo en haut des pages (40 à 50 % de la hauteur de l'écran) */
+.page-head.with-ph{min-height:46vh;display:flex;align-items:flex-end;border-bottom:0}
+.page-head.with-ph>.wrap{width:100%}
+
+/* Bande « Ce que nous ne faisons pas » et appel final */
+.stance.with-ph{background:var(--night)}
+.closing.with-ph{padding:140px 0}
+
+/* Les deux parcours : grande photo d'un côté, texte de l'autre, en alternance */
+.duo-sec{background:#fff}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;padding:28px 0}
+.duo+.duo{margin-top:48px}
+.duo--rev .media{order:2}
+.media{position:relative;overflow:hidden;background:var(--paper-2);aspect-ratio:4/3}
+.media img,.media video{width:100%;height:100%;object-fit:cover;filter:grayscale(.2)}
+.duo__text h3{font:800 34px/1.12 var(--title);letter-spacing:-.02em;margin:14px 0 14px}
+.duo__text p{color:var(--soft);max-width:480px}
+.duo__text .btn{margin-top:30px}
+
+/* Dernières publications : bande beige et carrousel de cartes */
+.pubs{background:#F3F1EC}
+.pubs__head{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:36px}
+.pubs__head h2{font:700 38px/1.14 var(--title);letter-spacing:-.02em;margin-top:14px}
+.pubs__nav{display:flex;gap:10px}
+.pubs__arrow{width:48px;height:48px;border:1px solid var(--ink);background:transparent;color:var(--ink);font:400 20px var(--sans);cursor:pointer;transition:background .2s,color .2s}
+.pubs__arrow:hover:not([disabled]){background:var(--ink);color:#fff}
+.pubs__arrow[disabled]{opacity:.3;cursor:default}
+.pubs__track{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 48px)/3);gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:4px}
+.pubs__track::-webkit-scrollbar{display:none}
+.pcard{display:block;scroll-snap-align:start;color:var(--ink)}
+.pcard__media{aspect-ratio:16/10}
+.pcard__tag{display:block;margin-top:18px;font:500 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--navy)}
+.pcard__title{font:700 21px/1.3 var(--title);letter-spacing:-.02em;margin-top:8px}
+.pcard:hover .pcard__title{color:var(--navy)}
+
+/* Animations sobres : apparition douce, léger zoom des photos au survol */
+.rv{opacity:0;transform:translateY(24px);transition:opacity .7s var(--ease),transform .7s var(--ease)}
+.rv.rv-in{opacity:1;transform:none}
+@media (hover:hover) and (prefers-reduced-motion:no-preference){
+  .media img{transition:transform .9s var(--ease)}
+  .media:hover img,.pcard:hover .media img{transform:scale(1.04)}
+}
+@media (prefers-reduced-motion:reduce){
+  .candles__track{animation:none}
+  .rv{opacity:1;transform:none;transition:none}
+}
+
+@media (max-width:980px){
+  .duo{grid-template-columns:1fr;gap:24px}
+  .duo--rev .media{order:0}
+  .duo__text h3{font-size:28px}
+  .pubs__track{grid-auto-columns:78%}
+  .hero.with-ph{padding:120px 0 72px}
+  .closing.with-ph{padding:88px 0}
+}
+@media (max-width:767px){
+  .hero.with-ph{min-height:92svh;padding:104px 0 56px}
+  .page-head.with-ph{min-height:42vh}
+  .candles{height:130px;bottom:6%}
+  .duo{padding:8px 0}
+  .duo+.duo{margin-top:28px}
+  .duo__text h3{font-size:25px;margin:10px 0}
+  .duo__text .btn{margin-top:20px;width:100%}
+  .pubs__head{margin-bottom:22px}
+  .pubs__head h2{font-size:28px;margin-top:10px}
+  .pubs__arrow{width:42px;height:42px}
+  .pcard__title{font-size:18px}
+  .closing.with-ph{padding:64px 0}
+}
