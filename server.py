@@ -89,6 +89,12 @@ MOVED_PAGES = {
     "/professionnel": "/admission.html#parcours",
 }
 
+# Pas de page d'accueil séparée : le visiteur arrive directement sur L'école.
+# Redirection temporaire (302) : pour remettre une page d'accueil, il suffit
+# de retirer ces deux lignes.
+HOME_PATHS = ("/", "/index.html", "/index")
+HOME_TARGET = "/ecole.html"
+
 SESSION_COOKIE = "kbo_session"
 SESSION_MAX_AGE = 30 * 24 * 3600  # 30 jours
 
@@ -1174,6 +1180,9 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if path.startswith("/api/"):
             return self._api_get(path)
+        if path in HOME_PATHS:
+            query = urlparse(self.path).query
+            return self._redirect(HOME_TARGET + ("?" + query if query else ""))
         moved = MOVED_PAGES.get(path[:-5] if path.endswith(".html") else path)
         if moved:
             return self._redirect(moved, permanent=True)

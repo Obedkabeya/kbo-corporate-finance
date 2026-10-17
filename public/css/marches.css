@@ -695,6 +695,9 @@ body.is-admin .admin-only { display: revert !important; }
   .closing.with-ph{padding:88px 0}
 }
 @media (max-width:767px){
+  /* Admission : formulaire caché sur téléphone tant qu'un parcours n'est pas choisi */
+  #candidature:not(.is-open){display:none}
+  #candidature{scroll-margin-top:68px}
   .hero.with-ph{min-height:92svh;padding:104px 0 56px}
   .page-head.with-ph{min-height:42vh}
   .candles{height:130px;bottom:6%}

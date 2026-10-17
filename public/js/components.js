@@ -16,7 +16,7 @@
   ];
 
   const logo = (extra) => `
-    <a class="logo ${extra || ""}" href="index.html" aria-label="KBO Corporate Finance — accueil">
+    <a class="logo ${extra || ""}" href="ecole.html" aria-label="KBO Corporate Finance — accueil">
       <span class="k" data-text="brandMark">KBO</span><span class="sep" aria-hidden="true"></span><span class="cf">Corporate<br>Finance</span>
     </a>`;
 

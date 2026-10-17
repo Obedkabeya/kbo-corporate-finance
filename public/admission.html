@@ -10,13 +10,14 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/marches.css" />
+  <noscript><style>#candidature{display:block!important}</style></noscript>
 </head>
 <body data-page="m-admission" data-nav="admission">
   <div id="site-header"></div>
   <main id="contenu">
     <section class="page-head with-ph">
       <div class="wrap">
-        <div class="crumb"><a href="index.html">Accueil</a> / Admission</div>
+        <div class="crumb"><a href="ecole.html">Accueil</a> / Admission</div>
         <p class="eyebrow">Admission</p>
         <h1>Une place se <em>mérite</em>.</h1>
         <p class="lead">Les promotions sont volontairement restreintes. Chaque dossier est lu personnellement, et chaque candidat reçoit une réponse.</p>
@@ -138,12 +139,25 @@
       var OLD = { avance: "finance", fondamentaux: "trading" };
       var sel = document.getElementById("a_parcours");
       function choose(p) { [].forEach.call(sel.options, function (o) { if (o.getAttribute("data-p") === p) sel.value = o.value; }); }
+      // Sur téléphone, le formulaire reste caché tant que le visiteur n'a pas
+      // choisi un parcours (ou demandé à déposer sa candidature).
+      var form = document.getElementById("candidature");
+      function openForm() { form.classList.add("is-open"); }
       var want = new URLSearchParams(location.search).get("parcours");
-      if (want && sel) choose(OLD[want] || want);
-      // Bouton « Choisir ce parcours » : sélectionne le parcours et descend au formulaire.
+      if (want && sel) { choose(OLD[want] || want); openForm(); }
+      if (location.hash === "#candidature") {
+        openForm();
+        setTimeout(function () { form.scrollIntoView({ block: "start" }); }, 50);
+      }
+      window.addEventListener("hashchange", function () {
+        if (location.hash === "#candidature") { openForm(); form.scrollIntoView({ behavior: "smooth", block: "start" }); }
+      });
+      // Bouton « Choisir ce parcours » : sélectionne le parcours, ouvre le formulaire et y descend.
       document.querySelectorAll("[data-choose]").forEach(function (b) {
+        b.setAttribute("aria-controls", "candidature");
         b.addEventListener("click", function () {
           choose(b.getAttribute("data-choose"));
+          openForm();
           sel.closest(".fgroup").scrollIntoView({ behavior: "smooth", block: "start" });
         });
       });

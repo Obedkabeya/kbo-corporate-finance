@@ -9,21 +9,16 @@
   "use strict";
 
   var PAGES = [
-    { file: "index.html",             label: "Accueil" },
-    { file: "formation.html",         label: "Formation — choix des parcours" },
-    { file: "formation-trading.html", label: "Formation — Trading (détail)" },
-    { file: "formation-finance.html", label: "Formation — Finance de marché (détail)" },
-    { file: "candidature.html",       label: "Formation — candidature" },
-    { file: "accompagnement.html",    label: "Accompagnement des entreprises" },
-    { file: "conseil.html",           label: "Conseil en investissement" },
-    { file: "ressources.html",        label: "Ressources" },
-    { file: "faq.html",               label: "FAQ" },
-    { file: "personnel.html",         label: "À propos" },
+    { file: "ecole.html",             label: "L'école (page d'arrivée du site)" },
+    { file: "admission.html",         label: "Admission" },
+    { file: "publications.html",      label: "Publications" },
     { file: "contact.html",           label: "Contact" },
-    { file: "galerie.html",           label: "Galerie" },
+    { file: "faq.html",               label: "Questions fréquentes" },
+    { file: "paiement.html",          label: "Paiement" },
+    { file: "risques.html",           label: "Avertissement sur les risques" },
     { file: "mentions-legales.html",  label: "Mentions légales" },
     { file: "confidentialite.html",   label: "Confidentialité" },
-    { file: "risques.html",           label: "Avertissement sur les risques" },
+    { file: "404.html",               label: "Page introuvable" },
   ];
 
   // Mêmes règles que components.js (pour produire EXACTEMENT les mêmes clés).
