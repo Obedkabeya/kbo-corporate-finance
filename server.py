@@ -1138,7 +1138,7 @@ def _store_upload(rel_path, data, mime, disk_path):
 #  Fin d'accès (abonnement non renouvelé, remboursement) → rôle retiré.
 #  Les clés sont dans /etc/kbo/kbo.env (jamais dans le code ni sur GitHub).
 # ============================================================
-CRYPTO_MIN_EUR = 12        # minimum NOWPayments pour l'USDT Tron (environ 10 €), avec une marge
+CRYPTO_MIN_EUR = 11        # minimum NOWPayments pour l'USDT Tron (environ 10,10 €), avec une marge
 DISCORD_API = "https://discord.com/api/v10"
 DISCORD_FILE = os.path.join(DATA_DIR, "discord.json")   # serveur, rôles par formation, journal
 DISCORD_UA = "KBO-Site (https://kbo-corporate-finance, 1.0)"
@@ -2001,7 +2001,8 @@ class Handler(BaseHTTPRequestHandler):
             "ipn_callback_url": base + "/api/webhooks/crypto",
             "success_url": base + "/paiement.html?c=" + token + "&ok=crypto",
             "cancel_url": base + "/paiement.html?c=" + token,
-            "is_fixed_rate": True, "is_fee_paid_by_user": False,
+            # Pas de « taux fixe » : inutile pour l'USDT, et il double le montant minimum.
+            "is_fixed_rate": False, "is_fee_paid_by_user": False,
         }
         req = urllib.request.Request("https://api.nowpayments.io/v1/invoice", data=json.dumps(payload).encode(),
                                      method="POST", headers={"x-api-key": key, "Content-Type": "application/json",
