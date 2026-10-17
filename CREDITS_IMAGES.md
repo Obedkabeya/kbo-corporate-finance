@@ -14,12 +14,12 @@ texte », bouton « Ajouter image ou vidéo » sur la photo), sans toucher au co
 | Accueil — parcours Finance des marchés | `home-finance-*.webp` | Vitaly Gariev | https://unsplash.com/photos/lZXX-QVdyXY |
 | Accueil — parcours Trading institutionnel | `home-trading-*.webp` | Kojo Kwarteng | https://unsplash.com/photos/KUzlAah2dog |
 | Accueil — « Ce que nous ne faisons pas » | `home-position-*.webp` | Zoshua Colah | https://unsplash.com/photos/dHLHytIM96Q |
-| Accueil — appel final (Cotonou) | `home-appel-*.webp` | Yanick Folly | https://unsplash.com/photos/kWPNxQyAT6M |
-| L'école — bandeau | `page-ecole-*.webp` | Christina @ wocintechchat.com | https://unsplash.com/photos/rg1y72eKw6o |
-| Admission — bandeau | `page-admission-*.webp` | Thought Catalog | https://unsplash.com/photos/505eectW54k |
+| Accueil — appel final | `home-marches-*.webp` | Austin Hervias | https://unsplash.com/photos/VLpWpv3oDB4 |
+| L'école — bandeau (même photo que l'ouverture de l'accueil) | `home-hero-*.webp` | Himmel S | https://unsplash.com/photos/Io1lz5bZ0as |
+| Admission — bandeau | `page-admission-v2-*.webp` | Jakub Żerdzicki | https://unsplash.com/photos/tFecc1boKYc |
 | Publications — bandeau | `page-publications-*.webp` | AbsolutVision | https://unsplash.com/photos/WYd_PkCa1BY |
 | Contact — bandeau | `page-contact-*.webp` | Julian Hochgesang | https://unsplash.com/photos/Dkn8-zPIbwo |
 | Questions fréquentes — bandeau | `page-faq-*.webp` | Susan Q Yin | https://unsplash.com/photos/2JIvboGLeho |
 
-La ligne de chandeliers du bandeau d'ouverture est un dessin généré par le site
+La ligne de chandeliers (bandeau d'ouverture de l'accueil et bandeau de L'école) est un dessin généré par le site
 (`public/js/visuel.js`) : purement décoratif, sans aucun chiffre ni prix.

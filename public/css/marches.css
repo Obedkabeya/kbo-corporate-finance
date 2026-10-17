@@ -640,6 +640,7 @@ body.is-admin .admin-only { display: revert !important; }
 /* Bandeaux photo en haut des pages (40 à 50 % de la hauteur de l'écran) */
 .page-head.with-ph{min-height:46vh;display:flex;align-items:flex-end;border-bottom:0}
 .page-head.with-ph>.wrap{width:100%}
+.page-head.with-candles .candles{bottom:4%;height:150px}
 .page-head.with-ph .ph::after{background:linear-gradient(180deg,rgba(13,26,58,.62),rgba(13,26,58,.78))}
 
 /* Bande « Ce que nous ne faisons pas » et appel final */

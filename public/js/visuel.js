@@ -16,9 +16,9 @@
     majMenu();
   }
 
-  // ---- Ligne de chandeliers, purement décorative (aucun chiffre, aucun prix) ----
-  const hero = document.querySelector(".hero.with-ph");
-  if (hero) {
+  // ---- Ligne de chandeliers, purement décorative (aucun chiffre, aucun prix) :
+  //      bandeau d'ouverture de l'accueil et bandeaux marqués « with-candles » ----
+  document.querySelectorAll(".hero.with-ph, .with-candles").forEach(hero => {
     const n = 64, w = 22, h = 220;
     let y = 120, seed = 7, svg = "";
     const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
@@ -37,7 +37,7 @@
     const one = `<svg viewBox="0 0 ${n * w} ${h}" preserveAspectRatio="none">${svg}</svg>`;
     deco.innerHTML = `<div class="candles__track">${one}${one}</div>`;
     hero.appendChild(deco);
-  }
+  });
 
   // ---- Vidéo éventuelle dans un emplacement photo : pas sur téléphone ni en connexion lente ----
   if (calme || petitEcran || lent) {
