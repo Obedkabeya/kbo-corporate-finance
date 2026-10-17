@@ -1750,6 +1750,11 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/pay/etat":
             return self._pay_state()
 
+        if path == "/api/achat/moyens":
+            return self._send_json({
+                "carte": bool(os.environ.get("LEMONSQUEEZY_API_KEY") and os.environ.get("LEMONSQUEEZY_STORE_ID")),
+                "crypto": bool(os.environ.get("NOWPAYMENTS_API_KEY"))})
+
         if path == "/api/admin/discord":
             return self._admin_discord()
 
@@ -1892,6 +1897,9 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/api/admin/acces":
             return self._admin_acces_action()
+
+        if path == "/api/achat":
+            return self._achat_direct()
 
         if path == "/api/analyse/inscription":
             return self._analyse_inscription()
@@ -2242,24 +2250,16 @@ class Handler(BaseHTTPRequestHandler):
         discord = c["discord"] or "/paiement.html?c=" + token + "&ok=1"
         return self._redirect(discord)
 
-    def _pay_crypto(self):
-        """Crée la page de paiement crypto NOWPayments (USDT sur le réseau Tron) pour ce lien.
-        Les fonds vont directement sur l'adresse Binance d'Obed ; le site est prévenu
-        par une notification signée (voir _webhook_crypto)."""
-        data = self._read_body() or {}
-        token = _clean(data.get("token"), 40)
-        links = _read_json(PAYLINKS_FILE, {})
-        link = links.get(token) if isinstance(links, dict) else None
-        if not link or link.get("used"):
-            return self._send_json({"error": "Lien invalide ou déjà utilisé."}, 404)
+    def _facture_crypto(self, token, link):
+        """Crée la page de paiement NOWPayments (USDT, réseau Tron) pour un lien. Renvoie (url, erreur)."""
         key = os.environ.get("NOWPAYMENTS_API_KEY", "").strip()
         if not key:
-            return self._send_json({"error": "Le paiement en crypto n'est pas encore disponible."}, 503)
+            return None, "Le paiement en crypto n'est pas encore disponible."
         amount, currency = _resolve_price(link)
         if str(currency).upper() == "XOF":
             amount, currency = round(float(amount) / EUR_TO_XOF, 2), "EUR"
         if float(amount) < CRYPTO_MIN_EUR:
-            return self._send_json({"error": "Montant trop faible pour un paiement en crypto (minimum %d €)." % CRYPTO_MIN_EUR}, 400)
+            return None, "Montant trop faible pour un paiement en crypto (minimum %d €)." % CRYPTO_MIN_EUR
         base = _public_url() or self._public_base()
         payload = {
             "price_amount": float(amount), "price_currency": str(currency).lower(),
@@ -2279,15 +2279,67 @@ class Handler(BaseHTTPRequestHandler):
                 inv = json.loads(r.read())
         except urllib.error.HTTPError as e:
             print("  [Crypto] création de facture refusée : %s %s" % (e.code, e.read()[:300]), flush=True)
-            return self._send_json({"error": "Le service de paiement crypto est momentanément indisponible."}, 502)
+            return None, "Le service de paiement crypto est momentanément indisponible."
         except Exception as e:  # noqa: BLE001
             print("  [Crypto] service injoignable : %s" % e, flush=True)
-            return self._send_json({"error": "Le service de paiement crypto est momentanément indisponible."}, 502)
+            return None, "Le service de paiement crypto est momentanément indisponible."
         if not inv.get("invoice_url"):
-            return self._send_json({"error": "Le service de paiement crypto n'a pas répondu correctement."}, 502)
-        links[token]["cryptoInvoice"] = str(inv.get("id") or "")
+            return None, "Le service de paiement crypto n'a pas répondu correctement."
+        links = _read_json(PAYLINKS_FILE, {})
+        if token in links:
+            links[token]["cryptoInvoice"] = str(inv.get("id") or "")
+            _write_json(PAYLINKS_FILE, links)
+        return inv["invoice_url"], None
+
+    def _pay_crypto(self):
+        """Paiement crypto depuis un lien privé (Finance des marchés, après candidature)."""
+        data = self._read_body() or {}
+        token = _clean(data.get("token"), 40)
+        links = _read_json(PAYLINKS_FILE, {})
+        link = links.get(token) if isinstance(links, dict) else None
+        if not link or link.get("used"):
+            return self._send_json({"error": "Lien invalide ou déjà utilisé."}, 404)
+        url, err = self._facture_crypto(token, link)
+        if err:
+            return self._send_json({"error": err}, 502 if "indisponible" in err else 400)
+        return self._send_json({"ok": True, "url": url})
+
+    def _achat_direct(self):
+        """Inscription directe, sans candidature (Trading institutionnel) : on crée un lien
+        interne pour l'élève, puis la page de paiement. L'accès s'ouvre au paiement confirmé."""
+        data = self._read_body() or {}
+        ip = self._client_ip()
+        if _too_many("achat:" + ip, 8, 3600):
+            return self._send_json({"error": "Trop de tentatives. Réessayez dans une heure."}, 429)
+        _note_attempt("achat:" + ip)
+        cycle = data.get("cycle") if data.get("cycle") in ("mensuel", "annuel") else ""
+        nom = _clean(data.get("nom"), 120)
+        email = _clean(data.get("email"), 200).lower()
+        if not cycle:
+            return self._send_json({"error": "Choisissez une formule : mensuelle ou annuelle."}, 400)
+        if len(nom) < 2:
+            return self._send_json({"error": "Indiquez votre nom."}, 400)
+        if not EMAIL_RE.match(email):
+            return self._send_json({"error": "Adresse e-mail invalide."}, 400)
+        if not data.get("risques"):
+            return self._send_json({"error": "Merci de confirmer avoir lu l'avertissement sur les risques."}, 400)
+        moyen = data.get("moyen")
+        if moyen != "crypto":
+            return self._send_json({"error": "Le paiement par carte sera disponible très bientôt. Vous pouvez payer en USDT dès maintenant."}, 400)
+        price_key = "priceTradingMonth" if cycle == "mensuel" else "priceTradingYear"
+        token = uuid.uuid4().hex[:16]
+        link = {"formation": PRICE_KEYS[price_key], "priceKey": price_key, "amount": 0, "currency": "EUR",
+                "cycle": cycle, "nom": nom, "email": email, "created": datetime.utcnow().isoformat() + "Z",
+                "used": False, "direct": True}
+        links = _read_json(PAYLINKS_FILE, {})
+        if not isinstance(links, dict):
+            links = {}
+        links[token] = link
         _write_json(PAYLINKS_FILE, links)
-        return self._send_json({"ok": True, "url": inv["invoice_url"]})
+        url, err = self._facture_crypto(token, link)
+        if err:
+            return self._send_json({"error": err}, 502 if "indisponible" in err else 400)
+        return self._send_json({"ok": True, "url": url})
 
     def _grant_access(self, token, link, method, ref, extra=None):
         """Ouvre l'accès après un paiement confirmé (une seule fois par référence).

@@ -49,8 +49,29 @@
               <div><dt>Durée</dt><dd data-edit>6 modules, à votre rythme</dd></div>
               <div><dt>Prix</dt><dd><span class="num" data-text="priceTradingMonth">89 €</span> par mois ou <span class="num" data-text="priceTradingYear">800 €</span> par an</dd></div>
             </dl>
-            <button class="btn offer__btn" type="button" data-choose="trading">Choisir ce parcours <span class="arrow" aria-hidden="true">→</span></button>
+            <button class="btn offer__btn" type="button" data-achat aria-controls="achat">S'inscrire maintenant <span class="arrow" aria-hidden="true">→</span></button>
           </article>
+        </div>
+        <div class="achat" id="achat" hidden>
+          <p class="eyebrow eyebrow--navy">Inscription directe, sans candidature</p>
+          <h3>Trading institutionnel</h3>
+          <form id="achatForm" novalidate>
+            <div class="achat-formules" role="radiogroup" aria-label="Formule">
+              <label class="achat-formule"><input type="radio" name="cycle" value="mensuel" checked /><span><strong>Mensuel</strong><span class="achat-prix"><span class="num" data-text="priceTradingMonth">89 €</span> par mois</span><span class="achat-fcfa" data-fcfa="priceTradingMonth"></span></span></label>
+              <label class="achat-formule"><input type="radio" name="cycle" value="annuel" /><span><strong>Annuel</strong><span class="achat-prix"><span class="num" data-text="priceTradingYear">800 €</span> par an</span><span class="achat-fcfa" data-fcfa="priceTradingYear"></span></span></label>
+            </div>
+            <div class="fields">
+              <div class="field"><label for="achat_nom">Nom complet <span class="req">*</span></label><input id="achat_nom" name="nom" type="text" autocomplete="name" maxlength="120" required /></div>
+              <div class="field"><label for="achat_email">Adresse e-mail <span class="req">*</span></label><input id="achat_email" name="email" type="email" autocomplete="email" maxlength="200" required /></div>
+            </div>
+            <label class="check"><input type="checkbox" name="risques" required /> <span>J'ai lu l'<a href="risques.html" target="_blank" rel="noopener">avertissement sur les risques</a>&nbsp;: la formation est pédagogique et les marchés financiers comportent un risque de perte en capital.</span></label>
+            <div class="achat-moyens">
+              <button class="btn" type="submit" id="achatCrypto">Payer en USDT <span class="arrow" aria-hidden="true">→</span></button>
+              <button class="btn btn--ghost" type="button" id="achatCarte" disabled>Carte bancaire&nbsp;: bientôt</button>
+            </div>
+            <span class="form-msg" id="achatMsg" role="status"></span>
+            <p class="form-note">USDT sur le réseau Tron (TRC20) uniquement. Le montant exact s'affiche à l'étape suivante&nbsp;: envoyez exactement ce montant, en une seule fois. Dès que le paiement est confirmé, votre accès s'ouvre et vous rejoignez la formation sur Discord.</p>
+          </form>
         </div>
       </div>
     </section>
@@ -67,9 +88,7 @@
             <div class="fields">
               <div class="field field--full"><label for="a_parcours">Parcours souhaité <span class="req">*</span></label>
                 <select id="a_parcours" name="formation" required>
-                  <option value="" disabled selected>Sélectionnez…</option>
-                  <option value="Finance des marchés" data-p="finance">Finance des marchés</option>
-                  <option value="Trading institutionnel" data-p="trading">Trading institutionnel</option>
+                  <option value="Finance des marchés" data-p="finance" selected>Finance des marchés</option>
                 </select></div>
             </div>
           </div>
@@ -135,6 +154,7 @@
   <script src="js/components.js"></script>
   <script src="js/visuel.js" defer></script>
   <script src="js/forms.js"></script>
+  <script src="js/achat.js"></script>
   <script>
     (function () {
       // Présélection du parcours depuis un lien (?parcours=finance|trading).
@@ -147,7 +167,16 @@
       var form = document.getElementById("candidature");
       function openForm() { form.classList.add("is-open"); }
       var want = new URLSearchParams(location.search).get("parcours");
-      if (want && sel) { choose(OLD[want] || want); openForm(); }
+      want = OLD[want] || want;
+      // Trading institutionnel : inscription et paiement directs, sans candidature.
+      var achat = document.getElementById("achat");
+      function openAchat(scroll) {
+        achat.hidden = false;
+        if (scroll) achat.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      document.querySelectorAll("[data-achat]").forEach(function (b) { b.addEventListener("click", function () { openAchat(true); }); });
+      if (want === "trading") { openAchat(false); setTimeout(function () { achat.scrollIntoView({ block: "start" }); }, 80); }
+      else if (want && sel) { choose(want); openForm(); }
       if (location.hash === "#candidature") {
         openForm();
         setTimeout(function () { form.scrollIntoView({ block: "start" }); }, 50);
