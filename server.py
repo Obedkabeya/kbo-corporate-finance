@@ -1138,6 +1138,7 @@ def _store_upload(rel_path, data, mime, disk_path):
 #  Fin d'accès (abonnement non renouvelé, remboursement) → rôle retiré.
 #  Les clés sont dans /etc/kbo/kbo.env (jamais dans le code ni sur GitHub).
 # ============================================================
+CRYPTO_MIN_EUR = 12        # minimum NOWPayments pour l'USDT Tron (environ 10 €), avec une marge
 DISCORD_API = "https://discord.com/api/v10"
 DISCORD_FILE = os.path.join(DATA_DIR, "discord.json")   # serveur, rôles par formation, journal
 DISCORD_UA = "KBO-Site (https://kbo-corporate-finance, 1.0)"
@@ -1221,20 +1222,48 @@ def _sub_active(sub):
 
 
 def _discord_apply(sub, reason="Accès KBO"):
-    """Donne ou retire le rôle Discord selon l'état de l'accès. Renvoie un message."""
+    """Donne ou retire le rôle Discord d'un élève VENU PAR LE SITE. Renvoie un message.
+
+    Règle d'Obed : le robot ne touche qu'aux personnes venues par le paiement du
+    site, et ne retire QUE le rôle de formation qu'il a lui-même donné. Si l'élève
+    avait déjà ce rôle (donné à la main par Obed), le robot ne le retirera jamais.
+    Il ne touche à aucun autre rôle (« Membre historique », etc.)."""
     c = _discord_cfg()
     uid, role = sub.get("discordId"), c["roles"].get(sub.get("formationKey") or "")
     if not (c["configured"] and c["guild_id"] and uid and role):
         return "rien à faire (Discord non relié ou rôle inconnu)"
     path = "/guilds/%s/members/%s/roles/%s" % (c["guild_id"], uid, role)
+    qui = sub.get("discordName") or uid
     if _sub_active(sub):
+        if not sub.get("roleDonneParRobot"):
+            st, member = _discord_req("GET", "/guilds/%s/members/%s" % (c["guild_id"], uid))
+            if st == 200 and isinstance(member, dict) and role in (member.get("roles") or []):
+                if not sub.get("roleManuel"):
+                    sub["roleManuel"] = True          # rôle déjà présent : donné à la main, on n'y touchera pas
+                    _sub_save(sub)
+                    _discord_log("%s a déjà le rôle « %s » (donné à la main) : le robot ne le retirera jamais"
+                                 % (qui, sub.get("formation")))
+                return "rôle donné"
         code, _ = _discord_req("PUT", path, reason=reason)
         ok = code in (200, 204)
-        _discord_log("%s rôle « %s » → %s (%s)" % ("Ajout du" if ok else "ÉCHEC ajout du", sub.get("formation"), sub.get("discordName") or uid, code))
+        if ok and not sub.get("roleManuel") and not sub.get("roleDonneParRobot"):
+            sub["roleDonneParRobot"] = True
+            _sub_save(sub)
+        _discord_log("%s rôle « %s » → %s (%s)" % ("Ajout du" if ok else "ÉCHEC ajout du", sub.get("formation"), qui, code))
         return "rôle donné" if ok else "échec (%s)" % code
+    if sub.get("roleManuel") or not sub.get("roleDonneParRobot"):
+        return "rôle laissé en place (non donné par le robot)"
+    # Un autre accès actif du même élève pour la même formation garde le rôle.
+    for other in _subs():
+        if (other.get("id") != sub.get("id") and other.get("discordId") == uid
+                and other.get("formationKey") == sub.get("formationKey") and _sub_active(other)):
+            return "rôle conservé (autre accès actif)"
     code, _ = _discord_req("DELETE", path, reason=reason)
     ok = code in (200, 204, 404)
-    _discord_log("%s rôle « %s » → %s (%s)" % ("Retrait du" if ok else "ÉCHEC retrait du", sub.get("formation"), sub.get("discordName") or uid, code))
+    if ok:
+        sub["roleDonneParRobot"] = False
+        _sub_save(sub)
+    _discord_log("%s rôle « %s » → %s (%s)" % ("Retrait du" if ok else "ÉCHEC retrait du", sub.get("formation"), qui, code))
     return "rôle retiré" if ok else "échec (%s)" % code
 
 
@@ -1458,6 +1487,9 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/acces":
             return self._acces_status()
 
+        if path == "/api/pay/etat":
+            return self._pay_state()
+
         if path == "/api/admin/discord":
             return self._admin_discord()
 
@@ -1662,7 +1694,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._save_payconfig()
         if path == "/api/pay/start":          # public : démarrer un paiement (via jeton)
             return self._pay_start()
-        if path == "/api/pay/crypto":         # public : signaler un paiement crypto (manuel)
+        if path == "/api/pay/crypto":         # public : créer la page de paiement crypto (NOWPayments)
             return self._pay_crypto()
         if path == "/api/subscribers/remove": # admin : retirer un abonné
             return self._remove_subscriber()
@@ -1858,8 +1890,18 @@ class Handler(BaseHTTPRequestHandler):
             "ok": True, "formation": link["formation"], "amount": amount,
             "currency": currency, "cycle": link["cycle"],
             "amountXof": _to_xof(amount, currency),   # équivalent FCFA (info client)
-            "cardReady": c["configured"], "binance": c["binance"],
+            "cardReady": bool(os.environ.get("LEMONSQUEEZY_API_KEY") and os.environ.get("LEMONSQUEEZY_STORE_ID")),
+            "cryptoReady": bool(os.environ.get("NOWPAYMENTS_API_KEY")),
+            "cryptoMin": CRYPTO_MIN_EUR,
         })
+
+    def _pay_state(self):
+        """Après un paiement : l'accès est-il ouvert ? (interrogé par la page de paiement)"""
+        token = (parse_qs(urlparse(self.path).query).get("c") or [""])[0]
+        sub = _sub_by("paylink", token) if token else None
+        if sub:
+            return self._send_json({"paye": True, "acces": "/acces.html?t=" + sub["acces"]})
+        return self._send_json({"paye": False})
 
     def _pay_start(self):
         """Crée une transaction FedaPay et renvoie l'URL de la page de paiement."""
@@ -1934,31 +1976,50 @@ class Handler(BaseHTTPRequestHandler):
         return self._redirect(discord)
 
     def _pay_crypto(self):
-        """Le client déclare avoir payé en crypto (Binance) → on enregistre une
-        demande EN ATTENTE que l'administrateur confirmera manuellement."""
+        """Crée la page de paiement crypto NOWPayments (USDT sur le réseau Tron) pour ce lien.
+        Les fonds vont directement sur l'adresse Binance d'Obed ; le site est prévenu
+        par une notification signée (voir _webhook_crypto)."""
         data = self._read_body() or {}
         token = _clean(data.get("token"), 40)
         links = _read_json(PAYLINKS_FILE, {})
         link = links.get(token) if isinstance(links, dict) else None
         if not link or link.get("used"):
             return self._send_json({"error": "Lien invalide ou déjà utilisé."}, 404)
-        c_amount, c_currency = _resolve_price(link)
-        entry = {
-            "id": uuid.uuid4().hex[:12], "category": "paiement", "service": "crypto",
-            "kind": "Paiement crypto (à confirmer)",
-            "fields": {"nom": link.get("nom") or _clean(data.get("nom"), 120) or "?",
-                       "email": link.get("email") or _clean(data.get("email"), 200) or "?",
-                       "formation": link["formation"],
-                       "montant": "%s %s" % (c_amount, c_currency),
-                       "reference": _clean(data.get("ref"), 200)},
-            "received": datetime.utcnow().isoformat() + "Z",
+        key = os.environ.get("NOWPAYMENTS_API_KEY", "").strip()
+        if not key:
+            return self._send_json({"error": "Le paiement en crypto n'est pas encore disponible."}, 503)
+        amount, currency = _resolve_price(link)
+        if str(currency).upper() == "XOF":
+            amount, currency = round(float(amount) / EUR_TO_XOF, 2), "EUR"
+        if float(amount) < CRYPTO_MIN_EUR:
+            return self._send_json({"error": "Montant trop faible pour un paiement en crypto (minimum %d €)." % CRYPTO_MIN_EUR}, 400)
+        base = _public_url() or self._public_base()
+        payload = {
+            "price_amount": float(amount), "price_currency": str(currency).lower(),
+            "pay_currency": "usdttrc20",
+            "order_id": token, "order_description": (link.get("formation") or "Formation KBO")[:120],
+            "ipn_callback_url": base + "/api/webhooks/crypto",
+            "success_url": base + "/paiement.html?c=" + token + "&ok=crypto",
+            "cancel_url": base + "/paiement.html?c=" + token,
+            "is_fixed_rate": True, "is_fee_paid_by_user": False,
         }
-        subs = _read_json(SUBMISSIONS_FILE, [])
-        subs.append(entry)
-        _write_json(SUBMISSIONS_FILE, subs)
-        print("\n  🪙  Paiement crypto déclaré pour %s (%s %s) — à confirmer"
-              % (link["formation"], link["amount"], link["currency"]), flush=True)
-        return self._send_json({"ok": True})
+        req = urllib.request.Request("https://api.nowpayments.io/v1/invoice", data=json.dumps(payload).encode(),
+                                     method="POST", headers={"x-api-key": key, "Content-Type": "application/json",
+                                                             "User-Agent": "KBO-Site"})
+        try:
+            with urllib.request.urlopen(req, timeout=25) as r:
+                inv = json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            print("  [Crypto] création de facture refusée : %s %s" % (e.code, e.read()[:300]), flush=True)
+            return self._send_json({"error": "Le service de paiement crypto est momentanément indisponible."}, 502)
+        except Exception as e:  # noqa: BLE001
+            print("  [Crypto] service injoignable : %s" % e, flush=True)
+            return self._send_json({"error": "Le service de paiement crypto est momentanément indisponible."}, 502)
+        if not inv.get("invoice_url"):
+            return self._send_json({"error": "Le service de paiement crypto n'a pas répondu correctement."}, 502)
+        links[token]["cryptoInvoice"] = str(inv.get("id") or "")
+        _write_json(PAYLINKS_FILE, links)
+        return self._send_json({"ok": True, "url": inv["invoice_url"]})
 
     def _grant_access(self, token, link, method, ref, extra=None):
         """Ouvre l'accès après un paiement confirmé (une seule fois par référence).
@@ -2089,6 +2150,9 @@ class Handler(BaseHTTPRequestHandler):
         sub["discordLinkedAt"] = datetime.utcnow().isoformat() + "Z"
         _sub_save(sub)
         if st == 201:
+            sub["roleDonneParRobot"] = bool(role)
+            sub["ajouteParRobot"] = True
+            _sub_save(sub)
             _discord_log("Nouvel élève ajouté au serveur : %s (%s)" % (sub["discordName"], sub.get("formation")))
         res = _discord_apply(sub, "Paiement confirmé")
         return self._redirect(back + ("&discord=ok" if res in ("rôle donné", "rien à faire (Discord non relié ou rôle inconnu)") else "&discord=erreur"))
@@ -2160,6 +2224,33 @@ class Handler(BaseHTTPRequestHandler):
                 result = "accès ouvert : " + sub["id"]
             else:
                 result = "lien de paiement inconnu"
+        elif status == "partially_paid":
+            link = _read_json(PAYLINKS_FILE, {}).get(t) or {}
+            recu = "%s %s" % (ev.get("actually_paid"), str(ev.get("pay_currency") or "").upper())
+            attendu = "%s %s" % (ev.get("pay_amount"), str(ev.get("pay_currency") or "").upper())
+            entry = {"id": uuid.uuid4().hex[:12], "category": "paiement", "service": "crypto",
+                     "kind": "Paiement crypto INCOMPLET (accès non ouvert)",
+                     "fields": {"nom": link.get("nom", "?"), "email": link.get("email", "?"),
+                                "formation": link.get("formation", "?"), "reçu": recu, "attendu": attendu,
+                                "reference": ref},
+                     "received": datetime.utcnow().isoformat() + "Z"}
+            inbox = _read_json(SUBMISSIONS_FILE, [])
+            inbox.append(entry)
+            _write_json(SUBMISSIONS_FILE, inbox)
+            try:
+                _send_email(_get_settings()["email"], "Paiement crypto incomplet — " + link.get("formation", ""),
+                            "Un élève a envoyé un montant incomplet : l'accès n'a PAS été ouvert.\n"
+                            "Élève : %s <%s>\nReçu : %s\nAttendu : %s\nRéférence : %s"
+                            % (link.get("nom", "?"), link.get("email", "?"), recu, attendu, ref))
+                if link.get("email"):
+                    _send_email(link["email"], "Votre paiement crypto est incomplet",
+                                "Bonjour,\n\nNous avons reçu %s, mais le montant attendu était de %s. "
+                                "Votre accès n'a donc pas encore été ouvert.\n\nRépondez à cet e-mail ou "
+                                "écrivez-nous sur WhatsApp : nous trouverons une solution ensemble.\n\n"
+                                "L'équipe KBO Corporate Finance" % (recu, attendu))
+            except Exception:
+                pass
+            result = "paiement incomplet : accès non ouvert, Obed prévenu"
         elif status == "refunded":
             sub = _sub_by("reference", ref)
             if sub:

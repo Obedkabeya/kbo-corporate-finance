@@ -39,20 +39,16 @@
         <div id="payEchec" hidden class="pay-alert"><strong>Le paiement n'a pas abouti.</strong> Aucun montant n'a été prélevé. Vous pouvez réessayer ci-dessous.</div>
         <div class="pay-methods">
           <div class="pay-card">
-            <h4>Carte bancaire et Mobile Money</h4>
-            <p>Visa, Mastercard, ou Mobile Money (MTN, Moov…), sur une page de paiement sécurisée.</p>
-            <button class="btn" id="payCardBtn" style="width:100%">Payer maintenant <span class="arrow">→</span></button>
-            <p class="muted" id="payCardNote" hidden style="font-size:14px;margin-top:12px">Le paiement en ligne sera actif dès la connexion du compte FedaPay.</p>
+            <h4>Carte bancaire</h4>
+            <p>Visa ou Mastercard, y compris les cartes virtuelles, sur la page sécurisée de notre prestataire.</p>
+            <button class="btn" id="payCardBtn" style="width:100%">Payer par carte <span class="arrow">→</span></button>
+            <p class="muted" id="payCardNote" hidden style="font-size:14px;margin-top:12px">Le paiement par carte sera disponible très bientôt.</p>
           </div>
           <div class="pay-card" id="cryptoCard">
-            <h4>Cryptomonnaie (Binance)</h4>
-            <p>Envoyez le montant équivalent, puis indiquez la référence de votre transaction.</p>
-            <p class="muted" id="cryptoId" style="font-size:14px"></p>
-            <form id="cryptoForm">
-              <input type="text" name="ref" placeholder="Référence de la transaction" />
-              <button class="btn btn--ghost" type="submit" style="width:100%">J'ai payé en crypto</button>
-              <span class="form-msg" id="cryptoMsg"></span>
-            </form>
+            <h4>Cryptomonnaie : USDT</h4>
+            <p><strong>Uniquement de l'USDT sur le réseau Tron (TRC20).</strong> Le montant exact s'affiche à l'étape suivante&nbsp;: envoyez exactement ce montant, en une seule fois. Un autre réseau ou un montant incomplet n'ouvrirait pas votre accès.</p>
+            <button class="btn btn--ghost" id="cryptoBtn" type="button" style="width:100%">Payer en USDT <span class="arrow">→</span></button>
+            <span class="form-msg" id="cryptoMsg"></span>
           </div>
         </div>
         <p class="form-note" style="margin-top:32px"><strong>Sécurité.</strong> Nous ne voyons jamais vos codes de carte&nbsp;: le paiement se fait entièrement sur la page sécurisée du prestataire. Après confirmation, vous recevez vos accès.</p>
@@ -78,6 +74,22 @@
 
       if (!token) { showInvalid("Aucun lien fourni."); return; }
 
+      // Retour après un paiement crypto : on attend la confirmation, puis on ouvre la page d'accès.
+      if (params.get("ok") === "crypto") {
+        loading.hidden = true; pane.hidden = false;
+        document.getElementById("payTitle").textContent = "Paiement en cours de confirmation…";
+        pane.querySelector(".lead").textContent = "Le réseau Tron confirme votre paiement : cela prend en général une à cinq minutes. Gardez cette page ouverte, elle s'actualise toute seule.";
+        var tries = 0;
+        (function check() {
+          fetch("/api/pay/etat?c=" + encodeURIComponent(token)).then(function (r) { return r.json(); }).then(function (j) {
+            if (j.paye) { location.href = j.acces; return; }
+            if (++tries < 120) setTimeout(check, 5000);
+            else pane.querySelector(".lead").textContent = "La confirmation prend plus de temps que prévu. Vous recevrez votre lien d'accès par e-mail dès qu'elle arrivera. En cas de doute, écrivez-nous sur WhatsApp.";
+          }).catch(function () { setTimeout(check, 8000); });
+        })();
+        return;
+      }
+
       fetch("/api/paylink/" + encodeURIComponent(token))
         .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
         .then(function (o) {
@@ -94,7 +106,7 @@
           document.getElementById("payCycle").textContent = cyc[d.cycle] || "";
           if (params.get("echec")) document.getElementById("payEchec").hidden = false;
 
-          // Carte / Mobile Money
+          // Carte bancaire (Lemon Squeezy)
           var btn = document.getElementById("payCardBtn");
           if (!d.cardReady) {
             btn.disabled = true;
@@ -108,33 +120,27 @@
               }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
                 .then(function (o2) {
                   if (o2.ok && o2.j.url) { location.href = o2.j.url; }
-                  else { alert((o2.j && o2.j.error) || "Paiement indisponible."); btn.disabled = false; btn.innerHTML = 'Payer maintenant →'; }
-                }).catch(function () { btn.disabled = false; btn.innerHTML = 'Payer maintenant →'; });
+                  else { alert((o2.j && o2.j.error) || "Paiement indisponible."); btn.disabled = false; btn.innerHTML = 'Payer par carte →'; }
+                }).catch(function () { btn.disabled = false; btn.innerHTML = 'Payer par carte →'; });
             });
           }
 
-          // Crypto
-          var cryptoCard = document.getElementById("cryptoCard");
-          if (d.binance) {
-            document.getElementById("cryptoId").innerHTML = "<strong>Binance Pay / adresse :</strong> " + d.binance;
-          } else {
-            cryptoCard.hidden = true;   // pas de compte crypto configuré
-          }
-          document.getElementById("cryptoForm").addEventListener("submit", function (e) {
-            e.preventDefault();
-            var msg = document.getElementById("cryptoMsg");
-            var ref = e.target.ref.value.trim();
-            if (!ref) { msg.textContent = "Indiquez la référence de la transaction."; msg.className = "form-msg err"; return; }
+          // Crypto (NOWPayments, USDT sur Tron)
+          if (!d.cryptoReady) { document.getElementById("cryptoCard").hidden = true; }
+          var cbtn = document.getElementById("cryptoBtn"), cmsg = document.getElementById("cryptoMsg");
+          cbtn.addEventListener("click", function () {
+            cbtn.disabled = true; cbtn.innerHTML = "Préparation du paiement…"; cmsg.textContent = "";
             fetch("/api/pay/crypto", {
               method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ token: token, ref: ref }),
+              body: JSON.stringify({ token: token }),
             }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
               .then(function (o3) {
-                if (!o3.ok) throw new Error((o3.j && o3.j.error) || "Erreur");
-                msg.innerHTML = "✓ Merci ! Nous vérifions votre paiement et vous donnons accès rapidement.";
-                msg.className = "form-msg ok";
-                e.target.reset();
-              }).catch(function (err) { msg.textContent = err.message; msg.className = "form-msg err"; });
+                if (o3.ok && o3.j.url) { location.href = o3.j.url; return; }
+                throw new Error((o3.j && o3.j.error) || "Paiement crypto indisponible.");
+              }).catch(function (err) {
+                cmsg.textContent = err.message; cmsg.className = "form-msg err";
+                cbtn.disabled = false; cbtn.innerHTML = 'Payer en USDT <span class="arrow">→</span>';
+              });
           });
         })
         .catch(function () { showInvalid("Impossible de vérifier ce lien. Réessayez plus tard."); });
