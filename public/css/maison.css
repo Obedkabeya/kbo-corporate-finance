@@ -201,3 +201,82 @@
   .maison .offer:last-child{border-bottom:1px solid var(--m-filet)}
   .maison .offer h2{font-size:26px}
 }
+
+/* Ligne de chandeliers sur la photo : plus grande et plus visible (demande d'Obed) */
+.maison .candles{opacity:.34;height:300px;bottom:6%}
+.maison .candles line{stroke-width:2.4}
+.maison .candles rect.b{stroke-width:2.4}
+.maison .candles rect:not(.b){fill:var(--m-or)}
+@media (max-width:767px){.maison .candles{height:200px;bottom:4%;opacity:.38}}
+
+/* Bouton de l'ouverture (« Découvrir les formations »), blanc sur la photo */
+.maison .hero-actions{margin-top:30px}
+.maison .btn--blanc,.maison .btn--blanc:visited{background:#fff;color:var(--m-nuit);border-color:#fff}
+.maison .btn--blanc:hover{background:transparent;color:#fff}
+/* Les boutons gardent leur couleur de texte, même après une visite (sinon le texte devenait noir) */
+.maison .btn:visited{color:#fff}
+.maison .offer .btn,.maison .offer .btn:visited{background:#fff;color:var(--m-nuit);border-color:#fff}
+.maison .offer .btn:hover{background:transparent;color:#fff;border-color:#fff}
+
+/* Bas de L'école : seulement les deux boutons */
+.maison .closing .actions{margin-top:0}
+
+/* Téléphone : le titre de l'ouverture au milieu de l'image */
+@media (max-width:767px){
+  .maison[data-page="m-ecole"] .page-head.with-ph{align-items:center;padding:88px 0 56px}
+  .maison .hero-actions .btn{width:100%}
+}
+
+/* Admission : les deux cartes en bleu nuit (Trading institutionnel en premier) */
+.maison .offer:last-child{background:var(--m-nuit);color:#fff;border:0}
+.maison .offer:last-child h2{color:#fff}
+.maison .offer:last-child .offer__line,.maison .offer:last-child .offer__facts dd{color:rgba(255,255,255,.88)}
+.maison .offer:last-child .offer__facts dt{color:rgba(255,255,255,.6)}
+.maison .offer:last-child .offer__facts,.maison .offer:last-child .offer__facts>div{border-color:rgba(255,255,255,.18)}
+@media (max-width:767px){.maison .offer:last-child{border-bottom:0}}
+
+/* =========================================================
+   Page de paiement : présentation classique des sites de paiement connus
+   (récapitulatif à gauche, coordonnées et moyen de paiement à droite)
+   ========================================================= */
+.maison .checkout{padding:56px 0 72px;background:var(--m-papier)}
+.maison .checkout__grille{display:grid;grid-template-columns:1fr 1fr;gap:0;max-width:1040px;border:1px solid var(--m-filet);border-radius:8px;overflow:hidden;background:#fff;padding:0}
+.maison .checkout__resume{background:var(--m-nuit);color:#fff;padding:44px 44px 40px}
+.maison .checkout__marque{font:600 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--m-or)}
+.maison .checkout__titre{font:700 32px/1.1 var(--title);letter-spacing:-.02em;color:#fff;margin:10px 0 28px}
+.maison .checkout__formules{display:flex;flex-direction:column;gap:10px}
+.maison .checkout__formule{display:flex;align-items:center;gap:12px;border:1px solid rgba(255,255,255,.22);border-radius:6px;padding:14px 16px;cursor:pointer}
+.maison .checkout__formule:has(input:checked){border-color:#fff;background:rgba(255,255,255,.06)}
+.maison .checkout__formule input{accent-color:var(--m-or)}
+.maison .checkout__f-nom{flex:1;font-weight:600}
+.maison .checkout__f-prix{font-weight:600}
+.maison .checkout__f-prix small{font-weight:400;color:rgba(255,255,255,.7)}
+.maison .checkout__total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid rgba(255,255,255,.18);margin-top:28px;padding-top:18px;font-size:15px;color:rgba(255,255,255,.8)}
+.maison .checkout__total strong{font:700 26px var(--title);color:#fff}
+.maison .checkout__fcfa{text-align:right;font-size:13px;color:rgba(255,255,255,.6);margin-top:4px}
+.maison .checkout__form{padding:40px 44px;display:flex;flex-direction:column;gap:14px}
+.maison .checkout__h2{font:600 15px var(--sans);color:var(--m-encre);margin-top:6px}
+.maison .checkout__h2:not(:first-child){margin-top:14px}
+.maison .checkout__moyens{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.maison .checkout__moyen{display:flex;gap:10px;align-items:flex-start;border:1px solid #C9CDD6;border-radius:6px;padding:14px;cursor:pointer}
+.maison .checkout__moyen:has(input:checked){border-color:var(--m-bleu);box-shadow:0 0 0 1px var(--m-bleu)}
+.maison .checkout__moyen input{margin-top:3px;accent-color:var(--m-bleu)}
+.maison .checkout__moyen strong{display:block;font-weight:600;font-size:15px}
+.maison .checkout__moyen small{display:block;color:var(--m-gris);font-size:13px}
+.maison .checkout__moyen.is-off{opacity:.5;cursor:not-allowed}
+.maison .checkout__risque{font-size:14px;margin-top:4px}
+.maison .checkout__risque a{color:var(--m-bleu);font-weight:600}
+.maison .checkout__payer,.maison .checkout__payer:visited{width:100%;justify-content:center;padding:17px 24px;font-size:16px;margin-top:6px;color:#fff}
+.maison .checkout__secu{text-align:center;font-size:13px;color:var(--m-gris)}
+@media (max-width:767px){
+  .maison .checkout{padding:20px 0 40px}
+  .maison .checkout__grille{grid-template-columns:1fr;border-radius:6px}
+  .maison .checkout__resume{padding:26px 20px 22px}
+  .maison .checkout__titre{font-size:26px;margin-bottom:18px}
+  .maison .checkout__form{padding:24px 20px}
+  .maison .checkout__moyens{grid-template-columns:1fr}
+}
+.maison .checkout__invalide{max-width:620px}
+.maison .checkout__titre-clair{font:700 34px/1.1 var(--title);color:var(--m-nuit);margin-bottom:12px}
+.maison .checkout__payer-carte,.maison .checkout__payer-carte:visited{width:100%;justify-content:center;background:#fff;color:var(--m-bleu)}
+.maison #payPane .checkout__total{margin-top:8px}

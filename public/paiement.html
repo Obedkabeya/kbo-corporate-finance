@@ -18,41 +18,33 @@
 <body data-page="m-paiement" data-nav="admission" class="maison">
   <div id="site-header"></div>
   <main id="contenu">
-    <section class="page-head" style="border-bottom:0;padding-bottom:24px">
-      <div class="wrap narrow">
+    <section class="checkout">
+      <div class="wrap">
         <div id="payLoading"><p class="muted">Vérification de votre lien…</p></div>
-        <div id="payInvalid" hidden>
-          <p class="eyebrow">Paiement</p>
-          <h1>Lien indisponible.</h1>
-          <p class="lead" id="payInvalidMsg">Ce lien de paiement est invalide ou a déjà été utilisé.</p>
-          <p class="muted" style="margin-top:16px">Ce lien est personnel et à usage unique. Si vous pensez qu'il s'agit d'une erreur, contactez-nous.</p>
-          <div style="margin-top:32px"><a class="btn btn--ghost" data-wa-link data-wa-msg="Bonjour, j'ai un souci avec mon lien de paiement." href="contact.html"><span>Nous contacter</span> <span class="arrow">→</span></a></div>
-        </div>
-        <div id="payPane" hidden>
-          <p class="eyebrow">Paiement sécurisé · lien personnel</p>
-          <h1 id="payTitle">Votre formation</h1>
-          <p class="lead">Montant à régler&nbsp;: <strong class="num" id="payAmount">—</strong> <span id="payCycle" class="muted"></span></p>
+        <div id="payInvalid" class="checkout__invalide" hidden>
+          <h1 class="checkout__titre-clair">Lien indisponible.</h1>
+          <p id="payInvalidMsg">Ce lien de paiement est invalide ou a déjà été utilisé.</p>
+          <div style="margin-top:24px"><a class="btn" data-wa-link data-wa-msg="Bonjour, j'ai un souci avec mon lien de paiement." href="contact.html"><span>Nous contacter</span> <span class="arrow">→</span></a></div>
         </div>
       </div>
-    </section>
-    <section class="block" style="padding-top:24px" id="payMethods" hidden>
-      <div class="wrap narrow">
-        <div id="payEchec" hidden class="pay-alert"><strong>Le paiement n'a pas abouti.</strong> Aucun montant n'a été prélevé. Vous pouvez réessayer ci-dessous.</div>
-        <div class="pay-methods">
-          <div class="pay-card">
-            <h4>Carte bancaire</h4>
-            <p>Visa ou Mastercard, y compris les cartes virtuelles, sur la page sécurisée de notre prestataire.</p>
-            <button class="btn" id="payCardBtn" style="width:100%">Payer par carte <span class="arrow">→</span></button>
-            <p class="muted" id="payCardNote" hidden style="font-size:14px;margin-top:12px">Le paiement par carte sera disponible très bientôt.</p>
+      <div class="wrap checkout__grille" id="payMethods" hidden>
+        <aside class="checkout__resume" id="payPane" aria-label="Récapitulatif">
+          <p class="checkout__marque">KBO Corporate Finance</p>
+          <h1 class="checkout__titre" id="payTitle">Votre formation</h1>
+          <div class="checkout__total"><span>Total <span id="payCycle"></span></span><strong id="payAmount">—</strong></div>
+        </aside>
+        <div class="checkout__form">
+          <div id="payEchec" hidden class="pay-alert"><strong>Le paiement n'a pas abouti.</strong> Vous pouvez réessayer.</div>
+          <h2 class="checkout__h2">Moyen de paiement</h2>
+          <div class="checkout__moyens">
+            <div class="checkout__moyen" id="cryptoCard"><span><strong>USDT</strong><small>Réseau Tron (TRC20)</small></span></div>
+            <div class="checkout__moyen is-off" id="payCardTile"><span><strong>Carte bancaire</strong><small id="payCardNote">Bientôt disponible</small></span></div>
           </div>
-          <div class="pay-card" id="cryptoCard">
-            <h4>Cryptomonnaie : USDT</h4>
-            <p><strong>Uniquement de l'USDT sur le réseau Tron (TRC20).</strong> Le montant exact s'affiche à l'étape suivante&nbsp;: envoyez exactement ce montant, en une seule fois. Un autre réseau ou un montant incomplet n'ouvrirait pas votre accès.</p>
-            <button class="btn btn--ghost" id="cryptoBtn" type="button" style="width:100%">Payer en USDT <span class="arrow">→</span></button>
-            <span class="form-msg" id="cryptoMsg"></span>
-          </div>
+          <button class="btn checkout__payer" id="cryptoBtn" type="button">Payer en USDT <span class="arrow">→</span></button>
+          <button class="btn btn--ghost checkout__payer-carte" id="payCardBtn" type="button" hidden>Payer par carte <span class="arrow">→</span></button>
+          <span class="form-msg" id="cryptoMsg"></span>
+          <p class="checkout__secu">🔒 Paiement sécurisé par notre prestataire. Formation pédagogique : les marchés comportent un risque de perte en capital.</p>
         </div>
-        <p class="form-note" style="margin-top:32px"><strong>Sécurité.</strong> Nous ne voyons jamais vos codes de carte&nbsp;: le paiement se fait entièrement sur la page sécurisée du prestataire. Après confirmation, vous recevez vos accès.</p>
       </div>
     </section>
   </main>
@@ -69,7 +61,7 @@
       var FCFA = new Intl.NumberFormat("fr-FR");
 
       function showInvalid(msg) {
-        loading.hidden = true; pane.hidden = true; invalid.hidden = false; document.getElementById("payMethods").hidden = true;
+        loading.hidden = true; invalid.hidden = false; document.getElementById("payMethods").hidden = true;
         if (msg) document.getElementById("payInvalidMsg").textContent = msg;
       }
 
@@ -77,15 +69,15 @@
 
       // Retour après un paiement crypto : on attend la confirmation, puis on ouvre la page d'accès.
       if (params.get("ok") === "crypto") {
-        loading.hidden = true; pane.hidden = false;
+        loading.hidden = true; document.getElementById("payMethods").hidden = false; document.querySelector("#payMethods .checkout__form").hidden = true;
         document.getElementById("payTitle").textContent = "Paiement en cours de confirmation…";
-        pane.querySelector(".lead").textContent = "Le réseau Tron confirme votre paiement : cela prend en général une à cinq minutes. Gardez cette page ouverte, elle s'actualise toute seule.";
+        document.querySelector(".checkout__total").textContent = "Le réseau Tron confirme votre paiement : cela prend en général une à cinq minutes. Gardez cette page ouverte, elle s'actualise toute seule.";
         var tries = 0;
         (function check() {
           fetch("/api/pay/etat?c=" + encodeURIComponent(token)).then(function (r) { return r.json(); }).then(function (j) {
             if (j.paye) { location.href = j.acces; return; }
             if (++tries < 120) setTimeout(check, 5000);
-            else pane.querySelector(".lead").textContent = "La confirmation prend plus de temps que prévu. Vous recevrez votre lien d'accès par e-mail dès qu'elle arrivera. En cas de doute, écrivez-nous sur WhatsApp.";
+            else document.querySelector(".checkout__total").textContent = "La confirmation prend plus de temps que prévu. Vous recevrez votre lien d'accès par e-mail dès qu'elle arrivera. En cas de doute, écrivez-nous sur WhatsApp.";
           }).catch(function () { setTimeout(check, 8000); });
         })();
         return;
@@ -96,7 +88,7 @@
         .then(function (o) {
           if (!o.ok) { showInvalid(o.j && o.j.error); return; }
           var d = o.j;
-          loading.hidden = true; pane.hidden = false; document.getElementById("payMethods").hidden = false;
+          loading.hidden = true; document.getElementById("payMethods").hidden = false;
           document.getElementById("payTitle").textContent = d.formation;
           var amountTxt = FCFA.format(d.amount) + " " + d.currency;
           if (d.currency !== "XOF" && d.amountXof) {
@@ -109,10 +101,10 @@
 
           // Carte bancaire (Lemon Squeezy)
           var btn = document.getElementById("payCardBtn");
-          if (!d.cardReady) {
-            btn.disabled = true;
-            document.getElementById("payCardNote").hidden = false;
-          } else {
+          if (d.cardReady) {
+            btn.hidden = false;
+            document.getElementById("payCardTile").classList.remove("is-off");
+            document.getElementById("payCardNote").textContent = "Visa, Mastercard";
             btn.addEventListener("click", function () {
               btn.disabled = true; btn.innerHTML = "Redirection en cours…";
               fetch("/api/pay/start", {
@@ -127,7 +119,7 @@
           }
 
           // Crypto (NOWPayments, USDT sur Tron)
-          if (!d.cryptoReady) { document.getElementById("cryptoCard").hidden = true; }
+          if (!d.cryptoReady) { document.getElementById("cryptoCard").hidden = true; document.getElementById("cryptoBtn").hidden = true; }
           var cbtn = document.getElementById("cryptoBtn"), cmsg = document.getElementById("cryptoMsg");
           cbtn.addEventListener("click", function () {
             cbtn.disabled = true; cbtn.innerHTML = "Préparation du paiement…"; cmsg.textContent = "";

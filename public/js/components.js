@@ -34,12 +34,12 @@
         <nav class="mnav" aria-label="Navigation principale">
           <ul>${links.map(l => `<li><a href="${l.href}" class="${navKey === l.key ? "is-active" : ""}">${l.label}</a></li>`).join("")}</ul>
         </nav>
-        <a class="cta-top" href="admission.html">Déposer une candidature</a>
+        <a class="cta-top" href="admission.html">Découvrir les formations</a>
         <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="menuPanel">Menu</button>
       </div>
       <div class="menu-panel" id="menuPanel">
         ${links.map((l, i) => `<a href="${l.href}" class="${navKey === l.key ? "is-active" : ""}">${l.label}<span>0${i + 1}</span></a>`).join("")}
-        <a class="btn" href="admission.html">Déposer une candidature <span class="arrow">→</span></a>
+        <a class="btn" href="admission.html">Découvrir les formations <span class="arrow">→</span></a>
       </div>
     </header>`;
 

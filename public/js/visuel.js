@@ -19,15 +19,15 @@
   // ---- Ligne de chandeliers, purement décorative (aucun chiffre, aucun prix) :
   //      bandeau d'ouverture de l'accueil et bandeaux marqués « with-candles » ----
   document.querySelectorAll(".hero.with-ph, .with-candles").forEach(hero => {
-    const n = 64, w = 22, h = 220;
+    const n = 44, w = 32, h = 240;   // bougies plus larges et plus espacées : bien visibles
     let y = 120, seed = 7, svg = "";
     const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
     for (let i = 0; i < n; i++) {
-      const o = y, c = Math.max(30, Math.min(h - 30, o + (rnd() - 0.48) * 34));
+      const o = y, c = Math.max(30, Math.min(h - 30, o + (rnd() - 0.48) * 46));
       const hi = Math.min(o, c) - 4 - rnd() * 14, lo = Math.max(o, c) + 4 + rnd() * 14;
       const x = i * w + w / 2, top = Math.min(o, c), bh = Math.max(2, Math.abs(c - o));
       svg += `<line x1="${x}" y1="${hi.toFixed(1)}" x2="${x}" y2="${lo.toFixed(1)}"/>` +
-             `<rect x="${x - 5}" y="${top.toFixed(1)}" width="10" height="${bh.toFixed(1)}"${c < o ? "" : ' class="b"'}/>`;
+             `<rect x="${x - 7}" y="${top.toFixed(1)}" width="14" height="${bh.toFixed(1)}"${c < o ? "" : ' class="b"'}/>`;
       y = c;
     }
     const deco = document.createElement("div");
