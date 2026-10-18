@@ -89,6 +89,15 @@ MOVED_PAGES = {
     "/professionnel": "/admission.html#parcours",
 }
 
+# Pages cachées (accessibles seulement par leur bouton de la page Admission, en noindex) :
+# adresses courtes → fichiers du dossier public.
+PAGES_CACHEES = {
+    "/inscription/trading-institutionnel": "/inscription-trading-institutionnel.html",
+    "/candidature/finance-des-marches": "/candidature-finance-des-marches.html",
+}
+# Adresses courtes à partager.
+RACCOURCIS = {"/newsletter": "/analyse-du-matin", "/analyse": "/analyse-du-matin"}
+
 # Pas de page d'accueil séparée : le visiteur arrive directement sur L'école.
 # Redirection temporaire (302) : pour remettre une page d'accueil, il suffit
 # de retirer ces deux lignes.
@@ -1390,7 +1399,7 @@ ANALYSE_FILE = os.path.join(DATA_DIR, "analyse.json")          # inscrits, envoi
 ANALYSES_ARCHIVE_FILE = os.path.join(DATA_DIR, "analyses.json") # analyses publiées (archive)
 BREVO_LIMITE_JOUR = 300          # offre gratuite de Brevo : environ 300 e-mails par jour
 ANALYSE_HEURE_DEBUT = (7, 45)    # heure du Bénin
-ANALYSE_HEURE_LIMITE = (9, 0)
+ANALYSE_HEURE_LIMITE = (9, 30)   # le fichier arrive en général vers 7 h 30 ; alerte s'il manque à 9 h 30
 
 
 def _analyse_data():
@@ -1431,7 +1440,22 @@ def _send_html(to_addr, subject, html, text, unsubscribe=None):
     return False, "aucun service d'envoi d'e-mails configuré"
 
 
-def _gabarit_analyse(contenu, lien_desinscription, titre=""):
+_JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"]
+_MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre",
+         "novembre", "décembre"]
+
+
+def _date_fr(jour, annee=False):
+    """« 2026-10-19 » → « lundi 19 octobre » (ou « lundi 19 octobre 2026 »)."""
+    try:
+        d = datetime.strptime(jour, "%Y-%m-%d").date()
+    except (TypeError, ValueError):
+        return ""
+    t = "%s %d %s" % (_JOURS[d.weekday()], d.day, _MOIS[d.month - 1])
+    return t + (" %d" % d.year if annee else "")
+
+
+def _gabarit_analyse(contenu, lien_desinscription, titre="", jour=""):
     """Gabarit e-mail aux couleurs KBO : logo, police sans empattements, lisible sur téléphone."""
     base = _public_url() or ""
     return (
@@ -1442,7 +1466,7 @@ def _gabarit_analyse(contenu, lien_desinscription, titre=""):
         '<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#FFFFFF">'
         '<tr><td style="padding:24px 28px 18px;border-bottom:3px solid #0D1A3A">'
         '<img src="' + base + '/assets/logo/kbo-logo-horizontal-clair-600.png" width="180" alt="KBO Corporate Finance" style="display:block;border:0;width:180px;height:auto">'
-        '<p style="margin:14px 0 0;font:600 12px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#1E3A8A">L\'analyse du matin</p></td></tr>'
+        '<p style="margin:14px 0 0;font:600 12px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#1E3A8A">L\'analyse du matin' + ((' · ' + _date_fr(jour, True)) if jour else '') + '</p></td></tr>'
         '<tr><td class="analyse" style="padding:22px 28px 26px;font:16px/1.65 Arial,Helvetica,sans-serif;color:#14161C">' + contenu + '</td></tr>'
         '<tr><td style="padding:18px 28px 24px;background:#0D1A3A;font:13px/1.6 Arial,Helvetica,sans-serif;color:#C9D0E0">'
         '<p style="margin:0 0 8px"><strong style="color:#FFFFFF">Contenu éducatif, pas un conseil en investissement.</strong> '
@@ -1543,14 +1567,17 @@ def _analyse_matin(maintenant=None, jour=None, seulement_a=None):
     except Exception as e:  # noqa: BLE001
         return "dossier Drive injoignable : %s" % e
     if not fid:
-        if not seulement_a and (now.hour, now.minute) >= ANALYSE_HEURE_LIMITE and now.weekday() < 5:
+        if not seulement_a and (now.hour, now.minute) >= ANALYSE_HEURE_LIMITE:   # fichier attendu chaque jour, week-end compris
             _analyse_alerter(d, "absente-" + jour, "L'analyse du matin n'a pas été envoyée",
-                             "Bonjour,\n\nÀ 9 h 00, le fichier %s n'était pas dans le dossier Drive « KBO ANALYSE PUBLIQUE ». "
+                             "Bonjour,\n\nÀ 9 h 30, le fichier %s n'était pas dans le dossier Drive « KBO ANALYSE PUBLIQUE ». "
                              "Rien n'a été envoyé aux inscrits aujourd'hui.\n" % nom)
-            return "fichier absent à 9 h : rien envoyé, Obed prévenu"
+            return "fichier absent à 9 h 30 : rien envoyé, Obed prévenu"
         return "fichier %s pas encore déposé" % nom
     brut = _drive_telecharger(fid)
+    base_url = _public_url() or ""
+    brut = brut.replace("{{LIEN_FORMATIONS}}", base_url + "/admission.html")
     contenu = _nettoyer_analyse(brut)
+    objet = "L'analyse du matin — " + _date_fr(jour)
     titre = _titre_analyse(brut, jour)
     base = _public_url() or ""
     cibles = ([{"prenom": "", "email": seulement_a, "desinscription": "essai"}] if seulement_a
@@ -1558,10 +1585,10 @@ def _analyse_matin(maintenant=None, jour=None, seulement_a=None):
     envoyes, echecs = 0, []
     for i in cibles:
         lien = base + "/api/analyse/desinscrire?j=" + i.get("desinscription", "")
-        html = _gabarit_analyse(contenu, lien, titre)
+        html = _gabarit_analyse(contenu, lien, titre, jour)
         texte = re.sub(r"\n{3,}", "\n\n", re.sub(r"<[^>]+>", "\n", contenu)).strip() + \
             "\n\nContenu éducatif, pas un conseil en investissement.\nSe désinscrire : " + lien
-        ok, detail = _send_html(i["email"], titre, html, texte, unsubscribe=lien)
+        ok, detail = _send_html(i["email"], objet, html, texte, unsubscribe=lien)
         if ok:
             envoyes += 1
         else:
@@ -1701,6 +1728,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._discord_invitation()
         if path == "/discord/callback":
             return self._discord_callback()
+        if path.rstrip("/") in PAGES_CACHEES:
+            return self._serve_static(PAGES_CACHEES[path.rstrip("/")])
+        if path.rstrip("/") in RACCOURCIS:
+            return self._redirect(RACCOURCIS[path.rstrip("/")], permanent=True)
         if path in HOME_PATHS:
             query = urlparse(self.path).query
             return self._redirect(HOME_TARGET + ("?" + query if query else ""))
@@ -3424,7 +3455,8 @@ class Handler(BaseHTTPRequestHandler):
         def esc(s):
             return (s.replace("&", "&amp;").replace('"', "&quot;")
                      .replace("<", "&lt;").replace(">", "&gt;"))
-        image = (_public_url() or self._public_base()) + "/" + SHARE_IMAGE
+        propre = grab(r'<meta\s+name="kbo-og-image"\s+content="(.*?)"')
+        image = (_public_url() or self._public_base()) + "/" + (propre.lstrip("/") or SHARE_IMAGE)
         tags = (
             '<meta property="og:type" content="website">'
             '<meta property="og:site_name" content="KBO Corporate Finance">'

@@ -13,7 +13,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/marches.css" />
-  <noscript><style>#candidature{display:block!important}</style></noscript>
 </head>
 <body data-page="m-admission" data-nav="admission">
   <div id="site-header"></div>
@@ -39,7 +38,7 @@
               <div><dt>Durée</dt><dd data-edit>6 modules</dd></div>
               <div><dt>Prix</dt><dd><span class="num" data-text="priceFinance">900 €</span></dd></div>
             </dl>
-            <button class="btn offer__btn" type="button" data-choose="finance">Choisir ce parcours <span class="arrow" aria-hidden="true">→</span></button>
+            <a class="btn offer__btn" href="/candidature/finance-des-marches">Déposer ma candidature <span class="arrow" aria-hidden="true">→</span></a>
           </article>
           <article class="offer">
             <p class="eyebrow eyebrow--navy">Parcours 2</p>
@@ -49,162 +48,15 @@
               <div><dt>Durée</dt><dd data-edit>6 modules, à votre rythme</dd></div>
               <div><dt>Prix</dt><dd><span class="num" data-text="priceTradingMonth">89 €</span> par mois ou <span class="num" data-text="priceTradingYear">800 €</span> par an</dd></div>
             </dl>
-            <button class="btn offer__btn" type="button" data-achat aria-controls="achat">S'inscrire maintenant <span class="arrow" aria-hidden="true">→</span></button>
+            <a class="btn offer__btn" href="/inscription/trading-institutionnel">S'inscrire <span class="arrow" aria-hidden="true">→</span></a>
           </article>
-        </div>
-        <div class="achat" id="achat" hidden>
-          <p class="eyebrow eyebrow--navy">Inscription directe, sans candidature</p>
-          <h3>Trading institutionnel</h3>
-          <form id="achatForm" novalidate>
-            <div class="achat-formules" role="radiogroup" aria-label="Formule">
-              <label class="achat-formule"><input type="radio" name="cycle" value="mensuel" checked /><span><strong>Mensuel</strong><span class="achat-prix"><span class="num" data-text="priceTradingMonth">89 €</span> par mois</span><span class="achat-fcfa" data-fcfa="priceTradingMonth"></span></span></label>
-              <label class="achat-formule"><input type="radio" name="cycle" value="annuel" /><span><strong>Annuel</strong><span class="achat-prix"><span class="num" data-text="priceTradingYear">800 €</span> par an</span><span class="achat-fcfa" data-fcfa="priceTradingYear"></span></span></label>
-            </div>
-            <div class="fields">
-              <div class="field"><label for="achat_nom">Nom complet <span class="req">*</span></label><input id="achat_nom" name="nom" type="text" autocomplete="name" maxlength="120" required /></div>
-              <div class="field"><label for="achat_email">Adresse e-mail <span class="req">*</span></label><input id="achat_email" name="email" type="email" autocomplete="email" maxlength="200" required /></div>
-            </div>
-            <label class="check"><input type="checkbox" name="risques" required /> <span>J'ai lu l'<a href="risques.html" target="_blank" rel="noopener">avertissement sur les risques</a>&nbsp;: la formation est pédagogique et les marchés financiers comportent un risque de perte en capital.</span></label>
-            <div class="achat-moyens">
-              <button class="btn" type="submit" id="achatCrypto">Payer en USDT <span class="arrow" aria-hidden="true">→</span></button>
-              <button class="btn btn--ghost" type="button" id="achatCarte" disabled>Carte bancaire&nbsp;: bientôt</button>
-            </div>
-            <span class="form-msg" id="achatMsg" role="status"></span>
-            <p class="form-note">USDT sur le réseau Tron (TRC20) uniquement. Le montant exact s'affiche à l'étape suivante&nbsp;: envoyez exactement ce montant, en une seule fois. Dès que le paiement est confirmé, votre accès s'ouvre et vous rejoignez la formation sur Discord.</p>
-          </form>
         </div>
       </div>
     </section>
 
-    <section class="block" id="candidature">
-      <div class="wrap">
-        <div class="sec-head">
-        <div><p class="eyebrow">Dossier de candidature</p></div>
-        <div><h2>Prenez le temps de répondre avec précision.</h2><p>Ce formulaire nous permet d'évaluer votre sérieux, votre motivation et votre préparation. Comptez une quinzaine de minutes.</p></div>
-      </div>
-        <form id="admissionForm" class="form" data-endpoint="/api/apply/formation" data-kind="Candidature — Formation">
-          <div class="fgroup">
-            <div><h3>Le parcours</h3><p class="hint">Vous hésitez&nbsp;? <a href="#parcours">Revoir les deux parcours</a></p></div>
-            <div class="fields">
-              <div class="field field--full"><label for="a_parcours">Parcours souhaité <span class="req">*</span></label>
-                <select id="a_parcours" name="formation" required>
-                  <option value="Finance des marchés" data-p="finance" selected>Finance des marchés</option>
-                </select></div>
-            </div>
-          </div>
-          <div class="fgroup">
-            <div><h3>Vous</h3></div>
-            <div class="fields">
-              <div class="field"><label for="a_nom">Nom complet <span class="req">*</span></label><input id="a_nom" name="nom" type="text" autocomplete="name" required /></div>
-              <div class="field"><label for="a_email">Adresse e-mail <span class="req">*</span></label><input id="a_email" name="email" type="email" autocomplete="email" required /></div>
-              <div class="field"><label for="a_tel">Téléphone (WhatsApp) <span class="req">*</span></label><input id="a_tel" name="telephone" type="tel" autocomplete="tel" required /></div>
-              <div class="field"><label for="a_pays">Pays de résidence <span class="req">*</span></label><input id="a_pays" name="pays" type="text" autocomplete="country-name" required /></div>
-            </div>
-          </div>
-          <div class="fgroup">
-            <div><h3>Votre parcours</h3></div>
-            <div class="fields">
-              <div class="field"><label for="a_etudes">Niveau d'études <span class="req">*</span></label>
-                <select id="a_etudes" name="parcours_academique" required>
-                  <option value="" disabled selected>Sélectionnez…</option>
-                  <option>Secondaire / Baccalauréat</option><option>Licence / Bachelor</option><option>Master / Grande école</option>
-                  <option>Doctorat</option><option>Formation professionnelle</option><option>Autodidacte</option>
-                </select></div>
-              <div class="field"><label for="a_domaine">Domaine d'études ou d'activité <span class="req">*</span></label><input id="a_domaine" name="domaine" type="text" placeholder="Finance, ingénierie, droit…" required /></div>
-              <div class="field"><label for="a_niveau">Votre niveau sur les marchés <span class="req">*</span></label>
-                <select id="a_niveau" name="niveau" required>
-                  <option value="" disabled selected>Sélectionnez…</option>
-                  <option>Aucun, je débute</option><option>Notions de base</option><option>Intermédiaire, j'interviens déjà</option><option>Avancé / professionnel</option>
-                </select></div>
-              <div class="field"><label for="a_dispo">Temps disponible par semaine <span class="req">*</span></label>
-                <select id="a_dispo" name="disponibilite" required>
-                  <option value="" disabled selected>Sélectionnez…</option>
-                  <option>Moins de 5 h</option><option>5 à 10 h</option><option>10 à 20 h</option><option>Plus de 20 h</option>
-                </select></div>
-            </div>
-          </div>
-          <div class="fgroup">
-            <div><h3>Vos motivations</h3><p class="hint">120 caractères minimum par réponse.</p></div>
-            <div class="fields">
-              <div class="field field--full"><label for="a_why">Pourquoi souhaitez-vous vous former aux marchés&nbsp;? <span class="req">*</span></label>
-                <textarea id="a_why" name="motivation" minlength="120" required placeholder="Ce qui vous attire dans les marchés, et pourquoi maintenant."></textarea>
-                <span class="char-meter" data-for="a_why"></span></div>
-              <div class="field field--full"><label for="a_goal">Quels sont vos objectifs&nbsp;? <span class="req">*</span></label>
-                <textarea id="a_goal" name="objectifs" minlength="120" required placeholder="Ce que vous comptez faire de cette formation, à 6 mois, 1 an, 3 ans."></textarea>
-                <span class="char-meter" data-for="a_goal"></span></div>
-              <div class="field field--full"><label for="a_eng">Êtes-vous prêt à suivre une discipline stricte&nbsp;? <span class="req">*</span></label>
-                <select id="a_eng" name="engagement" required>
-                  <option value="" disabled selected>Sélectionnez…</option><option>Oui, pleinement</option><option>Oui, avec un accompagnement</option><option>Je ne suis pas certain</option>
-                </select></div>
-            </div>
-          </div>
-          <div class="form-actions">
-            <label class="check"><input type="checkbox" name="serment" value="oui" required /> <span>Je certifie que mes réponses sont sincères et je m'engage à suivre la formation avec sérieux et assiduité.</span></label>
-          </div>
-          <div class="form-actions">
-            <button class="btn" type="submit">Envoyer ma candidature <span class="arrow" aria-hidden="true">→</span></button>
-            <span class="form-msg" id="admissionMsg" role="status"></span>
-          </div>
-          <p class="form-note">Vos informations servent uniquement à étudier votre candidature. Voir notre <a href="confidentialite.html">politique de confidentialité</a>.</p>
-        </form>
-      </div>
-    </section>
   </main>
   <div id="site-footer"></div>
   <script src="js/components.js"></script>
   <script src="js/visuel.js" defer></script>
-  <script src="js/forms.js"></script>
-  <script src="js/achat.js"></script>
-  <script>
-    (function () {
-      // Présélection du parcours depuis un lien (?parcours=finance|trading).
-      // Les anciens liens (?parcours=avance|fondamentaux) restent valables.
-      var OLD = { avance: "finance", fondamentaux: "trading" };
-      var sel = document.getElementById("a_parcours");
-      function choose(p) { [].forEach.call(sel.options, function (o) { if (o.getAttribute("data-p") === p) sel.value = o.value; }); }
-      // Sur téléphone, le formulaire reste caché tant que le visiteur n'a pas
-      // choisi un parcours (ou demandé à déposer sa candidature).
-      var form = document.getElementById("candidature");
-      function openForm() { form.classList.add("is-open"); }
-      var want = new URLSearchParams(location.search).get("parcours");
-      want = OLD[want] || want;
-      // Trading institutionnel : inscription et paiement directs, sans candidature.
-      var achat = document.getElementById("achat");
-      function openAchat(scroll) {
-        achat.hidden = false;
-        if (scroll) achat.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-      document.querySelectorAll("[data-achat]").forEach(function (b) { b.addEventListener("click", function () { openAchat(true); }); });
-      if (want === "trading") { openAchat(false); setTimeout(function () { achat.scrollIntoView({ block: "start" }); }, 80); }
-      else if (want && sel) { choose(want); openForm(); }
-      if (location.hash === "#candidature") {
-        openForm();
-        setTimeout(function () { form.scrollIntoView({ block: "start" }); }, 50);
-      }
-      window.addEventListener("hashchange", function () {
-        if (location.hash === "#candidature") { openForm(); form.scrollIntoView({ behavior: "smooth", block: "start" }); }
-      });
-      // Bouton « Choisir ce parcours » : sélectionne le parcours, ouvre le formulaire et y descend.
-      document.querySelectorAll("[data-choose]").forEach(function (b) {
-        b.setAttribute("aria-controls", "candidature");
-        b.addEventListener("click", function () {
-          choose(b.getAttribute("data-choose"));
-          openForm();
-          sel.closest(".fgroup").scrollIntoView({ behavior: "smooth", block: "start" });
-        });
-      });
-      // Compteur de caractères
-      document.querySelectorAll(".char-meter").forEach(function (m) {
-        var ta = document.getElementById(m.getAttribute("data-for")); if (!ta) return;
-        var min = parseInt(ta.getAttribute("minlength"), 10) || 0;
-        var up = function () {
-          var n = ta.value.trim().length;
-          if (n >= min) { m.className = "char-meter is-ok"; m.textContent = "Minimum atteint (" + n + " caractères)."; }
-          else { m.className = "char-meter"; m.textContent = n + " / " + min + " caractères minimum"; }
-        };
-        ta.addEventListener("input", up); up();
-      });
-    })();
-  </script>
 </body>
 </html>

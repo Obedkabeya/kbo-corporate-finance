@@ -37,10 +37,12 @@
   }[q.get("etat")];
   if (M) { etat.hidden = false; etat.className = "form-msg " + M[0]; etat.textContent = M[1]; }
 
+  // Un exemple : lien vers la dernière analyse archivée.
   fetch("/api/analyses").then((r) => (r.ok ? r.json() : [])).then((liste) => {
     if (!liste.length) return;
-    $("analyseListe").innerHTML = liste.map((a) =>
-      '<li><a href="analyse-du-matin.html?d=' + a.jour + '#archives"><span class="analyse-date">' + esc(jourFr(a.jour)) + "</span>" + esc(a.titre) + "</a></li>").join("");
+    const ex = $("analyseExemple");
+    ex.innerHTML = 'Pour voir un exemple&nbsp;: <a href="analyse-du-matin?d=' + liste[0].jour + '#analyseLecture">la dernière analyse, du ' + esc(jourFr(liste[0].jour)) + "</a>.";
+    ex.hidden = false;
   }).catch(() => {});
 
   const d = q.get("d");

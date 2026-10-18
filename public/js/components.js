@@ -30,12 +30,12 @@
         <nav class="mnav" aria-label="Navigation principale">
           <ul>${links.map(l => `<li><a href="${l.href}" class="${navKey === l.key ? "is-active" : ""}">${l.label}</a></li>`).join("")}</ul>
         </nav>
-        <a class="cta-top" href="admission.html#candidature">Déposer une candidature</a>
+        <a class="cta-top" href="admission.html">Déposer une candidature</a>
         <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="menuPanel">Menu</button>
       </div>
       <div class="menu-panel" id="menuPanel">
         ${links.map((l, i) => `<a href="${l.href}" class="${navKey === l.key ? "is-active" : ""}">${l.label}<span>0${i + 1}</span></a>`).join("")}
-        <a class="btn" href="admission.html#candidature">Déposer une candidature <span class="arrow">→</span></a>
+        <a class="btn" href="admission.html">Déposer une candidature <span class="arrow">→</span></a>
       </div>
     </header>`;
 
@@ -84,10 +84,35 @@
       </div>
     </footer>`;
 
+  // Pages « focalisées » (newsletter, inscription, candidature) : en-tête et pied de
+  // page simplifiés, sans menu, pour que rien ne détourne le visiteur.
+  // Liens en adresses absolues : ces pages peuvent être servies sous /inscription/…
+  const simple = document.body.getAttribute("data-entete") === "simple";
+  const retour = document.body.getAttribute("data-retour");
+  const headerSimple = `
+    <header class="site-header site-header--simple" id="siteHeader">
+      <div class="wrap bar">
+        <a class="logo" href="/ecole.html" aria-label="KBO Corporate Finance — accueil">
+          <img class="logo__img logo__img--clair" src="/assets/logo/kbo-logo-horizontal-clair.svg" alt="" width="935" height="400">
+          <img class="logo__img logo__img--fonce" src="/assets/logo/kbo-logo-horizontal-fonce.svg" alt="" width="935" height="400">
+        </a>
+        ${retour ? `<a class="entete-lien" href="${retour.split("|")[0]}">← ${retour.split("|")[1] || "Retour"}</a>`
+                 : `<a class="entete-lien" href="/ecole.html">Découvrir l'école →</a>`}
+      </div>
+    </header>`;
+  const footerSimple = `
+    <footer class="site-footer site-footer--simple">
+      <div class="wrap">
+        <div class="risk">
+          <p data-text="footerRisk">Les formations de KBO Corporate Finance ont une vocation pédagogique. Elles ne constituent ni un conseil en investissement, ni une recommandation d'achat ou de vente. Les marchés financiers comportent un risque de perte en capital.</p>
+          <span class="footer__copy">© ${year} KBO Corporate Finance · <a href="/mentions-legales.html">Mentions légales</a> · <a href="/confidentialite.html">Confidentialité</a></span>
+        </div>
+      </div>
+    </footer>`;
   const h = document.getElementById("site-header");
   const f = document.getElementById("site-footer");
-  if (h) h.outerHTML = header;
-  if (f) f.outerHTML = footer;
+  if (h) h.outerHTML = simple ? headerSimple : header;
+  if (f) f.outerHTML = simple ? footerSimple : footer;
 
   // Menu téléphone : un panneau plein écran, une entrée = un compartiment.
   (function () {
@@ -108,6 +133,7 @@
   // Bouton WhatsApp discret, présent partout. Sans numéro réglé, il renvoie vers Contact.
   (function () {
     if (document.querySelector(".wa-fab")) return;
+    if (document.body.getAttribute("data-entete") === "simple") return;
     const waIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.9c0 2.1.55 4.06 1.6 5.8L2 22l4.42-1.68a9.9 9.9 0 0 0 5.62 1.74h.01c5.45 0 9.9-4.45 9.9-9.9 0-2.65-1.03-5.14-2.9-7.02A9.82 9.82 0 0 0 12.04 2zm0 18.02h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-2.62 1 .7-2.56-.2-.32a8.2 8.2 0 0 1-1.26-4.36c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.8-.23-.09-.39-.13-.56.12-.16.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.16.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43l-.48-.01c-.16 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.16 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29z"/></svg>';
     const a = document.createElement("a");
     a.className = "wa-fab";
