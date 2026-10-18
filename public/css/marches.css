@@ -781,3 +781,9 @@ body.is-admin .admin-only { display: revert !important; }
 .analyse-exemple{margin-top:28px;color:var(--slate)}
 .analyse-exemple a{color:var(--navy);font-weight:600}
 @media (max-width:767px){.analyse-h1{font-size:32px}}
+
+/* Version sobre : bandeaux photo bas (environ 30 % de l'écran) sur L'école, Admission et Contact ;
+   simple bande bleu nuit, sans photo, sur Publications et Questions fréquentes. */
+.page-head.with-ph{min-height:30vh}
+.page-head--nuit{background:var(--night)}
+@media (max-width:767px){.page-head.with-ph{min-height:30vh}}

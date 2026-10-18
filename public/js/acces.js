@@ -6,10 +6,11 @@
   const retour = q.get("discord");
   const MESSAGES = {
     ok: ["ok", "✓ Votre Discord est relié : vous avez reçu votre rôle et accès à la formation."],
-    refuse: ["err", "Vous avez refusé l'autorisation sur Discord. Cliquez à nouveau sur « Connecter mon Discord » pour réessayer."],
+    refuse: ["err", "Vous avez refusé l'autorisation sur Discord. Cliquez à nouveau sur « Rejoindre la communauté KBO sur Discord » pour réessayer."],
     inactif: ["err", "Votre accès n'est pas actif. Écrivez-nous si vous pensez que c'est une erreur."],
     indisponible: ["err", "La connexion Discord est momentanément indisponible. Réessayez un peu plus tard."],
     erreur: ["err", "La connexion à Discord n'a pas abouti. Réessayez ; si le problème continue, écrivez-nous sur WhatsApp."],
+    invitation: ["err", "L'ajout automatique n'a pas abouti : nous venons de vous envoyer par e-mail une invitation personnelle (valable 24 heures). Nous sommes prévenus et vérifions votre accès."],
   };
   const fmt = (iso) => { try { return new Date(iso + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }); } catch (e) { return iso; } };
 

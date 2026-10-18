@@ -1307,6 +1307,70 @@ def _discord_expulser_si_besoin(sub):
     return ok
 
 
+def _discord_invitation_secours(sub, raison):
+    """Secours : invitation Discord à usage unique, valable 24 h, envoyée à l'élève ;
+    Obed est prévenu (journal + e-mail) et peut cliquer « Vérifier le rôle » pour réessayer."""
+    c = _discord_cfg()
+    st, chans = _discord_req("GET", "/guilds/%s/channels" % c["guild_id"])
+    salon = None
+    if st == 200 and isinstance(chans, list):
+        textes = [x for x in chans if x.get("type") == 0]
+        salon = next((x for x in textes if "général" in x.get("name", "") or "general" in x.get("name", "")), textes[0] if textes else None)
+    lien = ""
+    if salon:
+        st, inv = _discord_req("POST", "/channels/%s/invites" % salon["id"],
+                               body={"max_age": 86400, "max_uses": 1, "unique": True}, reason="Secours : élève KBO")
+        if st in (200, 201) and isinstance(inv, dict) and inv.get("code"):
+            lien = "https://discord.gg/" + inv["code"]
+    sub["invitationSecours"] = lien
+    _sub_save(sub)
+    _discord_log("SECOURS pour %s (%s) : %s" % (sub.get("email") or sub.get("nom"), raison,
+                                                "invitation 24 h envoyée" if lien else "invitation impossible"))
+    try:
+        _send_email(_get_settings()["email"], "Discord : ajout automatique d'un élève à vérifier",
+                    "L'ajout automatique de %s (%s) sur le serveur Discord a échoué : %s.\n%s\n"
+                    "Dans l'administration, onglet « Élèves & Discord », cliquez « Vérifier le rôle » pour réessayer."
+                    % (sub.get("nom", "?"), sub.get("formation", ""), raison,
+                       "Une invitation à usage unique (24 h) lui a été envoyée." if lien else "Aucune invitation n'a pu être créée."))
+        if lien and sub.get("email"):
+            _send_email(sub["email"], "Votre invitation au serveur Discord KBO",
+                        "Bonjour,\n\nPour rejoindre la communauté KBO sur Discord, utilisez ce lien personnel "
+                        "(valable 24 heures, une seule fois) :\n%s\n\nUne fois sur le serveur, revenez sur votre page "
+                        "d'accès et cliquez à nouveau sur « Rejoindre la communauté KBO sur Discord » pour recevoir "
+                        "votre rôle :\n%s\n\nL'équipe KBO Corporate Finance" % (lien, _acces_url(sub)))
+    except Exception:
+        pass
+    return lien
+
+
+def _acces_rappels(maintenant=None):
+    """Rappels aux élèves qui n'ont pas encore relié leur Discord : après 24 h, puis 72 h."""
+    now = maintenant or datetime.utcnow()
+    faits = []
+    for sub in _subs():
+        if not _sub_active(sub) or sub.get("discordId") or not sub.get("email"):
+            continue
+        try:
+            paye = datetime.fromisoformat(str(sub.get("paidAt", "")).rstrip("Z"))
+        except ValueError:
+            continue
+        heures = (now - paye).total_seconds() / 3600
+        for cle, seuil in (("rappel72", 72), ("rappel24", 24)):
+            if heures >= seuil and not sub.get(cle):
+                ok, _ = _send_email(sub["email"], "Rejoignez la communauté KBO sur Discord",
+                                    "Bonjour %s,\n\nVotre accès à « %s » est ouvert, mais votre compte Discord n'est pas encore "
+                                    "relié. La formation se déroule sur notre serveur Discord : un seul clic suffit.\n\n"
+                                    "Rejoindre la communauté KBO sur Discord :\n%s\n\nL'équipe KBO Corporate Finance"
+                                    % (sub.get("nom", ""), sub.get("formation", ""), _acces_url(sub)))
+                sub["rappel24"] = sub.get("rappel24") or now.isoformat() + "Z"
+                if cle == "rappel72":
+                    sub["rappel72"] = now.isoformat() + "Z"
+                _sub_save(sub)
+                faits.append("%s : rappel %d h %s" % (sub["email"], seuil, "envoyé" if ok else "non envoyé (e-mails pas encore branchés)"))
+                break
+    return faits
+
+
 def _subs():
     subs = _read_json(SUBSCRIBERS_FILE, [])
     return subs if isinstance(subs, list) else []
@@ -1362,6 +1426,7 @@ def _acces_nightly():
             done.append("%s : expiré, %s" % (sub.get("email") or sub.get("nom"), _discord_apply(sub, "Abonnement expiré")))
         elif _sub_active(sub) and sub.get("discordId"):
             done.append("%s : %s" % (sub.get("email") or sub.get("nom"), _discord_apply(sub, "Vérification quotidienne")))
+    done += _acces_rappels()
     _discord_log("Vérification quotidienne : %d accès examinés" % len(done))
     return done
 
@@ -2548,6 +2613,9 @@ class Handler(BaseHTTPRequestHandler):
         sub["discordName"] = me.get("global_name") or me.get("username") or ""
         sub["discordLinkedAt"] = datetime.utcnow().isoformat() + "Z"
         _sub_save(sub)
+        if st not in (201, 204):
+            lien = _discord_invitation_secours(sub, "ajout automatique refusé (%s)" % st)
+            return self._redirect(back + "&discord=" + ("invitation" if lien else "erreur"))
         if st == 201:
             sub["roleDonneParRobot"] = bool(role)
             sub["ajouteParRobot"] = True
