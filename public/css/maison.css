@@ -280,3 +280,9 @@
 .maison .checkout__titre-clair{font:700 34px/1.1 var(--title);color:var(--m-nuit);margin-bottom:12px}
 .maison .checkout__payer-carte,.maison .checkout__payer-carte:visited{width:100%;justify-content:center;background:#fff;color:var(--m-bleu)}
 .maison #payPane .checkout__total{margin-top:8px}
+/* Chandeliers encore plus visibles ; sur téléphone, bougies plus grandes (bande plus large) */
+.maison .candles{opacity:.42}
+@media (max-width:767px){
+  .maison .candles{opacity:.5;height:230px;bottom:3%}
+  .maison .candles__track{width:560%}
+}
