@@ -964,6 +964,17 @@ def _public_url():
     return os.environ.get("KBO_PUBLIC_URL", "").strip().rstrip("/")
 
 
+def _entete_email(base):
+    """En-tête discret des e-mails : petite icône KBO (carré bleu, lisible sur fond clair
+    comme sombre) et le nom en texte, que les messageries recolorent en mode sombre."""
+    return (
+        '<table role="presentation" cellpadding="0" cellspacing="0"><tr>'
+        '<td width="28" style="width:28px"><img src="' + base + '/assets/logo/kbo-icone-email-96.png" width="28" height="28" '
+        'alt="KBO" style="display:block;border:0;width:28px;height:28px"></td>'
+        '<td style="padding-left:10px;font:700 13px/1.2 Arial,Helvetica,sans-serif;letter-spacing:.02em;color:#0D1A3A">'
+        'KBO Corporate Finance</td></tr></table>')
+
+
 def _email_html(body):
     """Version HTML d'un e-mail : le logo KBO (image PNG, car beaucoup de
     messageries n'affichent pas le SVG) au-dessus du même texte. Sans adresse
@@ -982,9 +993,7 @@ def _email_html(body):
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6">'
         '<tr><td align="center" style="padding:28px 12px">'
         '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF">'
-        '<tr><td style="padding:28px 32px 20px;border-bottom:1px solid #DCDFE5">'
-        '<img src="' + base + '/assets/logo/kbo-logo-horizontal-clair-600.png" width="210" height="90" '
-        'alt="KBO Corporate Finance" style="display:block;border:0;width:210px;height:auto"></td></tr>'
+        '<tr><td style="padding:20px 32px 16px;border-bottom:1px solid #DCDFE5">' + _entete_email(base) + '</td></tr>'
         '<tr><td style="padding:24px 32px 30px;font:15px/1.6 Arial,Helvetica,sans-serif;color:#14161C">'
         + paras + '</td></tr></table></td></tr></table></body></html>')
 
@@ -1534,8 +1543,7 @@ def _gabarit_analyse(contenu, lien_desinscription, titre="", jour=""):
         '<body style="margin:0;padding:0;background:#F3F4F6">'
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6"><tr><td align="center" style="padding:24px 10px">'
         '<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#FFFFFF">'
-        '<tr><td style="padding:24px 28px 18px;border-bottom:3px solid #0D1A3A">'
-        '<img src="' + base + '/assets/logo/kbo-logo-horizontal-clair-600.png" width="180" alt="KBO Corporate Finance" style="display:block;border:0;width:180px;height:auto">'
+        '<tr><td style="padding:18px 28px 16px;border-bottom:3px solid #0D1A3A">' + _entete_email(base) +
         '<p style="margin:14px 0 0;font:600 12px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#1E3A8A">L\'analyse du matin' + ((' · ' + _date_fr(jour, True)) if jour else '') + '</p></td></tr>'
         '<tr><td class="analyse" style="padding:22px 28px 26px;font:16px/1.65 Arial,Helvetica,sans-serif;color:#14161C">' + contenu + '</td></tr>'
         '<tr><td style="padding:18px 28px 24px;background:#0D1A3A;font:13px/1.6 Arial,Helvetica,sans-serif;color:#C9D0E0">'
