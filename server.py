@@ -2806,6 +2806,9 @@ class Handler(BaseHTTPRequestHandler):
                    "l'analyse fondamentale des marchés de KBO Corporate Finance. Pour confirmer, cliquez sur le bouton :</p>"
                    '<p style="margin:0 0 18px"><a href="%s" style="display:inline-block;background:#1E3A8A;color:#FFFFFF;'
                    'padding:13px 22px;text-decoration:none;font-weight:600">Confirmer mon inscription</a></p>'
+                   '<p style="margin:0 0 14px">Pour ne jamais manquer une analyse, ajoutez '
+                   '<strong>contact@kbocorporatefinance.com</strong> à vos contacts. Si l\'e-mail arrive dans '
+                   '« Promotions », déplacez-le vers « Principale » : votre messagerie s\'en souviendra.</p>'
                    "<p style=\"margin:0;color:#5B6472;font-size:14px\">Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail : "
                    "vous ne recevrez rien.</p>") % ((prenom or "").replace("<", "&lt;"), lien)
         html = _gabarit_analyse(contenu, base + "/api/analyse/desinscrire?j=" + ins["desinscription"], "Confirmez votre inscription")

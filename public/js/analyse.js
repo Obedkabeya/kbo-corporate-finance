@@ -31,7 +31,8 @@
   if (!etat) return;
   const q = new URLSearchParams(location.search);
   const M = {
-    confirme: ["ok", "✓ Inscription confirmée. Vous recevrez L'analyse du matin dès demain."],
+    confirme: ["ok", "✓ Inscription confirmée. Vous recevrez L'analyse du matin dès demain. Pour ne jamais la manquer, "
+      + "ajoutez contact@kbocorporatefinance.com à vos contacts ; si elle arrive dans « Promotions », déplacez-la vers « Principale »."],
     desinscrit: ["ok", "Vous êtes désinscrit. Vous ne recevrez plus L'analyse du matin."],
     "lien-invalide": ["err", "Ce lien n'est plus valable. Inscrivez-vous à nouveau ci-dessous si besoin."],
   }[q.get("etat")];
