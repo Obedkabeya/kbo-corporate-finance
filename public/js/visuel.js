@@ -44,18 +44,7 @@
     document.querySelectorAll(".ph video, .media video").forEach(v => { v.removeAttribute("autoplay"); v.pause(); });
   }
 
-  // ---- Apparition douce des sections au défilement ----
-  if (!calme && "IntersectionObserver" in window) {
-    const cibles = document.querySelectorAll("main > section:not(.hero):not(.page-head) > .wrap, .duo, .pubs__track");
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(en => { if (en.isIntersecting) { en.target.classList.add("rv-in"); io.unobserve(en.target); } });
-    }, { threshold: 0.08, rootMargin: "0px 0px -6% 0px" });
-    cibles.forEach(el => {
-      if (el.getBoundingClientRect().top < window.innerHeight) return;   // déjà visible : rien à animer
-      el.classList.add("rv");
-      io.observe(el);
-    });
-  }
+  // (L'apparition au défilement est maintenant gérée par apparition.js, commun à tout le site.)
 
   // ---- Carrousel des dernières publications (accueil) ----
   const band = document.getElementById("dernieres-publications");
