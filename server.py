@@ -1549,7 +1549,7 @@ def _gabarit_analyse(contenu, lien_desinscription, titre="", jour=""):
         '<tr><td style="padding:18px 28px 24px;background:#0D1A3A;font:13px/1.6 Arial,Helvetica,sans-serif;color:#C9D0E0">'
         '<p style="margin:0 0 8px"><strong style="color:#FFFFFF">Contenu éducatif, pas un conseil en investissement.</strong> '
         'Les marchés financiers comportent un risque de perte en capital.</p>'
-        '<p style="margin:0">KBO Corporate Finance · École de finance des marchés · Cotonou, Bénin<br>'
+        '<p style="margin:0">KBO Corporate Finance · École de finance des marchés<br>'
         '<a href="' + lien_desinscription + '" style="color:#FFFFFF">Se désinscrire en un clic</a></p></td></tr>'
         '</table></td></tr></table></body></html>')
 
