@@ -1,0 +1,132 @@
+/* =========================================================
+   Design « La Maison » (Claude Design, direction 1a) — fichier unique de styles.
+   Seule l'APPARENCE change : textes, liens, formulaires et fonctionnement restent
+   ceux du site. Ce fichier s'applique aux pages dont le <body> porte la classe
+   « maison ». Mesures reprises de design_reference/claude_design_3_directions.html.
+   ========================================================= */
+.maison{
+  --m-nuit:#0D1A3A; --m-bleu:#1E3A8A; --m-or:#B8934A; --m-papier:#FBFBFA; --m-beige:#F3EFE6;
+  --m-encre:#14161C; --m-gris:#5B6472; --m-filet:#E6E8EE; --m-filet-beige:#CFC6B4;
+  --m-gout:56px; --m-section:80px; --m-rayon:4px;
+  background:var(--m-papier);
+}
+.maison .wrap{max-width:1280px;padding:0 var(--m-gout)}
+
+/* ---------- Boutons et liens discrets ---------- */
+.maison .btn{border-radius:var(--m-rayon);font:600 15px var(--sans);padding:15px 26px;gap:18px;background:var(--m-bleu);border-color:var(--m-bleu);justify-content:center}
+.maison .btn:hover{background:var(--m-nuit);border-color:var(--m-nuit)}
+.maison .tlink{font:600 15px var(--sans);color:var(--m-bleu)}
+.maison .tlink:hover{color:var(--m-nuit);border-color:var(--m-or)}
+
+/* ---------- En-tête bleu nuit, logo blanc ---------- */
+.maison .site-header{background:var(--m-nuit);border-bottom:0;backdrop-filter:none}
+.maison .site-header .bar{height:84px}
+.maison .site-header .logo__img--clair{display:none}
+.maison .site-header .logo__img--fonce{display:block;height:44px}
+.maison .mnav ul{gap:36px}
+.maison .mnav a{font:500 15px var(--sans);color:rgba(255,255,255,.88);border-bottom-color:transparent}
+.maison .mnav a:hover{color:#fff;border-color:var(--m-or)}
+.maison .mnav a.is-active{color:#fff;border-color:var(--m-or)}
+.maison .cta-top{font:600 14px var(--sans);color:#fff;border:1px solid rgba(255,255,255,.4);border-radius:var(--m-rayon);padding:11px 20px}
+.maison .cta-top:hover{background:#fff;color:var(--m-nuit);border-color:#fff}
+.maison .menu-btn{border-color:rgba(255,255,255,.5);color:#fff;border-radius:var(--m-rayon)}
+
+/* ---------- Bandeau d'ouverture : bleu nuit, photo voilée, filet or ---------- */
+.maison .page-head{background:var(--m-nuit);border-bottom:0;color:#fff}
+.maison .page-head.with-ph{min-height:620px;display:flex;align-items:flex-end;padding:0 0 72px}
+.maison .page-head .ph{background:#1B2A4F}
+.maison .page-head .ph::after{background:rgba(13,26,58,.6)}
+.maison .page-head .crumb{display:none}
+.maison .page-head .eyebrow{font:600 14px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.85)}
+.maison .page-head .eyebrow::before{content:"";display:block;width:56px;height:3px;background:var(--m-or);margin-bottom:22px}
+.maison .page-head h1{font:700 88px/.98 var(--title);letter-spacing:-.03em;color:#fff;max-width:900px;margin-top:22px}
+.maison .page-head h1 em{color:#fff}
+.maison .page-head .lead{font:400 19px/1.55 var(--sans);color:rgba(255,255,255,.9);max-width:620px;margin-top:22px}
+
+/* ---------- Titres de section ---------- */
+.maison .block,.maison .closing{padding:var(--m-section) 0;border-bottom:0}
+.maison .sec-head{grid-template-columns:320px 1fr;gap:56px;margin-bottom:44px;align-items:end}
+.maison .sec-head .eyebrow{font:600 13px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--m-or)}
+.maison .sec-head h2,.maison .closing h2,.maison .stance h2{font:700 44px/1.05 var(--title);letter-spacing:-.02em;color:var(--m-nuit)}
+.maison .sec-head p:not(.eyebrow){font:400 16px/1.6 var(--sans);color:var(--m-gris);max-width:520px}
+
+/* ---------- Contenu en colonnes séparées par des filets fins (sans cartes) ---------- */
+.maison .list{border-top:0;display:grid;grid-template-columns:repeat(2,1fr);gap:40px 56px}
+.maison .list .row{display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--m-nuit);border-bottom:0;padding:22px 0 0}
+.maison .list .row .n{font:600 13px var(--sans);letter-spacing:.12em;color:var(--m-or);padding:0}
+.maison .list .row h3{font:700 26px/1.2 var(--title);letter-spacing:-.01em;color:var(--m-bleu)}
+.maison .list .row p{font:400 16px/1.6 var(--sans);color:var(--m-gris)}
+
+/* ---------- Bande bleu nuit « Ce que nous ne faisons pas » ---------- */
+.maison .stance{background:var(--m-nuit);padding:var(--m-section) 0}
+.maison .stance h2{color:#fff}
+.maison .stance .eyebrow{font:600 13px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--m-or)}
+.maison .stance .eyebrow::before{content:"";display:block;width:40px;height:2px;background:var(--m-or);margin-bottom:16px}
+.maison .stance ul{border-top:1px solid rgba(255,255,255,.18)}
+.maison .stance li{border-bottom:1px solid rgba(255,255,255,.18);padding:22px 0}
+.maison .stance li b{font:600 13px var(--sans);letter-spacing:.12em;color:var(--m-or)}
+.maison .stance li span{font:400 18px/1.55 var(--sans);color:rgba(255,255,255,.9)}
+
+/* ---------- Bande beige ---------- */
+.maison .closing{background:var(--m-beige)}
+.maison .closing .eyebrow{font:600 13px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--m-or)}
+.maison .closing h2{max-width:860px;margin-top:14px}
+.maison .closing .actions{margin-top:36px;gap:24px}
+
+/* ---------- Bande « L'analyse du matin » : bleu nuit, bouton blanc ---------- */
+.maison .analyse-bande{background:var(--m-nuit);padding:72px 0}
+.maison .analyse-bande .wrap.narrow{max-width:1280px;display:grid;grid-template-columns:1fr auto;gap:16px 64px;align-items:center}
+.maison .analyse-bande .wrap > *{grid-column:1}
+.maison .analyse-bande .eyebrow{font:600 13px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--m-or)}
+.maison .analyse-bande .eyebrow::before{content:"";display:block;width:40px;height:2px;background:var(--m-or);margin-bottom:16px}
+.maison .analyse-bande h2{font:700 40px/1.05 var(--title);letter-spacing:-.02em;color:#fff;margin:0}
+.maison .analyse-bande .lead{font:400 17px/1.6 var(--sans);color:rgba(255,255,255,.82);margin:0!important;max-width:620px}
+.maison .analyse-bande .btn{grid-column:2;grid-row:1 / span 3;background:#fff;color:var(--m-nuit);border-color:#fff}
+.maison .analyse-bande .btn:hover{background:transparent;color:#fff}
+
+/* ---------- Pied de page bleu nuit ---------- */
+.maison .site-footer{background:var(--m-nuit);padding:56px 0 32px;border-top:1px solid rgba(255,255,255,.08)}
+.maison .site-footer .fgrid{grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px}
+.maison .site-footer .logo__img--fonce{height:48px}
+.maison .site-footer h4{font:600 13px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#fff;margin-bottom:16px}
+.maison .site-footer ul a,.maison .site-footer .about{font:400 14px/1.6 var(--sans);color:rgba(255,255,255,.82)}
+.maison .site-footer ul a:hover{color:#fff}
+.maison .site-footer li{margin-bottom:10px}
+.maison .site-footer .social{gap:10px}
+.maison .site-footer .social a{width:36px;height:36px;border:1px solid rgba(255,255,255,.3);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;color:#fff}
+.maison .site-footer .social a:hover{border-color:var(--m-or)}
+.maison .site-footer .social svg{width:15px;height:15px}
+.maison .site-footer .risk{margin-top:40px;padding-top:22px;border-top:1px solid rgba(255,255,255,.15);font:400 13px/1.5 var(--sans);color:rgba(255,255,255,.62)}
+
+/* ---------- Téléphone (moins de 768 px) : mesures des maquettes téléphone ---------- */
+@media (max-width:980px){
+  .maison{--m-gout:22px}
+  .maison .site-header .bar{height:60px}
+  .maison .site-header .logo__img--fonce{height:34px}
+  .maison .menu-panel{inset:60px 0 0 0}
+  .maison .sec-head{grid-template-columns:1fr;gap:12px}
+}
+@media (max-width:767px){
+  .maison{--m-section:36px}
+  .maison .page-head.with-ph{min-height:500px;padding-bottom:32px}
+  .maison .page-head .eyebrow{font-size:11px}
+  .maison .page-head .eyebrow::before{width:40px;margin-bottom:14px}
+  .maison .page-head h1{font-size:44px;line-height:1;margin-top:14px}
+  .maison .page-head .lead{font-size:15px;line-height:1.5;margin-top:14px}
+  .maison .sec-head{margin-bottom:24px}
+  .maison .sec-head h2,.maison .closing h2,.maison .stance h2{font-size:28px;line-height:1.1}
+  .maison .list{grid-template-columns:1fr;gap:24px}
+  .maison .list .row{padding-top:16px;gap:8px}
+  .maison .list .row .n{font-size:12px}
+  .maison .list .row h3{font-size:21px}
+  .maison .list .row p{font-size:15px;line-height:1.55}
+  .maison .stance li span{font-size:16px}
+  .maison .closing .actions .btn{width:100%}
+  .maison .analyse-bande{padding:32px 0}
+  .maison .analyse-bande .wrap.narrow{grid-template-columns:1fr;gap:14px}
+  .maison .analyse-bande h2{font-size:26px}
+  .maison .analyse-bande .lead{font-size:15px}
+  .maison .analyse-bande .btn{grid-column:1;grid-row:auto;width:100%}
+  .maison .site-footer{padding:28px 0 96px}
+  .maison .site-footer .fgrid{grid-template-columns:1fr 1fr;gap:24px}
+}

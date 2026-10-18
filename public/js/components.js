@@ -14,6 +14,10 @@
     { href: "publications.html", label: "Publications", key: "publications" },
     { href: "contact.html", label: "Contact", key: "contact" },
   ];
+  // Design « La Maison » : le menu comprend aussi L'analyse du matin.
+  if (document.body.classList.contains("maison")) {
+    links.splice(3, 0, { href: "analyse-du-matin", label: "L'analyse du matin", key: "analyse" });
+  }
 
   // Logo officiel (assets/logo/) : version claire, et version foncée pour les
   // fonds bleu nuit (pied de page, menu transparent posé sur une photo).
