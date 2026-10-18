@@ -137,3 +137,67 @@
     background:linear-gradient(#fff,#fff) center 12px/24px 2px no-repeat,linear-gradient(#fff,#fff) center 19px/24px 2px no-repeat,linear-gradient(#fff,#fff) center 26px/24px 2px no-repeat}
   .maison .site-header.is-open .menu-btn{background:linear-gradient(45deg,transparent 46%,#fff 46%,#fff 54%,transparent 54%) center/22px 22px no-repeat,linear-gradient(-45deg,transparent 46%,#fff 46%,#fff 54%,transparent 54%) center/22px 22px no-repeat}
 }
+
+/* =========================================================
+   Pages intérieures
+   ========================================================= */
+/* Grand titre : plus grand qu'avant, mais plus modéré que la maquette (choix d'Obed) */
+.maison .page-head h1{font-size:48px;line-height:1.05}
+.maison .page-head h1 [data-fmt]{font-size:inherit!important}
+/* Bandeau photo : grand sur la page d'accueil (L'école), bas sur les autres pages */
+.maison:not([data-page="m-ecole"]) .page-head.with-ph{min-height:40vh;padding-bottom:56px}
+.maison .page-head:not(.with-ph){padding:72px 0 64px}
+
+/* Les deux parcours : deux cartes côte à côte (emprunt à la direction « La Nuit ») */
+.maison .offers{border-top:0;gap:24px}
+.maison .offer,.maison .offer+.offer{padding:40px 36px 36px;border-radius:var(--m-rayon)}
+.maison .offer:first-child{background:var(--m-nuit);color:#fff;border:0}
+.maison .offer:last-child{background:#fff;border:1px solid var(--m-filet)}
+.maison .offer .eyebrow{font:600 12px var(--sans);letter-spacing:.12em;color:var(--m-or)}
+.maison .offer h2{font:700 32px/1.1 var(--title);letter-spacing:-.02em;color:var(--m-bleu)}
+.maison .offer:first-child h2{color:#fff}
+.maison .offer:first-child .offer__line,.maison .offer:first-child .offer__facts dd{color:rgba(255,255,255,.88)}
+.maison .offer:first-child .offer__facts dt{color:rgba(255,255,255,.6)}
+.maison .offer:first-child .offer__facts,.maison .offer:first-child .offer__facts>div{border-color:rgba(255,255,255,.18)}
+.maison .offer:first-child .btn{background:#fff;color:var(--m-nuit);border-color:#fff}
+.maison .offer:first-child .btn:hover{background:transparent;color:#fff}
+
+/* Formulaires (candidature, inscription, contact, newsletter) */
+.maison .field input,.maison .field select,.maison .field textarea,.maison .pay-card input{border-radius:var(--m-rayon);border-color:#C9CDD6}
+.maison .fgroup h3,.maison .achat h3{color:var(--m-nuit)}
+.maison .achat{border-radius:var(--m-rayon);border:1px solid var(--m-filet);border-top:3px solid var(--m-or)}
+.maison .achat-formule{border-radius:var(--m-rayon)}
+.maison .acces-card,.maison #analyseLecture{border-radius:var(--m-rayon);border-top-color:var(--m-or)}
+
+/* En-tête simplifié (newsletter, inscription, candidature) */
+.maison .site-header--simple .entete-lien{color:rgba(255,255,255,.88)}
+.maison .site-header--simple .entete-lien:hover{color:#fff}
+.maison .site-footer--simple .risk{margin-top:0;padding-top:0;border-top:0}
+.maison .analyse-page{background:var(--m-papier)}
+.maison .analyse-h1{color:var(--m-nuit)}
+
+/* Publications : catégorie en or, titre en gras, filets fins */
+.maison .blog-grid{border-top:1px solid var(--m-nuit)}
+.maison .post-card__meta{font:500 12px var(--sans);letter-spacing:.08em}
+.maison .post-card__meta .tag{color:var(--m-or)}
+.maison .post-card h3{font:700 22px/1.25 var(--title);color:var(--m-encre)}
+.maison .post-card__link{color:var(--m-bleu)}
+
+/* Contact, FAQ, pages légales */
+.maison .channels,.maison .faq{border-top-color:var(--m-nuit)}
+.maison .channel .eyebrow{color:var(--m-or)}
+.maison .faq summary{color:var(--m-nuit)}
+.maison .faq summary::after{color:var(--m-or)}
+.maison .faq-cat>h2{color:var(--m-or)}
+.maison .legal h2{color:var(--m-nuit)}
+.maison .notice{border-left-color:var(--m-or)}
+.maison .pay-methods{border-top-color:var(--m-nuit)}
+
+@media (max-width:767px){
+  .maison .page-head h1{font-size:34px}
+  .maison:not([data-page="m-ecole"]) .page-head.with-ph{min-height:34vh;padding-bottom:32px}
+  .maison .page-head:not(.with-ph){padding:36px 0 32px}
+  .maison .offer,.maison .offer+.offer{padding:28px 22px 26px}
+  .maison .offer:last-child{border-bottom:1px solid var(--m-filet)}
+  .maison .offer h2{font-size:26px}
+}
