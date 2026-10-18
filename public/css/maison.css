@@ -291,3 +291,30 @@
   .maison[data-page="m-ecole"] .page-head.with-ph{padding-bottom:150px}
   .maison .candles{height:120px;bottom:12px;opacity:.6}
 }
+
+/* Correctif : le bouton blanc garde son texte bleu nuit, même après une visite ou un appui (téléphone) */
+.maison a.btn.btn--blanc,.maison a.btn.btn--blanc:visited{background:#fff;color:var(--m-nuit);border-color:#fff}
+@media (hover:hover){.maison a.btn.btn--blanc:hover{background:transparent;color:#fff}}
+@media (hover:none){.maison a.btn.btn--blanc:hover{background:#fff;color:var(--m-nuit)}}
+.maison .analyse-bande a.btn,.maison .analyse-bande a.btn:visited{background:#fff;color:var(--m-nuit);border-color:#fff}
+@media (hover:none){.maison .analyse-bande a.btn:hover{background:#fff;color:var(--m-nuit)}}
+
+/* =========================================================
+   Apparition au défilement (réglages du site Rothschild & Co)
+   ========================================================= */
+:root{--app-distance:3rem;--app-duree:800ms;--app-courbe:cubic-bezier(0.33,1,0.68,1);--app-decalage:100ms}
+.js-apparition .reveal,.js-apparition .reveal-image,.js-apparition .reveal-children > *{
+  opacity:0;transform:translateY(var(--app-distance));
+  transition:opacity var(--app-duree) var(--app-courbe),transform var(--app-duree) var(--app-courbe)}
+.js-apparition .reveal.play,.js-apparition .reveal-image.play,.js-apparition .reveal-children.play > *{opacity:1;transform:none}
+.js-apparition .reveal-children > *{transition-delay:calc(var(--i, 0) * var(--app-decalage))}
+.js-apparition .reveal-image{transition-delay:150ms}
+/* Bandeau d'ouverture : visible tout de suite, le titre et le bouton apparaissent en fondu (sans décalage) */
+@keyframes kbo-fondu{from{opacity:0}to{opacity:1}}
+.js-apparition .page-head .wrap > *{animation:kbo-fondu 700ms var(--app-courbe) both}
+.js-apparition .page-head .wrap > :nth-child(3){animation-delay:80ms}
+.js-apparition .page-head .wrap > :nth-child(n+4){animation-delay:160ms}
+@media (prefers-reduced-motion:reduce){
+  .reveal,.reveal-image,.reveal-children > *{opacity:1!important;transform:none!important;transition:none!important}
+  .page-head .wrap > *{animation:none!important}
+}
