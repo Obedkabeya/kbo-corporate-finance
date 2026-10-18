@@ -286,3 +286,8 @@
   .maison .candles{opacity:.5;height:230px;bottom:3%}
   .maison .candles__track{width:560%}
 }
+/* Téléphone : les chandeliers dans la bande libre sous le bouton, bien visibles */
+@media (max-width:767px){
+  .maison[data-page="m-ecole"] .page-head.with-ph{padding-bottom:150px}
+  .maison .candles{height:120px;bottom:12px;opacity:.6}
+}
