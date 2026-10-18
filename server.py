@@ -903,6 +903,8 @@ def _mail_env():
         "from_name": (str(cfg.get("from_name", "") or "").strip()
                       or os.environ.get("MAIL_FROM_NAME", "").strip()
                       or "KBO Corporate Finance"),
+        # Adresse où arrivent les réponses des destinataires (ex. le Gmail d'Obed).
+        "reply_to": os.environ.get("MAIL_REPLY_TO", "").strip(),
     }
 
 
@@ -1101,7 +1103,8 @@ def _send_email(to_addr, subject, body, reply_to=None):
             return _send_via_sendgrid(e["sendgrid"], from_email, from_name, to_addr, subject, body, reply_to)
         return False, detail
     if e["brevo"]:
-        return _send_via_brevo(e["brevo"], from_email, from_name, to_addr, subject, body, reply_to)
+        return _send_via_brevo(e["brevo"], from_email, from_name, to_addr, subject, body,
+                               reply_to or e["reply_to"])
     if e["sendgrid"]:
         return _send_via_sendgrid(e["sendgrid"], from_email, from_name, to_addr, subject, body, reply_to)
     return False, ("Aucune adresse e-mail configurée. Renseignez votre adresse et "
@@ -1494,6 +1497,8 @@ def _send_html(to_addr, subject, html, text, unsubscribe=None):
     if e["brevo"]:
         payload = {"sender": {"name": e["from_name"], "email": from_email}, "to": [{"email": to_addr}],
                    "subject": subject, "htmlContent": html, "textContent": text}
+        if e["reply_to"]:
+            payload["replyTo"] = {"email": e["reply_to"]}
         if unsubscribe:
             payload["headers"] = {"List-Unsubscribe": "<%s>" % unsubscribe,
                                   "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}
