@@ -9,10 +9,10 @@
 
   // Un seul compartiment : la finance des marchés.
   const links = [
-    { href: "ecole.html", label: "L'école", key: "ecole" },
-    { href: "admission.html", label: "Admission", key: "admission" },
-    { href: "publications.html", label: "Publications", key: "publications" },
-    { href: "contact.html", label: "Contact", key: "contact" },
+    { href: "/", label: "L'école", key: "ecole" },
+    { href: "/admission", label: "Admission", key: "admission" },
+    { href: "/publications", label: "Publications", key: "publications" },
+    { href: "/contact", label: "Contact", key: "contact" },
   ];
   // Design « La Maison » : le menu comprend aussi L'analyse du matin.
   if (document.body.classList.contains("maison")) {
@@ -22,7 +22,7 @@
   // Logo officiel (assets/logo/) : version claire, et version foncée pour les
   // fonds bleu nuit (pied de page, menu transparent posé sur une photo).
   const logo = (extra) => `
-    <a class="logo ${extra || ""}" href="ecole.html" aria-label="KBO Corporate Finance — accueil">
+    <a class="logo ${extra || ""}" href="/" aria-label="KBO Corporate Finance — accueil">
       <img class="logo__img logo__img--clair" src="assets/logo/kbo-logo-horizontal-clair.svg" alt="" width="935" height="400">
       <img class="logo__img logo__img--fonce" src="assets/logo/kbo-logo-horizontal-fonce.svg" alt="" width="935" height="400">
     </a>`;
@@ -34,12 +34,12 @@
         <nav class="mnav" aria-label="Navigation principale">
           <ul>${links.map(l => `<li><a href="${l.href}" class="${navKey === l.key ? "is-active" : ""}">${l.label}</a></li>`).join("")}</ul>
         </nav>
-        <a class="cta-top" href="admission.html">Découvrir les formations</a>
+        <a class="cta-top" href="/admission">Découvrir les formations</a>
         <button class="menu-btn" id="menuBtn" type="button" aria-expanded="false" aria-controls="menuPanel">Menu</button>
       </div>
       <div class="menu-panel" id="menuPanel">
         ${links.map((l, i) => `<a href="${l.href}" class="${navKey === l.key ? "is-active" : ""}">${l.label}<span>0${i + 1}</span></a>`).join("")}
-        <a class="btn" href="admission.html">Découvrir les formations <span class="arrow">→</span></a>
+        <a class="btn" href="/admission">Découvrir les formations <span class="arrow">→</span></a>
       </div>
     </header>`;
 
@@ -64,21 +64,21 @@
             <div class="social">${socialAnchor("linkedin", "LinkedIn")}${socialAnchor("x", "X")}${socialAnchor("youtube", "YouTube")}${socialAnchor("facebook", "Facebook")}${socialAnchor("instagram", "Instagram")}${socialAnchor("tiktok", "TikTok")}</div>
           </div>
           <div><h4>L'école</h4><ul>
-            <li><a href="ecole.html">Notre approche</a></li>
-            <li><a href="admission.html">Admission</a></li>
-            <li><a href="publications.html">Publications</a></li>
-            <li><a href="analyse-du-matin.html">L'analyse du matin</a></li>
+            <li><a href="/">Notre approche</a></li>
+            <li><a href="/admission">Admission</a></li>
+            <li><a href="/publications">Publications</a></li>
+            <li><a href="/analyse-du-matin">L'analyse du matin</a></li>
           </ul></div>
           <div><h4>Informations</h4><ul>
-            <li><a href="faq.html">Questions fréquentes</a></li>
-            <li><a href="risques.html">Avertissement sur les risques</a></li>
-            <li><a href="mentions-legales.html">Mentions légales</a></li>
-            <li><a href="confidentialite.html">Confidentialité</a></li>
+            <li><a href="/faq">Questions fréquentes</a></li>
+            <li><a href="/risques">Avertissement sur les risques</a></li>
+            <li><a href="/mentions-legales">Mentions légales</a></li>
+            <li><a href="/confidentialite">Confidentialité</a></li>
           </ul></div>
           <div><h4>Contact</h4><ul>
-            <li><a href="contact.html" data-wa-link data-wa-msg="Bonjour, je souhaite des informations sur les formations KBO.">WhatsApp</a></li>
+            <li><a href="/contact" data-wa-link data-wa-msg="Bonjour, je souhaite des informations sur les formations KBO.">WhatsApp</a></li>
             <li><a href="#" data-email-link data-email-text>E-mail</a></li>
-            <li><a href="contact.html">Formulaire de contact</a></li>
+            <li><a href="/contact">Formulaire de contact</a></li>
           </ul></div>
         </div>
         <div class="risk">
@@ -96,12 +96,12 @@
   const headerSimple = `
     <header class="site-header site-header--simple" id="siteHeader">
       <div class="wrap bar">
-        <a class="logo" href="/ecole.html" aria-label="KBO Corporate Finance — accueil">
+        <a class="logo" href="/" aria-label="KBO Corporate Finance — accueil">
           <img class="logo__img logo__img--clair" src="/assets/logo/kbo-logo-horizontal-clair.svg" alt="" width="935" height="400">
           <img class="logo__img logo__img--fonce" src="/assets/logo/kbo-logo-horizontal-fonce.svg" alt="" width="935" height="400">
         </a>
         ${retour ? `<a class="entete-lien" href="${retour.split("|")[0]}">← ${retour.split("|")[1] || "Retour"}</a>`
-                 : `<a class="entete-lien" href="/ecole.html">Découvrir l'école →</a>`}
+                 : `<a class="entete-lien" href="/">Découvrir l'école →</a>`}
       </div>
     </header>`;
   const footerSimple = `
@@ -109,7 +109,7 @@
       <div class="wrap">
         <div class="risk">
           <p data-text="footerRisk">Les formations de KBO Corporate Finance ont une vocation pédagogique. Elles ne constituent ni un conseil en investissement, ni une recommandation d'achat ou de vente. Les marchés financiers comportent un risque de perte en capital.</p>
-          <span class="footer__copy">© ${year} KBO Corporate Finance · <a href="/mentions-legales.html">Mentions légales</a> · <a href="/confidentialite.html">Confidentialité</a></span>
+          <span class="footer__copy">© ${year} KBO Corporate Finance · <a href="/mentions-legales">Mentions légales</a> · <a href="/confidentialite">Confidentialité</a></span>
         </div>
       </div>
     </footer>`;
@@ -141,7 +141,7 @@
     const waIcon = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.9c0 2.1.55 4.06 1.6 5.8L2 22l4.42-1.68a9.9 9.9 0 0 0 5.62 1.74h.01c5.45 0 9.9-4.45 9.9-9.9 0-2.65-1.03-5.14-2.9-7.02A9.82 9.82 0 0 0 12.04 2zm0 18.02h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-2.62 1 .7-2.56-.2-.32a8.2 8.2 0 0 1-1.26-4.36c0-4.54 3.7-8.23 8.24-8.23 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.82c0 4.54-3.7 8.23-8.24 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.8-.23-.09-.39-.13-.56.12-.16.25-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.01-.38.11-.5.11-.11.25-.29.37-.43.13-.14.17-.25.25-.41.08-.16.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43l-.48-.01c-.16 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.16 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29z"/></svg>';
     const a = document.createElement("a");
     a.className = "wa-fab";
-    a.href = "contact.html";
+    a.href = "/contact";
     a.setAttribute("data-wa-link", "");
     a.setAttribute("aria-label", "Écrire sur WhatsApp");
     a.innerHTML = waIcon + '<span class="wa-fab__label">WhatsApp</span>';
@@ -156,7 +156,7 @@
     let taps = 0, timer = null;
     secret.addEventListener("click", () => {
       taps++;
-      if (taps >= 5) { taps = 0; location.href = "admin.html"; return; }
+      if (taps >= 5) { taps = 0; location.href = "/admin"; return; }
       clearTimeout(timer);
       timer = setTimeout(() => { taps = 0; }, 1600);
     });
@@ -223,7 +223,7 @@
         a.href = "https://wa.me/" + waNum + "?text=" + encodeURIComponent(msg);
         a.target = "_blank"; a.rel = "noopener";
       } else {
-        a.href = "contact.html"; a.removeAttribute("target");
+        a.href = "/contact"; a.removeAttribute("target");
       }
     });
     const photo = document.getElementById("heroPhoto");
@@ -420,7 +420,7 @@
     const bar = document.createElement("div");
     bar.className = "preview-bar";
     bar.innerHTML = `<span>👁 Aperçu <strong>visiteur</strong> — voici exactement ce que voient vos visiteurs.</span>
-      <a href="admin.html">Quitter l'aperçu</a>`;
+      <a href="/admin">Quitter l'aperçu</a>`;
     document.addEventListener("DOMContentLoaded", () => document.body.appendChild(bar));
     if (document.body) document.body.appendChild(bar);
     // Keep the visitor flag while navigating within the preview.
@@ -428,7 +428,7 @@
       const a = e.target.closest && e.target.closest('a[href]');
       if (!a) return;
       const href = a.getAttribute("href");
-      if (!href || /^(https?:|mailto:|tel:|#)/.test(href) || a.target === "_blank" || href.indexOf("admin.html") === 0) return;
+      if (!href || /^(https?:|mailto:|tel:|#)/.test(href) || a.target === "_blank" || href.indexOf("/admin") === 0) return;
       if (/[?&]visitor=1/.test(href)) return;
       e.preventDefault();
       const hash = href.indexOf("#"); const base = hash >= 0 ? href.slice(0, hash) : href; const frag = hash >= 0 ? href.slice(hash) : "";

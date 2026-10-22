@@ -19,8 +19,28 @@
       b.textContent = d.demainSuspendu ? "Rétablir l'envoi de demain" : "Suspendre l'envoi de demain";
       $("anEnvois").innerHTML = table(["Jour", "Titre", "Envoyés", "Échecs", "Statut"], d.envois.map((e) =>
         "<tr><td>" + esc(e.jour) + "</td><td>" + esc(e.titre) + "</td><td>" + e.envoyes + " / " + e.destinataires + "</td><td>" + e.echecs + "</td><td>" + esc(e.statut) + (e.erreur ? '<br><span class="muted">' + esc(e.erreur) + "</span>" : "") + "</td></tr>"));
-      $("anInscrits").innerHTML = table(["Prénom", "E-mail", "Statut", "Inscription"], d.inscrits.slice().reverse().map((i) =>
-        "<tr><td>" + esc(i.prenom) + "</td><td>" + esc(i.email) + "</td><td>" + esc(STATUT[i.statut] || i.statut) + "</td><td>" + date(i.inscrit) + "</td></tr>"));
+    }).catch(() => {});
+  }
+
+  // Page « Inscrits — L'analyse du matin » : chiffres en grand, courbe, liste.
+  const ORIGINE = { page: "page L'analyse du matin", article: "page d'un article" };
+  function chargerInscrits() {
+    fetch("/api/admin/analyse").then((r) => (r.ok ? r.json() : null)).then((d) => {
+      if (!d) return;
+      const s = d.suivi;
+      $("insStats").innerHTML = [
+        ["Inscrits confirmés", d.confirmes, true], ["En attente de confirmation", d.enAttente],
+        ["Nouveaux aujourd'hui", s.aujourdhui], ["Nouveaux sur 7 jours", s.sept], ["Nouveaux sur 30 jours", s.trente],
+        ["Désinscriptions (total)", d.desinscrits], ["Désinscriptions aujourd'hui", s.desinscriptionsAujourdhui],
+      ].map((x) => '<div class="stat-card' + (x[2] ? " stat-card--total" : "") + '"><b>' + x[1] + "</b><span>" + x[0] + "</span></div>").join("");
+      const max = Math.max(1, ...s.courbe.map((c) => c.n));
+      $("insCourbe").innerHTML = s.courbe.map((c) => '<div class="bar" title="' + esc(c.jour) + " : " + c.n + ' inscrit(s)"><span style="height:' +
+        (c.n ? Math.max(6, Math.round((c.n / max) * 100)) : 0) + '%"></span></div>').join("");
+      const jour = (j) => new Date(j + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+      $("insCourbeDates").innerHTML = "<span>" + jour(s.courbe[0].jour) + "</span><span>aujourd'hui</span>";
+      $("anInscrits").innerHTML = table(["Prénom", "E-mail", "Statut", "Date d'inscription", "Page d'origine"], d.inscrits.slice().reverse().map((i) =>
+        "<tr><td>" + esc(i.prenom || "—") + "</td><td>" + esc(i.email) + "</td><td>" + esc(STATUT[i.statut] || i.statut) + "</td><td>" +
+        date(i.confirme || i.inscrit) + "</td><td>" + esc(ORIGINE[i.source] || i.source || "—") + "</td></tr>"));
     }).catch(() => {});
   }
   $("anSuspendre").addEventListener("click", () => {
@@ -55,6 +75,7 @@
   document.getElementById("adminTabs").addEventListener("click", (e) => {
     const t = e.target.closest(".admin-tab"); if (!t) return;
     if (t.dataset.tab === "analyse") chargerAnalyse();
+    if (t.dataset.tab === "inscrits") chargerInscrits();
     if (t.dataset.tab === "eleves") chargerEleves();
   });
 })();

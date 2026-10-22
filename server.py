@@ -44,9 +44,9 @@ import uuid
 import urllib.request
 import urllib.error
 from email.message import EmailMessage
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
-from urllib.parse import urlparse, parse_qs
+from urllib.parse import urlparse, parse_qs, quote
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PUBLIC_DIR = os.path.join(ROOT, "public")
@@ -80,13 +80,13 @@ SESSIONS_FILE = os.path.join(DATA_DIR, "sessions.json")   # sessions d'authentif
 # partagés continuent de fonctionner. Le programme est désormais présenté
 # en tête de la page Admission.
 MOVED_PAGES = {
-    "/programme": "/admission.html#parcours",
-    "/parcours-avance": "/admission.html?parcours=finance#parcours",
-    "/parcours-fondamentaux": "/admission.html?parcours=trading#parcours",
-    "/formation": "/admission.html#parcours",
-    "/formation-finance": "/admission.html?parcours=finance#parcours",
-    "/formation-trading": "/admission.html?parcours=trading#parcours",
-    "/professionnel": "/admission.html#parcours",
+    "/programme": "/admission#parcours",
+    "/parcours-avance": "/admission?parcours=finance#parcours",
+    "/parcours-fondamentaux": "/admission?parcours=trading#parcours",
+    "/formation": "/admission#parcours",
+    "/formation-finance": "/admission?parcours=finance#parcours",
+    "/formation-trading": "/admission?parcours=trading#parcours",
+    "/professionnel": "/admission#parcours",
 }
 
 # Pages cachées (accessibles seulement par leur bouton de la page Admission, en noindex) :
@@ -98,11 +98,21 @@ PAGES_CACHEES = {
 # Adresses courtes à partager.
 RACCOURCIS = {"/newsletter": "/analyse-du-matin", "/analyse": "/analyse-du-matin"}
 
-# Pas de page d'accueil séparée : le visiteur arrive directement sur L'école.
-# Redirection temporaire (302) : pour remettre une page d'accueil, il suffit
-# de retirer ces deux lignes.
-HOME_PATHS = ("/", "/index.html", "/index")
-HOME_TARGET = "/ecole.html"
+# Anciennes pages devenues de simples renvois : redirection permanente (301).
+MOVED_PAGES.update({
+    "/accompagnement": "/", "/comptabilite": "/", "/conseil": "/", "/galerie": "/", "/personnel": "/",
+    "/ressources": "/publications", "/candidature": "/admission",
+})
+
+# Adresses propres : L'école est la page d'accueil (kbocorporatefinance.com, sans rien
+# derrière) et aucune adresse ne se termine par « .html ». Les anciennes adresses
+# redirigent (301) vers les nouvelles, pour que les liens déjà partagés marchent toujours.
+ACCUEIL_FICHIER = "/ecole.html"
+ANCIENNES_ACCUEIL = ("/index", "/index.html", "/ecole", "/ecole.html")
+FICHIERS_CACHES = {fichier: propre for propre, fichier in PAGES_CACHEES.items()}
+# Pages publiques du plan du site (sitemap.xml), dans l'ordre d'importance.
+PAGES_PUBLIQUES = ("/", "/admission", "/publications", "/analyse-du-matin", "/contact", "/faq",
+                   "/risques", "/mentions-legales", "/confidentialite")
 
 # Image de partage sur les réseaux (Open Graph) : logo blanc sur bleu nuit.
 SHARE_IMAGE = "assets/logo/kbo-partage-1200x630.png"
@@ -351,7 +361,7 @@ CONTENT_TYPES = {
     ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
     ".gif": "image/gif", ".webp": "image/webp", ".ico": "image/x-icon",
     ".webmanifest": "application/manifest+json",
-    ".woff": "font/woff", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8",
+    ".woff": "font/woff", ".woff2": "font/woff2", ".txt": "text/plain; charset=utf-8", ".xml": "application/xml; charset=utf-8",
     ".mp4": "video/mp4", ".webm": "video/webm", ".mov": "video/quicktime", ".m4v": "video/x-m4v",
 }
 
@@ -1407,7 +1417,7 @@ def _sub_save(sub):
 
 
 def _acces_url(sub):
-    return (_public_url() or "") + "/acces.html?t=" + sub["acces"]
+    return (_public_url() or "") + "/acces?t=" + sub["acces"]
 
 
 def _sign(value):
@@ -1624,6 +1634,63 @@ def _analyse_alerter(d, cle, sujet, texte):
         pass
 
 
+def _jour_local(iso):
+    """Date du jour (heure du serveur, celle du Bénin) d'un horodatage UTC « …Z »."""
+    if not iso:
+        return None
+    try:
+        return datetime.fromisoformat(str(iso).rstrip("Z")).replace(tzinfo=timezone.utc).astimezone().date()
+    except ValueError:
+        return None
+
+
+def _analyse_suivi(inscrits, aujourdhui=None):
+    """Chiffres de la page « Inscrits » : nouveaux inscrits confirmés (aujourd'hui, 7 et 30 jours),
+    désinscriptions, et courbe des 30 derniers jours."""
+    auj = aujourdhui or datetime.now().date()
+    conf = [j for j in (_jour_local(i.get("confirme")) for i in inscrits) if j]
+    desi = [j for j in (_jour_local(i.get("desinscrit")) for i in inscrits) if j]
+    depuis = lambda liste, n: sum(1 for j in liste if (auj - j).days < n and j <= auj)
+    return {
+        "aujourdhui": depuis(conf, 1), "sept": depuis(conf, 7), "trente": depuis(conf, 30),
+        "desinscriptionsAujourdhui": depuis(desi, 1), "desinscriptionsTrente": depuis(desi, 30),
+        "courbe": [{"jour": (auj - timedelta(days=k)).isoformat(),
+                    "n": sum(1 for j in conf if j == auj - timedelta(days=k))} for k in range(29, -1, -1)],
+    }
+
+
+def _analyse_recap_soir(jour=None, forcer=False):
+    """Récapitulatif du soir à Obed : nouveaux inscrits du jour, total, désinscriptions.
+    Rien n'est envoyé s'il n'y a eu aucun mouvement, ni deux fois le même jour."""
+    auj = date.fromisoformat(jour) if jour else datetime.now().date()
+    d = _analyse_data()
+    recaps = d.setdefault("recaps", {})
+    if recaps.get(auj.isoformat()) and not forcer:
+        return "récapitulatif déjà envoyé aujourd'hui"
+    s = _analyse_suivi(d["inscrits"], auj)
+    nouveaux, desinscrits = s["aujourdhui"], s["desinscriptionsAujourdhui"]
+    if not nouveaux and not desinscrits:
+        return "aucun mouvement aujourd'hui : rien envoyé"
+    total = sum(1 for i in d["inscrits"] if i.get("statut") == "confirme")
+    en_attente = sum(1 for i in d["inscrits"] if i.get("statut") == "en_attente")
+    sujet = "L'analyse du matin — %d %s (total : %d)" % (
+        nouveaux, "nouvel inscrit" if nouveaux <= 1 else "nouveaux inscrits", total)
+    if desinscrits:
+        sujet = sujet.replace(" (total", ", %d désinscription%s (total" % (desinscrits, "s" if desinscrits > 1 else ""))
+    texte = ("Bonjour Obed,\n\nVoici le point du %s sur L'analyse du matin.\n\n"
+             "Nouveaux inscrits aujourd'hui : %d\nDésinscriptions aujourd'hui : %d\n"
+             "Total des inscrits confirmés : %d\nEn attente de confirmation : %d\n\n"
+             "Le détail est dans l'espace administrateur, rubrique « Inscrits » : %s/admin"
+             % (_date_fr(auj.isoformat()), nouveaux, desinscrits, total, en_attente, _public_url() or ""))
+    ok, detail = _send_email(_get_settings()["email"], sujet, texte)
+    if ok:
+        d = _analyse_data()
+        d.setdefault("recaps", {})[auj.isoformat()] = datetime.utcnow().isoformat() + "Z"
+        d["recaps"] = dict(sorted(d["recaps"].items())[-60:])
+        _analyse_save(d)
+    return ("récapitulatif envoyé : " if ok else "récapitulatif non envoyé : ") + sujet + ("" if ok else " (%s)" % detail)
+
+
 def _analyse_matin(maintenant=None, jour=None, seulement_a=None):
     """Tâche du matin. `seulement_a` : envoi d'essai à une seule adresse (rien n'est archivé)."""
     now = maintenant or datetime.now()
@@ -1653,7 +1720,7 @@ def _analyse_matin(maintenant=None, jour=None, seulement_a=None):
         return "fichier %s pas encore déposé" % nom
     brut = _drive_telecharger(fid)
     base_url = _public_url() or ""
-    brut = brut.replace("{{LIEN_FORMATIONS}}", base_url + "/admission.html")
+    brut = brut.replace("{{LIEN_FORMATIONS}}", base_url + "/admission")
     contenu = _nettoyer_analyse(brut)
     objet = "L'analyse du matin — " + _date_fr(jour)
     titre = _titre_analyse(brut, jour)
@@ -1806,16 +1873,29 @@ class Handler(BaseHTTPRequestHandler):
             return self._discord_invitation()
         if path == "/discord/callback":
             return self._discord_callback()
+        query = urlparse(self.path).query
+        q = "?" + query if query else ""
+        if path == "/":
+            return self._serve_static(ACCUEIL_FICHIER)
+        if path == "/sitemap.xml":
+            return self._sitemap()
+        if path == "/robots.txt":
+            base = _public_url() or self._public_base()
+            return self._send_bytes(("User-agent: *\nDisallow: /admin\nDisallow: /api/\n\nSitemap: %s/sitemap.xml\n"
+                                     % base).encode("utf-8"), "text/plain; charset=utf-8")
         if path.rstrip("/") in PAGES_CACHEES:
             return self._serve_static(PAGES_CACHEES[path.rstrip("/")])
         if path.rstrip("/") in RACCOURCIS:
-            return self._redirect(RACCOURCIS[path.rstrip("/")], permanent=True)
-        if path in HOME_PATHS:
-            query = urlparse(self.path).query
-            return self._redirect(HOME_TARGET + ("?" + query if query else ""))
-        moved = MOVED_PAGES.get(path[:-5] if path.endswith(".html") else path)
+            return self._redirect(RACCOURCIS[path.rstrip("/")] + q, permanent=True)
+        if path.rstrip("/") in ANCIENNES_ACCUEIL:
+            return self._redirect("/" + q, permanent=True)
+        moved = MOVED_PAGES.get(path[:-5] if path.endswith(".html") else path.rstrip("/"))
         if moved:
             return self._redirect(moved, permanent=True)
+        if path.endswith(".html"):
+            return self._redirect(FICHIERS_CACHES.get(path, path[:-5]) + q, permanent=True)
+        if path.endswith("/") and os.path.isfile(os.path.join(PUBLIC_DIR, path.strip("/") + ".html")):
+            return self._redirect(path.rstrip("/") + q, permanent=True)
         return self._serve_static(path)
 
     def do_POST(self):
@@ -2201,6 +2281,17 @@ class Handler(BaseHTTPRequestHandler):
         return self._send_json({"ok": True}, 201)
 
     # ================= PAIEMENT =================
+    def _sitemap(self):
+        """Plan du site pour les moteurs de recherche : pages publiques et articles, adresses propres."""
+        base = _public_url() or self._public_base()
+        adresses = [base + p for p in PAGES_PUBLIQUES]
+        for a in _read_json(ARTICLES_FILE, []):
+            if a.get("id"):
+                adresses.append(base + "/article?id=" + quote(str(a["id"]), safe=""))
+        xml = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+               + "".join("  <url><loc>%s</loc></url>\n" % u.replace("&", "&amp;") for u in adresses) + "</urlset>\n")
+        return self._send_bytes(xml.encode("utf-8"), "application/xml; charset=utf-8")
+
     def _redirect(self, url, permanent=False):
         self.send_response(301 if permanent else 302)
         self.send_header("Location", url)
@@ -2259,7 +2350,7 @@ class Handler(BaseHTTPRequestHandler):
         links[token] = entry
         _write_json(PAYLINKS_FILE, links)
         return self._send_json({"ok": True, "token": token,
-                                "path": "/paiement.html?c=" + token}, 201)
+                                "path": "/paiement?c=" + token}, 201)
 
     def _get_paylink(self, token):
         links = _read_json(PAYLINKS_FILE, {})
@@ -2284,7 +2375,7 @@ class Handler(BaseHTTPRequestHandler):
         token = (parse_qs(urlparse(self.path).query).get("c") or [""])[0]
         sub = _sub_by("paylink", token) if token else None
         if sub:
-            return self._send_json({"paye": True, "acces": "/acces.html?t=" + sub["acces"]})
+            return self._send_json({"paye": True, "acces": "/acces?t=" + sub["acces"]})
         return self._send_json({"paye": False})
 
     def _pay_start(self):
@@ -2344,7 +2435,7 @@ class Handler(BaseHTTPRequestHandler):
         links = _read_json(PAYLINKS_FILE, {})
         link = links.get(token) if isinstance(links, dict) else None
         c = _pay_cfg()
-        fail_url = self._public_base() + "/paiement.html?c=" + token + "&echec=1"
+        fail_url = self._public_base() + "/paiement?c=" + token + "&echec=1"
         if not link or not c["configured"] or not link.get("txId"):
             return self._redirect(fail_url)
         ok, res = _fedapay_req("GET", "/transactions/%s" % link["txId"], c["secret"], c["live"])
@@ -2356,7 +2447,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._redirect(fail_url)
         # Paiement confirmé → on accorde l'accès
         self._grant_access(token, link, "FedaPay", link.get("txId"))
-        discord = c["discord"] or "/paiement.html?c=" + token + "&ok=1"
+        discord = c["discord"] or "/paiement?c=" + token + "&ok=1"
         return self._redirect(discord)
 
     def _facture_crypto(self, token, link):
@@ -2375,8 +2466,8 @@ class Handler(BaseHTTPRequestHandler):
             "pay_currency": "usdttrc20",
             "order_id": token, "order_description": (link.get("formation") or "Formation KBO")[:120],
             "ipn_callback_url": base + "/api/webhooks/crypto",
-            "success_url": base + "/paiement.html?c=" + token + "&ok=crypto",
-            "cancel_url": base + "/paiement.html?c=" + token,
+            "success_url": base + "/paiement?c=" + token + "&ok=crypto",
+            "cancel_url": base + "/paiement?c=" + token,
             # Pas de « taux fixe » : inutile pour l'USDT, et il double le montant minimum.
             "is_fixed_rate": False, "is_fee_paid_by_user": False,
         }
@@ -2537,9 +2628,9 @@ class Handler(BaseHTTPRequestHandler):
         sub = _sub_by("acces", t) if t else None
         c = _discord_cfg()
         if not sub or not _sub_active(sub):
-            return self._redirect("/acces.html?t=%s&discord=inactif" % t)
+            return self._redirect("/acces?t=%s&discord=inactif" % t)
         if not c["configured"]:
-            return self._redirect("/acces.html?t=%s&discord=indisponible" % t)
+            return self._redirect("/acces?t=%s&discord=indisponible" % t)
         from urllib.parse import urlencode
         q = urlencode({"client_id": c["client_id"], "redirect_uri": self._discord_redirect_uri(),
                        "response_type": "code", "scope": "identify guilds.join",
@@ -2552,9 +2643,9 @@ class Handler(BaseHTTPRequestHandler):
         cfg = _read_json(DISCORD_FILE, {}) or {}
         c = _discord_cfg()
         if not (code and cfg.get("code_invitation") and hmac.compare_digest(code, cfg["code_invitation"])):
-            return self._redirect("/invitation.html?etat=invalide")
+            return self._redirect("/invitation?etat=invalide")
         if not c["configured"]:
-            return self._redirect("/invitation.html?etat=erreur")
+            return self._redirect("/invitation?etat=erreur")
         from urllib.parse import urlencode
         q = urlencode({"client_id": c["client_id"], "redirect_uri": self._discord_redirect_uri(),
                        "response_type": "code", "scope": "identify guilds.join",
@@ -2565,16 +2656,16 @@ class Handler(BaseHTTPRequestHandler):
         cfg = _read_json(DISCORD_FILE, {}) or {}
         inv = cfg.get("code_invitation") or ""
         if not (inv and hmac.compare_digest(_sign("inv:" + inv), sig)):
-            return self._redirect("/invitation.html?etat=invalide")
+            return self._redirect("/invitation?etat=invalide")
         c = _discord_cfg()
         st, tok = _discord_req("POST", "/oauth2/token", form={
             "client_id": c["client_id"], "client_secret": c["client_secret"], "grant_type": "authorization_code",
             "code": code, "redirect_uri": self._discord_redirect_uri()})
         if st != 200 or not isinstance(tok, dict) or not tok.get("access_token"):
-            return self._redirect("/invitation.html?etat=erreur")
+            return self._redirect("/invitation?etat=erreur")
         st, me = _discord_req("GET", "/users/@me", bearer=tok["access_token"])
         if st != 200 or not isinstance(me, dict):
-            return self._redirect("/invitation.html?etat=erreur")
+            return self._redirect("/invitation?etat=erreur")
         hist = cfg.get("role_historique")
         st, _ = _discord_req("PUT", "/guilds/%s/members/%s" % (c["guild_id"], me["id"]),
                              body={"access_token": tok["access_token"], "roles": [hist] if hist else []},
@@ -2588,19 +2679,19 @@ class Handler(BaseHTTPRequestHandler):
         cfg["membres_proteges"] = prot
         _write_json(DISCORD_FILE, cfg)
         _discord_log("Invité d'Obed entré avec « Membre historique » : %s (protégé)" % nom)
-        return self._redirect("/invitation.html?etat=ok")
+        return self._redirect("/invitation?etat=ok")
 
     def _discord_callback(self):
         qs = parse_qs(urlparse(self.path).query)
         state = (qs.get("state") or [""])[0]
         if state.startswith("inv."):
             if qs.get("error"):
-                return self._redirect("/invitation.html?etat=refuse")
+                return self._redirect("/invitation?etat=refuse")
             return self._discord_invitation_callback(state[4:], (qs.get("code") or [""])[0])
         t, _, sig = state.partition(".")
         if not (t and sig and hmac.compare_digest(_sign(t), sig)):
-            return self._redirect("/acces.html?discord=erreur")
-        back = "/acces.html?t=" + t
+            return self._redirect("/acces?discord=erreur")
+        back = "/acces?t=" + t
         sub = _sub_by("acces", t)
         if not sub or not _sub_active(sub):
             return self._redirect(back + "&discord=inactif")
@@ -2824,10 +2915,10 @@ class Handler(BaseHTTPRequestHandler):
         d = _analyse_data()
         ins = next((i for i in d["inscrits"] if j and i.get("confirmation") == j), None)
         if not ins:
-            return self._redirect("/analyse-du-matin.html?etat=lien-invalide")
+            return self._redirect("/analyse-du-matin?etat=lien-invalide")
         ins["statut"], ins["confirme"], ins["confirmation"] = "confirme", datetime.utcnow().isoformat() + "Z", ""
         _analyse_save(d)
-        return self._redirect("/analyse-du-matin.html?etat=confirme")
+        return self._redirect("/analyse-du-matin?etat=confirme")
 
     def _analyse_desinscrire(self):
         j = (parse_qs(urlparse(self.path).query).get("j") or [""])[0]
@@ -2838,7 +2929,7 @@ class Handler(BaseHTTPRequestHandler):
             _analyse_save(d)
         if self.command == "POST":                      # désinscription « en un clic » des messageries
             return self._send_json({"ok": True})
-        return self._redirect("/analyse-du-matin.html?etat=desinscrit")
+        return self._redirect("/analyse-du-matin?etat=desinscrit")
 
     def _analyses_liste(self):
         return self._send_json([{"jour": a["jour"], "titre": a.get("titre", "")} for a in _analyse_archive()])
@@ -2860,7 +2951,9 @@ class Handler(BaseHTTPRequestHandler):
             "enAttente": sum(1 for i in ins if i.get("statut") == "en_attente"),
             "desinscrits": sum(1 for i in ins if i.get("statut") == "desinscrit"),
             "limiteBrevo": BREVO_LIMITE_JOUR,
-            "inscrits": [{k: i.get(k) for k in ("prenom", "email", "statut", "inscrit", "confirme", "desinscrit")} for i in ins],
+            "suivi": _analyse_suivi(ins),
+            "inscrits": [{k: i.get(k) for k in ("prenom", "email", "statut", "inscrit", "confirme", "desinscrit", "source")}
+                         for i in ins],
             "envois": d["envois"][:60], "demain": demain, "demainSuspendu": demain in d["suspendus"],
             "dossierDrive": os.environ.get("KBO_DRIVE_ANALYSE", ""),
         })
@@ -2889,9 +2982,10 @@ class Handler(BaseHTTPRequestHandler):
     def _admin_analyse_export(self):
         if not self._is_admin():
             return self._send_json({"error": "Non autorisé"}, 401)
-        lignes = ["prenom;email;statut;inscrit;confirme;desinscrit"]
+        lignes = ["prenom;email;statut;inscrit;confirme;desinscrit;page d'origine"]
         for i in _analyse_data()["inscrits"]:
-            lignes.append(";".join(str(i.get(k) or "").replace(";", ",") for k in ("prenom", "email", "statut", "inscrit", "confirme", "desinscrit")))
+            lignes.append(";".join(str(i.get(k) or "").replace(";", ",")
+                                   for k in ("prenom", "email", "statut", "inscrit", "confirme", "desinscrit", "source")))
         body = ("﻿" + "\n".join(lignes)).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/csv; charset=utf-8")
@@ -3100,7 +3194,7 @@ class Handler(BaseHTTPRequestHandler):
                 "La réinitialisation se fait alors depuis le serveur."}, 503)
         token = _new_reset_token()
         base = os.environ.get("KBO_PUBLIC_URL", "").strip().rstrip("/") or self._public_base()
-        link = "%s/admin.html#reinitialiser=%s" % (base, token)
+        link = "%s/admin#reinitialiser=%s" % (base, token)
         body = ("Bonjour,\n\n"
                 "Une demande de nouveau mot de passe a été faite pour l'administration du site "
                 "KBO Corporate Finance.\n\n"
@@ -3454,6 +3548,8 @@ class Handler(BaseHTTPRequestHandler):
                 return
 
         base = os.path.basename(full)
+        if base == "404.html":
+            status = 404
         is_admin = self._is_admin()
 
         # Le code d'édition n'est JAMAIS livré aux visiteurs (protection serveur).
@@ -3480,7 +3576,7 @@ class Handler(BaseHTTPRequestHandler):
         if base == "article.html":
             body = self._inject_article_og(body)
         elif ext == ".html":
-            body = self._inject_default_og(body)
+            body = self._inject_default_og(body, status)
 
         # Injection du rôle + de l'éditeur, uniquement pour l'administrateur connecté.
         if ext == ".html":
@@ -3517,16 +3613,22 @@ class Handler(BaseHTTPRequestHandler):
         text = text.replace("</head>", flag + "</head>", 1)
         # L'éditeur en ligne (pages publiques, admin connecté) se charge en fin de body.
         if is_admin and base != "admin.html":
-            text = text.replace("</body>", '<script src="js/editor.js"></script></body>', 1)
+            text = text.replace("</body>", '<script src="/js/editor.js"></script></body>', 1)
         return text.encode("utf-8")
 
-    def _inject_default_og(self, body):
+    def _inject_default_og(self, body, status=200):
         """Balises Open Graph / Twitter par défaut, dérivées du <title> et de la
-        meta description de la page (pour un partage propre sur les réseaux)."""
+        meta description de la page (pour un partage propre sur les réseaux),
+        plus l'adresse canonique propre (sans « .html »)."""
         try:
             text = body.decode("utf-8")
         except UnicodeDecodeError:
             return body
+        if status == 200 and "noindex" not in text and 'rel="canonical"' not in text:
+            propre = (_public_url() or self._public_base()) + urlparse(self.path).path
+            text = text.replace("</head>", '<link rel="canonical" href="%s"><meta property="og:url" content="%s"></head>'
+                                % (propre, propre), 1)
+            body = text.encode("utf-8")
         if "og:title" in text:
             return body
         def grab(pat):
@@ -3576,7 +3678,7 @@ class Handler(BaseHTTPRequestHandler):
         host = self.headers.get("Host", "localhost:%d" % PORT)
         scheme = "https" if self.headers.get("X-Forwarded-Proto") == "https" else "http"
         base = "%s://%s/" % (scheme, host)
-        url = base + "article.html?id=" + aid
+        url = base + "article?id=" + aid
         img = article.get("image") or SHARE_IMAGE
         img_abs = img if img.startswith("http") else base + img.lstrip("/")
         settings = _get_settings()
@@ -3712,7 +3814,7 @@ def main():
     print("  Stockage   : %s" % ("PostgreSQL (permanent)" if DB_ENABLED
           else "fichiers JSON locaux (dossier data/)"))
     print("  Site       : http://localhost:%d" % PORT)
-    print("  Admin      : http://localhost:%d/admin.html  (tableau de bord complet)" % PORT)
+    print("  Admin      : http://localhost:%d/admin  (tableau de bord complet)" % PORT)
     # Le mot de passe n'est jamais écrit dans le journal.
     _pw_custom = isinstance(_read_json(AUTH_FILE, None), dict) and bool(_read_json(AUTH_FILE, {}).get("hash"))
     print("  Mot de passe admin : %s" % ("personnalisé (empreinte enregistrée)" if _pw_custom

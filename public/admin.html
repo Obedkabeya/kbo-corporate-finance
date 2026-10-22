@@ -75,7 +75,7 @@
           <span>Ce site tourne sans base de données : <strong>tout ce que vous modifiez sera effacé au prochain déploiement</strong>. Sur Railway, ajoutez un service <strong>PostgreSQL</strong> et la variable <code>DATABASE_URL</code> au service du site. Une fois branchée, vos textes, images et réglages deviennent définitifs et ne sont plus jamais écrasés par une mise à jour du code.</span>
         </div>
         <div class="dash-toolbar">
-          <a class="btn btn--ghost" href="ecole.html?visitor=1" target="_blank" rel="noopener">👁 Voir en tant que visiteur</a>
+          <a class="btn btn--ghost" href="/?visitor=1" target="_blank" rel="noopener">👁 Voir en tant que visiteur</a>
           <span class="muted" style="font-size:.85rem">Ouvre le site tel que le voient vos visiteurs, sans aucun bouton d'édition.</span>
         </div>
         <nav class="admin-tabs" id="adminTabs" aria-label="Sections d'administration">
@@ -90,6 +90,7 @@
           <button class="admin-tab" data-tab="medias">Médias</button>
           <button class="admin-tab" data-tab="paiements">💳 Paiements</button>
           <button class="admin-tab" data-tab="analyse">📰 Analyse du matin</button>
+          <button class="admin-tab" data-tab="inscrits">👥 Inscrits — L'analyse du matin</button>
           <button class="admin-tab" data-tab="eleves">🎓 Élèves &amp; Discord</button>
           <button class="admin-tab" data-tab="compte">Compte &amp; e-mail</button>
           <button class="admin-tab admin-tab--logout" id="logoutBtn" type="button">Déconnexion</button>
@@ -463,7 +464,25 @@
             </div>
           </div>
           <div class="form-wrap"><h3>Historique des envois</h3><div id="anEnvois" class="muted">Chargement…</div></div>
-          <div class="form-wrap"><h3>Inscrits</h3><div id="anInscrits" class="muted">Chargement…</div></div>
+          <div class="form-wrap"><h3>Inscrits</h3><p class="muted">Le nombre d'inscrits et leur liste sont dans l'onglet « 👥 Inscrits — L'analyse du matin ».</p></div>
+        </div>
+
+        <div class="tabpanel" data-panel="inscrits">
+          <div class="form-wrap">
+            <h3>Inscrits — L'analyse du matin</h3>
+            <p class="muted" style="font-size:.92rem">Un inscrit est « confirmé » quand il a cliqué sur le lien de l'e-mail de confirmation. Chaque soir à 20 h, un récapitulatif vous est envoyé par e-mail s'il y a eu du mouvement dans la journée.</p>
+            <div class="stat-cards stat-cards--grand" id="insStats"></div>
+            <h4 style="margin:1.6rem 0 .6rem;color:var(--navy)">Nouveaux inscrits confirmés, jour par jour (30 derniers jours)</h4>
+            <div class="bars" id="insCourbe" style="height:120px"></div>
+            <div class="muted" id="insCourbeDates" style="display:flex;justify-content:space-between;font-size:.8rem;margin-top:.3rem"></div>
+          </div>
+          <div class="form-wrap">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap">
+              <h3 style="margin:0">Liste des inscrits</h3>
+              <a class="btn btn--primary" href="/api/admin/analyse.csv">Exporter (fichier CSV)</a>
+            </div>
+            <div id="anInscrits" class="muted" style="margin-top:1rem">Chargement…</div>
+          </div>
         </div>
 
         <div class="tabpanel" data-panel="eleves">

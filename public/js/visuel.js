@@ -56,7 +56,7 @@
       list = (Array.isArray(list) ? list : []).filter(a => !a.archived && !a.hidden).slice(0, 9);
       if (!list.length) return;
       track.innerHTML = list.map(a => `
-        <a class="pcard" href="article.html?id=${encodeURIComponent(a.id)}">
+        <a class="pcard" href="/article?id=${encodeURIComponent(a.id)}">
           <div class="pcard__media media"><img src="${esc(a.image || "images/post-default.svg")}" alt="${esc(a.title)}" loading="lazy" decoding="async"></div>
           <span class="pcard__tag">${esc(a.tag || genre[a.type] || "Réflexion")}</span>
           <h3 class="pcard__title">${esc(a.title)}</h3>

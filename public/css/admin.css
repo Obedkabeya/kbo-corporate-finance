@@ -98,3 +98,9 @@
 .compare { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .compare th, .compare td { text-align: left; padding: 10px 12px 10px 0; border-bottom: 1px solid var(--line, #DCDFE5); vertical-align: top; }
 .compare thead th { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--gray, #5B6472); }
+
+/* Page « Inscrits — L'analyse du matin » : le total en très gros */
+.stat-cards--grand .stat-card { min-width: 150px; }
+.stat-card--total { background: var(--navy, #0D1A3A); border-color: var(--navy, #0D1A3A); }
+.stat-card--total b { color: #fff; font-size: 2.8rem; }
+.stat-card--total span { color: #C9D0E0; }

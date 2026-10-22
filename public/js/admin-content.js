@@ -9,16 +9,16 @@
   "use strict";
 
   var PAGES = [
-    { file: "ecole.html",             label: "L'école (page d'arrivée du site)" },
-    { file: "admission.html",         label: "Admission" },
-    { file: "publications.html",      label: "Publications" },
-    { file: "contact.html",           label: "Contact" },
-    { file: "faq.html",               label: "Questions fréquentes" },
-    { file: "paiement.html",          label: "Paiement" },
-    { file: "risques.html",           label: "Avertissement sur les risques" },
-    { file: "mentions-legales.html",  label: "Mentions légales" },
-    { file: "confidentialite.html",   label: "Confidentialité" },
-    { file: "404.html",               label: "Page introuvable" },
+    { file: "/",             label: "L'école (page d'arrivée du site)" },
+    { file: "/admission",         label: "Admission" },
+    { file: "/publications",      label: "Publications" },
+    { file: "/contact",           label: "Contact" },
+    { file: "/faq",               label: "Questions fréquentes" },
+    { file: "/paiement",          label: "Paiement" },
+    { file: "/risques",           label: "Avertissement sur les risques" },
+    { file: "/mentions-legales",  label: "Mentions légales" },
+    { file: "/confidentialite",   label: "Confidentialité" },
+    { file: "/404",               label: "Page introuvable" },
   ];
 
   // Mêmes règles que components.js (pour produire EXACTEMENT les mêmes clés).

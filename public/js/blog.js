@@ -56,7 +56,7 @@
     const label = a.type === "video" ? "Regarder la vidéo" : (a.type === "story" ? "Lire l'histoire" : "Lire l'article");
     return `
       <article class="${cls} reveal is-in">
-        <a href="article.html?id=${encodeURIComponent(a.id)}" aria-label="${esc(a.title)}">
+        <a href="/article?id=${encodeURIComponent(a.id)}" aria-label="${esc(a.title)}">
           ${mediaFor(a)}
         </a>
         <div class="post-card__body">
@@ -64,9 +64,9 @@
             <span class="tag">${esc(a.tag || kindLabel[a.type] || "Réflexion")}</span>
             <span>${formatDate(a.date)}</span>
           </div>
-          <h3><a href="article.html?id=${encodeURIComponent(a.id)}" style="color:inherit">${esc(a.title)}</a></h3>
+          <h3><a href="/article?id=${encodeURIComponent(a.id)}" style="color:inherit">${esc(a.title)}</a></h3>
           <p>${esc(a.excerpt || "")}</p>
-          <a class="post-card__link" href="article.html?id=${encodeURIComponent(a.id)}">${label} →</a>
+          <a class="post-card__link" href="/article?id=${encodeURIComponent(a.id)}">${label} →</a>
         </div>
       </article>`;
   }

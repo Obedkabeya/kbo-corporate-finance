@@ -48,7 +48,7 @@
       : (a.type === "video" ? "" : `<div class="article__hero"><img src="images/post-default.svg" alt="${esc(a.title)}"></div>`);
 
     root.innerHTML = `
-      <p class="breadcrumb"><a href="publications.html">Publications</a> · ${esc(a.tag || kindLabel[a.type] || "Réflexion")}</p>
+      <p class="breadcrumb"><a href="/publications">Publications</a> · ${esc(a.tag || kindLabel[a.type] || "Réflexion")}</p>
       <h1>${esc(a.title)}</h1>
       <p class="muted" style="letter-spacing:.08em;text-transform:uppercase;font-size:.8rem">${fmt(a.date)} · Obed Kabeya</p>
       <hr class="divider" />
@@ -104,7 +104,7 @@
   }
 
   if (!id) {
-    root.innerHTML = `<p class="empty-state">Article introuvable. <a href="publications.html">Retour aux publications</a>.</p>`;
+    root.innerHTML = `<p class="empty-state">Article introuvable. <a href="/publications">Retour aux publications</a>.</p>`;
     return;
   }
 
@@ -177,6 +177,6 @@
     .then(r => { if (!r.ok) throw new Error("nf"); return r.json(); })
     .then(a => { render(a); loadComments(); wireCommentForm(); })
     .catch(() => {
-      root.innerHTML = `<p class="empty-state">Cet article n'a pas pu être chargé. Assurez-vous que le serveur est démarré, puis <a href="publications.html">retournez aux publications</a>.</p>`;
+      root.innerHTML = `<p class="empty-state">Cet article n'a pas pu être chargé. Assurez-vous que le serveur est démarré, puis <a href="/publications">retournez aux publications</a>.</p>`;
     });
 })();

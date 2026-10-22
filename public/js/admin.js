@@ -61,7 +61,7 @@
       .catch(() => { msg.textContent = "Serveur injoignable."; msg.className = "form-msg err"; });
   });
 
-  // Lien reçu par e-mail : admin.html#reinitialiser=<jeton>
+  // Lien reçu par e-mail : /admin#reinitialiser=<jeton>
   const resetToken = (location.hash.match(/^#reinitialiser=([\w-]+)$/) || [])[1];
   if (resetToken) {
     history.replaceState(null, "", location.pathname);   // le jeton ne reste pas dans la barre d'adresse
@@ -234,7 +234,7 @@
             <div class="muted" style="font-size:.82rem">${label[a.type] || "Article"}${a.type === "video" && a.orientation === "vertical" ? " · verticale" : ""} · ${fmt(a.date)}</div>
           </div>
           <div style="display:flex;gap:.5rem;flex-shrink:0">
-            <a class="btn btn--ghost" style="padding:.5em 1em;font-size:.8rem" href="article.html?id=${encodeURIComponent(a.id)}" target="_blank">Voir</a>
+            <a class="btn btn--ghost" style="padding:.5em 1em;font-size:.8rem" href="/article?id=${encodeURIComponent(a.id)}" target="_blank">Voir</a>
             <button class="btn btn--ghost" style="padding:.5em 1em;font-size:.8rem;border-color:#d9b3b0;color:#b3261e" data-del="${esc(a.id)}">Supprimer</button>
           </div>
         </div>`).join("");

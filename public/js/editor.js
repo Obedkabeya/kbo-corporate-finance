@@ -45,7 +45,7 @@
     bar.innerHTML =
       '<span class="admin-bar__tag">● Mode administrateur</span>' +
       '<button type="button" class="admin-bar__btn" id="abEdit">✏️ Modifier le texte</button>' +
-      '<a class="admin-bar__btn" href="admin.html">⚙ Tableau de bord</a>' +
+      '<a class="admin-bar__btn" href="/admin">⚙ Tableau de bord</a>' +
       '<a class="admin-bar__btn" id="abPreview" href="?visitor=1">👁 Aperçu visiteur</a>' +
       '<button type="button" class="admin-bar__btn admin-bar__btn--out" id="abLogout">Déconnexion</button>' +
       '<span class="admin-bar__hint" id="abHint"></span>';

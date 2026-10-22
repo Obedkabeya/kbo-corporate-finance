@@ -185,7 +185,7 @@
     el.appendChild(scoreWrap);
 
     var cta = document.createElement("a");
-    cta.href = "accompagnement.html#diagnostic";
+    cta.href = "/accompagnement#diagnostic";
     cta.className = "btn btn--primary";
     cta.style.cssText = "margin-top:1.1rem;width:100%;justify-content:center";
     cta.innerHTML = 'Faire le diagnostic complet <span class="arrow">→</span>';

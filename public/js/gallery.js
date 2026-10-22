@@ -1,6 +1,6 @@
 /* Public gallery. Grid modes via #galleryGrid[data-mode]:
    - "teaser": show up to data-limit items; hide the section if empty (Personnel).
-   - "full":  show everything with a click-to-enlarge lightbox (galerie.html). */
+   - "full":  show everything with a click-to-enlarge lightbox (/galerie). */
 (function () {
   const grid = document.getElementById("galleryGrid");
   if (!grid) return;
