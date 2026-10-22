@@ -91,6 +91,7 @@
           <button class="admin-tab" data-tab="paiements">💳 Paiements</button>
           <button class="admin-tab" data-tab="analyse">📰 Analyse du matin</button>
           <button class="admin-tab" data-tab="inscrits">👥 Inscrits — L'analyse du matin</button>
+          <button class="admin-tab" data-tab="offres">✉ Écrire aux inscrits</button>
           <button class="admin-tab" data-tab="eleves">🎓 Élèves &amp; Discord</button>
           <button class="admin-tab" data-tab="compte">Compte &amp; e-mail</button>
           <button class="admin-tab admin-tab--logout" id="logoutBtn" type="button">Déconnexion</button>
@@ -483,6 +484,38 @@
             </div>
             <div id="anInscrits" class="muted" style="margin-top:1rem">Chargement…</div>
           </div>
+        </div>
+
+        <div class="tabpanel" data-panel="offres">
+          <div class="form-wrap">
+            <h3>Écrire aux inscrits — offres et réductions</h3>
+            <p class="muted" style="font-size:.92rem">Votre e-mail part seulement aux inscrits confirmés qui ont accepté de recevoir les offres. Chacun peut arrêter les offres en un clic, tout en gardant L'analyse du matin.</p>
+            <p id="ofCompte" style="font-weight:600;margin:.4rem 0 1.2rem">Chargement…</p>
+            <div class="field"><label for="ofObjet">Objet de l'e-mail</label><input type="text" id="ofObjet" maxlength="150" placeholder="Ex. : −20 % sur la formation Trading institutionnel jusqu'à dimanche" /></div>
+            <div class="field" style="margin-top:1rem"><label for="ofTexte">Message</label><textarea id="ofTexte" rows="9" placeholder="Bonjour,&#10;&#10;Votre message ici. Laissez une ligne vide entre deux paragraphes."></textarea></div>
+            <div class="form-grid" style="margin-top:1rem">
+              <div class="field"><label for="ofBouton">Texte du bouton (facultatif)</label><input type="text" id="ofBouton" maxlength="60" placeholder="Ex. : Voir l'offre" /></div>
+              <div class="field"><label for="ofLien">Le bouton mène vers</label>
+                <select id="ofLien">
+                  <option value="/admission">La page Admission (les formations)</option>
+                  <option value="/inscription/trading-institutionnel">L'inscription au Trading institutionnel</option>
+                  <option value="/candidature/finance-des-marches">La candidature Finance des marchés</option>
+                  <option value="/publications">Les publications</option>
+                  <option value="/contact">La page Contact</option>
+                  <option value="autre">Une autre adresse…</option>
+                </select>
+                <input type="text" id="ofLienAutre" placeholder="https://…" hidden style="margin-top:.5rem" />
+              </div>
+            </div>
+            <div class="form-actions" style="padding-top:18px">
+              <button class="btn btn--ghost" type="button" id="ofApercu">Voir l'aperçu</button>
+              <button class="btn btn--ghost" type="button" id="ofEssai">M'envoyer un essai</button>
+              <button class="btn btn--primary" type="button" id="ofEnvoyer">Envoyer</button>
+              <span class="form-msg" id="ofMsg"></span>
+            </div>
+            <iframe id="ofApercuCadre" title="Aperçu de l'e-mail" hidden style="width:100%;height:620px;border:1px solid var(--line,#DCDFE5);border-radius:10px;margin-top:1rem;background:#fff"></iframe>
+          </div>
+          <div class="form-wrap"><h3>Envois précédents</h3><div id="ofHistorique" class="muted">Chargement…</div></div>
         </div>
 
         <div class="tabpanel" data-panel="eleves">

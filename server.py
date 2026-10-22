@@ -1544,9 +1544,15 @@ def _date_fr(jour, annee=False):
     return t + (" %d" % d.year if annee else "")
 
 
-def _gabarit_analyse(contenu, lien_desinscription, titre="", jour=""):
-    """Gabarit e-mail aux couleurs KBO : logo, police sans empattements, lisible sur téléphone."""
+def _gabarit_analyse(contenu, lien_desinscription, titre="", jour="", etiquette="L'analyse du matin",
+                     texte_lien="Se désinscrire en un clic", invitation_offres=None):
+    """Gabarit e-mail aux couleurs KBO : logo, police sans empattements, lisible sur téléphone.
+    Sert aussi aux offres (autre étiquette, lien « Ne plus recevoir les offres »).
+    `invitation_offres` : lien pour accepter les offres, proposé aux inscrits qui ne les reçoivent pas."""
     base = _public_url() or ""
+    invitation = ('<p style="margin:0 0 8px"><a href="' + invitation_offres + '" style="color:#FFFFFF">'
+                  'Recevez aussi nos offres et réductions sur les formations : cliquez ici</a></p>'
+                  if invitation_offres else '')
     return (
         '<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">'
         '<title>' + titre.replace("<", "&lt;") + '</title></head>'
@@ -1554,13 +1560,14 @@ def _gabarit_analyse(contenu, lien_desinscription, titre="", jour=""):
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6"><tr><td align="center" style="padding:24px 10px">'
         '<table role="presentation" width="640" cellpadding="0" cellspacing="0" style="max-width:640px;width:100%;background:#FFFFFF">'
         '<tr><td style="padding:18px 28px 16px;border-bottom:3px solid #0D1A3A">' + _entete_email(base) +
-        '<p style="margin:14px 0 0;font:600 12px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#1E3A8A">L\'analyse du matin' + ((' · ' + _date_fr(jour, True)) if jour else '') + '</p></td></tr>'
+        '<p style="margin:14px 0 0;font:600 12px/1.4 Arial,Helvetica,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:#1E3A8A">'
+        + etiquette.replace("<", "&lt;") + ((' · ' + _date_fr(jour, True)) if jour else '') + '</p></td></tr>'
         '<tr><td class="analyse" style="padding:22px 28px 26px;font:16px/1.65 Arial,Helvetica,sans-serif;color:#14161C">' + contenu + '</td></tr>'
         '<tr><td style="padding:18px 28px 24px;background:#0D1A3A;font:13px/1.6 Arial,Helvetica,sans-serif;color:#C9D0E0">'
         '<p style="margin:0 0 8px"><strong style="color:#FFFFFF">Contenu éducatif, pas un conseil en investissement.</strong> '
-        'Les marchés financiers comportent un risque de perte en capital.</p>'
+        'Les marchés financiers comportent un risque de perte en capital.</p>' + invitation +
         '<p style="margin:0">KBO Corporate Finance · École de finance des marchés<br>'
-        '<a href="' + lien_desinscription + '" style="color:#FFFFFF">Se désinscrire en un clic</a></p></td></tr>'
+        '<a href="' + lien_desinscription + '" style="color:#FFFFFF">' + texte_lien + '</a></p></td></tr>'
         '</table></td></tr></table></body></html>')
 
 
@@ -1691,6 +1698,110 @@ def _analyse_recap_soir(jour=None, forcer=False):
     return ("récapitulatif envoyé : " if ok else "récapitulatif non envoyé : ") + sujet + ("" if ok else " (%s)" % detail)
 
 
+def _envoyer_confirmation(ins, base, relance=False):
+    """E-mail de confirmation d'inscription à L'analyse du matin (ou sa relance, 24 h plus tard)."""
+    lien = base + "/api/analyse/confirmer?j=" + ins["confirmation"]
+    prenom = ins.get("prenom") or ""
+    titre = "Il ne vous reste qu'un clic" if relance else "Confirmez votre inscription"
+    intro = ("Vous avez demandé à recevoir L'analyse du matin de KBO Corporate Finance, mais votre inscription "
+             "n'est pas encore confirmée. Il suffit de cliquer sur le bouton :" if relance else
+             "Vous avez demandé à recevoir chaque matin l'analyse fondamentale des marchés de KBO Corporate Finance. "
+             "Pour confirmer, cliquez sur le bouton :")
+    contenu = ('<h1 style="font:800 22px/1.25 Arial,Helvetica,sans-serif;color:#0D1A3A;margin:0 0 12px">%s</h1>'
+               '<p style="margin:0 0 12px">Bonjour %s,</p><p style="margin:0 0 18px">%s</p>'
+               '<p style="margin:0 0 18px"><a href="%s" style="display:inline-block;background:#1E3A8A;color:#FFFFFF;'
+               'padding:13px 22px;text-decoration:none;font-weight:600">Confirmer mon inscription</a></p>'
+               '<p style="margin:0 0 14px">Pour ne jamais manquer une analyse, ajoutez '
+               '<strong>contact@kbocorporatefinance.com</strong> à vos contacts. Si l\'e-mail arrive dans '
+               '« Promotions », déplacez-le vers « Principale » : votre messagerie s\'en souviendra.</p>'
+               "<p style=\"margin:0;color:#5B6472;font-size:14px\">%s</p>") % (
+        titre, prenom.replace("<", "&lt;"), intro, lien,
+        "C'est notre seul rappel : sans confirmation, vous ne recevrez rien." if relance else
+        "Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail : vous ne recevrez rien.")
+    html = _gabarit_analyse(contenu, base + "/api/analyse/desinscrire?j=" + ins["desinscription"], titre)
+    sujet = ("Dernier rappel : confirmez votre inscription à L'analyse du matin" if relance
+             else "Confirmez votre inscription à L'analyse du matin")
+    return _send_html(ins["email"], sujet, html,
+                      "Bonjour %s,\n\nPour confirmer votre inscription à L'analyse du matin de KBO, ouvrez ce lien :\n%s\n"
+                      % (prenom, lien))
+
+
+def _analyse_relances(maintenant=None):
+    """Une seule relance, 24 h après l'inscription, pour ceux qui n'ont pas confirmé."""
+    now = maintenant or datetime.utcnow()
+    base = _public_url() or ""
+    if not base:
+        return "adresse publique du site non réglée : pas de relance"
+    d = _analyse_data()
+    faits = 0
+    for ins in d["inscrits"]:
+        if ins.get("statut") != "en_attente" or ins.get("relance") or not ins.get("confirmation"):
+            continue
+        try:
+            depuis = now - datetime.fromisoformat(str(ins.get("inscrit") or "").rstrip("Z"))
+        except ValueError:
+            continue
+        if depuis < timedelta(hours=24):
+            continue
+        ok, _detail = _envoyer_confirmation(ins, base, relance=True)
+        if ok:
+            ins["relance"] = now.isoformat() + "Z"
+            faits += 1
+    if faits:
+        _analyse_save(d)
+    return "relances envoyées : %d" % faits
+
+
+def _offres_destinataires(d):
+    """Inscrits confirmés qui ont accepté de recevoir les offres."""
+    return [i for i in d["inscrits"] if i.get("statut") == "confirme" and i.get("offres")]
+
+
+def _envois_du_jour(d):
+    """E-mails déjà partis aujourd'hui (analyse du matin + offres), pour rester sous la limite gratuite de Brevo."""
+    auj = datetime.now().date()
+    n = sum(e.get("envoyes", 0) for e in d["envois"] if e.get("jour") == auj.isoformat())
+    n += sum(e.get("envoyes", 0) for e in d.get("offres_envois", []) if _jour_local(e.get("date")) == auj)
+    return n
+
+
+def _offre_html(objet, texte, bouton, lien, base, lien_stop):
+    """E-mail d'offre écrit par Obed (texte simple → paragraphes), avec un bouton facultatif."""
+    def esc(t):
+        return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    paras = "".join('<p style="margin:0 0 14px">%s</p>' % esc(p).replace("\n", "<br>")
+                    for p in texte.replace("\r", "").split("\n\n") if p.strip())
+    contenu = '<h1 style="font:800 22px/1.25 Arial,Helvetica,sans-serif;color:#0D1A3A;margin:0 0 14px">%s</h1>%s' % (esc(objet), paras)
+    if bouton and lien:
+        url = (base + lien) if lien.startswith("/") else lien
+        contenu += ('<p style="margin:8px 0 4px"><a href="%s" style="display:inline-block;background:#1E3A8A;color:#FFFFFF;'
+                    'padding:13px 22px;text-decoration:none;font-weight:600">%s</a></p>' % (esc(url).replace('"', "&quot;"), esc(bouton)))
+    return _gabarit_analyse(contenu, lien_stop, objet, etiquette="Offre KBO Corporate Finance",
+                            texte_lien="Ne plus recevoir les offres (vous gardez L'analyse du matin)")
+
+
+def _offres_envoyer(id_envoi, objet, texte, bouton, lien, base):
+    """Envoi d'une offre à tous les inscrits qui l'ont acceptée (lancé en arrière-plan)."""
+    cibles = _offres_destinataires(_analyse_data())
+    envoyes, echecs, erreur = 0, 0, ""
+    for i in cibles:
+        stop = base + "/api/offres/stop?j=" + i.get("desinscription", "")
+        ok, detail = _send_html(i["email"], objet, _offre_html(objet, texte, bouton, lien, base, stop),
+                                texte + "\n\nNe plus recevoir les offres : " + stop, unsubscribe=stop)
+        if ok:
+            envoyes += 1
+        else:
+            echecs += 1
+            erreur = erreur or detail
+    d = _analyse_data()
+    for e in d.get("offres_envois", []):
+        if e.get("id") == id_envoi:
+            e.update({"envoyes": envoyes, "echecs": echecs, "erreur": erreur,
+                      "statut": "envoyée" if envoyes else "échec", "fin": datetime.utcnow().isoformat() + "Z"})
+    d["offres_envois"] = d.get("offres_envois", [])[:200]
+    _analyse_save(d)
+
+
 def _analyse_matin(maintenant=None, jour=None, seulement_a=None):
     """Tâche du matin. `seulement_a` : envoi d'essai à une seule adresse (rien n'est archivé)."""
     now = maintenant or datetime.now()
@@ -1730,7 +1841,9 @@ def _analyse_matin(maintenant=None, jour=None, seulement_a=None):
     envoyes, echecs = 0, []
     for i in cibles:
         lien = base + "/api/analyse/desinscrire?j=" + i.get("desinscription", "")
-        html = _gabarit_analyse(contenu, lien, titre, jour)
+        invitation = (base + "/analyse-du-matin?offres=" + i["desinscription"]
+                      if not seulement_a and not i.get("offres") and i.get("desinscription") else None)
+        html = _gabarit_analyse(contenu, lien, titre, jour, invitation_offres=invitation)
         texte = re.sub(r"\n{3,}", "\n\n", re.sub(r"<[^>]+>", "\n", contenu)).strip() + \
             "\n\nContenu éducatif, pas un conseil en investissement.\nSe désinscrire : " + lien
         ok, detail = _send_html(i["email"], objet, html, texte, unsubscribe=lien)
@@ -1935,6 +2048,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._admin_analyse()
         if path == "/api/admin/analyse.csv":
             return self._admin_analyse_export()
+        if path == "/api/admin/offres":
+            return self._admin_offres()
+        if path == "/api/offres/stop":
+            return self._offres_stop()
 
         if path == "/api/pay/etat":
             return self._pay_state()
@@ -2094,6 +2211,12 @@ class Handler(BaseHTTPRequestHandler):
             return self._analyse_inscription()
         if path == "/api/analyse/desinscrire":
             return self._analyse_desinscrire()
+        if path == "/api/offres/stop":
+            return self._offres_stop()
+        if path == "/api/offres/accord":
+            return self._offres_accord()
+        if path == "/api/admin/offres":
+            return self._admin_offres_action()
         if path == "/api/admin/analyse":
             return self._admin_analyse_action()
 
@@ -2880,32 +3003,24 @@ class Handler(BaseHTTPRequestHandler):
         prenom = _clean(data.get("prenom"), 60)
         if not email or not EMAIL_RE.match(email):
             return self._send_json({"error": "Adresse e-mail invalide."}, 400)
+        offres = data.get("offres") is True
+        maintenant = datetime.utcnow().isoformat() + "Z"
         d = _analyse_data()
         ins = next((i for i in d["inscrits"] if i.get("email") == email), None)
         if ins and ins.get("statut") == "confirme":
+            if offres and not ins.get("offres"):         # déjà inscrit, mais accepte maintenant les offres
+                ins.update({"offres": True, "offres_accord": maintenant})
+                _analyse_save(d)
             return self._send_json({"ok": True})            # déjà inscrit : on ne dit rien de plus
         if not ins:
             ins = {"id": uuid.uuid4().hex[:12], "email": email, "desinscription": secrets.token_urlsafe(18)}
             d["inscrits"].append(ins)
         ins.update({"prenom": prenom, "statut": "en_attente", "confirmation": secrets.token_urlsafe(18),
-                    "inscrit": datetime.utcnow().isoformat() + "Z", "source": _clean(data.get("source"), 40)})
+                    "inscrit": maintenant, "source": _clean(data.get("source"), 40),
+                    "offres": offres, "offres_accord": maintenant if offres else None})
+        ins.pop("relance", None)
         _analyse_save(d)
-        base = _public_url() or self._public_base()
-        lien = base + "/api/analyse/confirmer?j=" + ins["confirmation"]
-        contenu = ('<h1 style="font:800 22px/1.25 Arial,Helvetica,sans-serif;color:#0D1A3A;margin:0 0 12px">Confirmez votre inscription</h1>'
-                   '<p style="margin:0 0 12px">Bonjour %s,</p><p style="margin:0 0 18px">Vous avez demandé à recevoir chaque matin '
-                   "l'analyse fondamentale des marchés de KBO Corporate Finance. Pour confirmer, cliquez sur le bouton :</p>"
-                   '<p style="margin:0 0 18px"><a href="%s" style="display:inline-block;background:#1E3A8A;color:#FFFFFF;'
-                   'padding:13px 22px;text-decoration:none;font-weight:600">Confirmer mon inscription</a></p>'
-                   '<p style="margin:0 0 14px">Pour ne jamais manquer une analyse, ajoutez '
-                   '<strong>contact@kbocorporatefinance.com</strong> à vos contacts. Si l\'e-mail arrive dans '
-                   '« Promotions », déplacez-le vers « Principale » : votre messagerie s\'en souviendra.</p>'
-                   "<p style=\"margin:0;color:#5B6472;font-size:14px\">Si vous n'êtes pas à l'origine de cette demande, ignorez cet e-mail : "
-                   "vous ne recevrez rien.</p>") % ((prenom or "").replace("<", "&lt;"), lien)
-        html = _gabarit_analyse(contenu, base + "/api/analyse/desinscrire?j=" + ins["desinscription"], "Confirmez votre inscription")
-        ok, detail = _send_html(email, "Confirmez votre inscription à L'analyse du matin", html,
-                                "Bonjour %s,\n\nPour confirmer votre inscription à L'analyse du matin de KBO, ouvrez ce lien :\n%s\n"
-                                % (prenom, lien))
+        ok, detail = _envoyer_confirmation(ins, _public_url() or self._public_base())
         if not ok:
             print("  [Analyse] confirmation non envoyée à %s : %s" % (email, detail), flush=True)
         return self._send_json({"ok": True, "envoye": ok})
@@ -2952,7 +3067,8 @@ class Handler(BaseHTTPRequestHandler):
             "desinscrits": sum(1 for i in ins if i.get("statut") == "desinscrit"),
             "limiteBrevo": BREVO_LIMITE_JOUR,
             "suivi": _analyse_suivi(ins),
-            "inscrits": [{k: i.get(k) for k in ("prenom", "email", "statut", "inscrit", "confirme", "desinscrit", "source")}
+            "acceptentOffres": len(_offres_destinataires(d)),
+            "inscrits": [{k: i.get(k) for k in ("prenom", "email", "statut", "inscrit", "confirme", "desinscrit", "source", "offres")}
                          for i in ins],
             "envois": d["envois"][:60], "demain": demain, "demainSuspendu": demain in d["suspendus"],
             "dossierDrive": os.environ.get("KBO_DRIVE_ANALYSE", ""),
@@ -2979,13 +3095,89 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_json({"ok": True, "message": _analyse_matin(seulement_a=to, jour=_clean(data.get("jour"), 10) or None)})
         return self._send_json({"error": "Action inconnue."}, 400)
 
+    def _admin_offres(self):
+        if not self._is_admin():
+            return self._send_json({"error": "Non autorisé"}, 401)
+        d = _analyse_data()
+        return self._send_json({
+            "destinataires": len(_offres_destinataires(d)),
+            "confirmes": sum(1 for i in d["inscrits"] if i.get("statut") == "confirme"),
+            "envoyesAujourdhui": _envois_du_jour(d), "limiteBrevo": BREVO_LIMITE_JOUR,
+            "historique": d.get("offres_envois", [])[:50],
+        })
+
+    def _admin_offres_action(self):
+        if not self._is_admin():
+            return self._send_json({"error": "Non autorisé"}, 401)
+        data = self._read_body() or {}
+        objet = _clean(data.get("objet"), 150)
+        texte = str(data.get("texte") or "").strip()[:8000]
+        bouton = _clean(data.get("bouton"), 60)
+        lien = _clean(data.get("lien"), 500)
+        if not objet or not texte:
+            return self._send_json({"error": "Écrivez un objet et un message."}, 400)
+        if lien and not (lien.startswith("/") or re.match(r"^https?://", lien)):
+            return self._send_json({"error": "Le lien du bouton doit commencer par / (page du site) ou par https://"}, 400)
+        base = _public_url() or self._public_base()
+        act = data.get("action")
+        if act == "apercu":
+            return self._send_json({"html": _offre_html(objet, texte, bouton, lien, base, base + "/api/offres/stop?j=apercu")})
+        if act == "essai":
+            ok, detail = _send_html(_get_settings()["email"], "[ESSAI] " + objet,
+                                    _offre_html(objet, texte, bouton, lien, base, base + "/api/offres/stop?j=essai"), texte)
+            return self._send_json({"ok": ok, "message": ("Essai envoyé à " + _get_settings()["email"]) if ok else detail},
+                                   200 if ok else 400)
+        if act == "envoyer":
+            d = _analyse_data()
+            if any(e.get("statut") == "en cours" for e in d.get("offres_envois", [])):
+                return self._send_json({"error": "Un envoi est déjà en cours. Attendez qu'il soit terminé."}, 409)
+            cibles = _offres_destinataires(d)
+            if not cibles:
+                return self._send_json({"error": "Personne n'a encore accepté de recevoir les offres."}, 400)
+            reste = BREVO_LIMITE_JOUR - _envois_du_jour(d)
+            if len(cibles) > reste:
+                return self._send_json({"error": "Trop d'e-mails pour aujourd'hui : %d personnes, mais il ne reste qu'environ %d envois "
+                                                 "gratuits chez Brevo aujourd'hui. Réessayez demain." % (len(cibles), max(reste, 0))}, 400)
+            envoi = {"id": uuid.uuid4().hex[:10], "date": datetime.utcnow().isoformat() + "Z", "objet": objet,
+                     "destinataires": len(cibles), "envoyes": 0, "echecs": 0, "statut": "en cours"}
+            d.setdefault("offres_envois", []).insert(0, envoi)
+            _analyse_save(d)
+            threading.Thread(target=_offres_envoyer, args=(envoi["id"], objet, texte, bouton, lien, base), daemon=True).start()
+            return self._send_json({"ok": True, "message": "Envoi en cours à %d personne%s." % (len(cibles), "s" if len(cibles) > 1 else "")})
+        return self._send_json({"error": "Action inconnue."}, 400)
+
+    def _offres_stop(self):
+        """Lien « Ne plus recevoir les offres » : la personne garde L'analyse du matin."""
+        j = (parse_qs(urlparse(self.path).query).get("j") or [""])[0]
+        d = _analyse_data()
+        ins = next((i for i in d["inscrits"] if j and i.get("desinscription") == j), None)
+        if ins and ins.get("offres"):
+            ins["offres"], ins["offres_stop"] = False, datetime.utcnow().isoformat() + "Z"
+            _analyse_save(d)
+        if self.command == "POST":                      # « en un clic » depuis la messagerie
+            return self._send_json({"ok": True})
+        return self._redirect("/analyse-du-matin?etat=offres-stop")
+
+    def _offres_accord(self):
+        """Bouton « Oui, je veux recevoir les offres » (lien proposé dans L'analyse du matin)."""
+        j = _clean((self._read_body() or {}).get("j"), 60)
+        d = _analyse_data()
+        ins = next((i for i in d["inscrits"] if j and i.get("desinscription") == j and i.get("statut") == "confirme"), None)
+        if not ins:
+            return self._send_json({"error": "Ce lien n'est plus valable."}, 404)
+        if not ins.get("offres"):
+            ins.update({"offres": True, "offres_accord": datetime.utcnow().isoformat() + "Z"})
+            _analyse_save(d)
+        return self._send_json({"ok": True})
+
     def _admin_analyse_export(self):
         if not self._is_admin():
             return self._send_json({"error": "Non autorisé"}, 401)
-        lignes = ["prenom;email;statut;inscrit;confirme;desinscrit;page d'origine"]
+        lignes = ["prenom;email;statut;inscrit;confirme;desinscrit;page d'origine;offres"]
         for i in _analyse_data()["inscrits"]:
             lignes.append(";".join(str(i.get(k) or "").replace(";", ",")
-                                   for k in ("prenom", "email", "statut", "inscrit", "confirme", "desinscrit", "source")))
+                                   for k in ("prenom", "email", "statut", "inscrit", "confirme", "desinscrit", "source"))
+                          + ";" + ("oui" if i.get("offres") else "non"))
         body = ("﻿" + "\n".join(lignes)).encode("utf-8")
         self.send_response(200)
         self.send_header("Content-Type", "text/csv; charset=utf-8")

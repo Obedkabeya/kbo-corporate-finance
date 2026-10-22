@@ -32,17 +32,54 @@
         ["Inscrits confirmés", d.confirmes, true], ["En attente de confirmation", d.enAttente],
         ["Nouveaux aujourd'hui", s.aujourdhui], ["Nouveaux sur 7 jours", s.sept], ["Nouveaux sur 30 jours", s.trente],
         ["Désinscriptions (total)", d.desinscrits], ["Désinscriptions aujourd'hui", s.desinscriptionsAujourdhui],
+        ["Acceptent les offres", d.acceptentOffres],
       ].map((x) => '<div class="stat-card' + (x[2] ? " stat-card--total" : "") + '"><b>' + x[1] + "</b><span>" + x[0] + "</span></div>").join("");
       const max = Math.max(1, ...s.courbe.map((c) => c.n));
       $("insCourbe").innerHTML = s.courbe.map((c) => '<div class="bar" title="' + esc(c.jour) + " : " + c.n + ' inscrit(s)"><span style="height:' +
         (c.n ? Math.max(6, Math.round((c.n / max) * 100)) : 0) + '%"></span></div>').join("");
       const jour = (j) => new Date(j + "T12:00:00").toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
       $("insCourbeDates").innerHTML = "<span>" + jour(s.courbe[0].jour) + "</span><span>aujourd'hui</span>";
-      $("anInscrits").innerHTML = table(["Prénom", "E-mail", "Statut", "Date d'inscription", "Page d'origine"], d.inscrits.slice().reverse().map((i) =>
+      $("anInscrits").innerHTML = table(["Prénom", "E-mail", "Statut", "Date d'inscription", "Page d'origine", "Offres"], d.inscrits.slice().reverse().map((i) =>
         "<tr><td>" + esc(i.prenom || "—") + "</td><td>" + esc(i.email) + "</td><td>" + esc(STATUT[i.statut] || i.statut) + "</td><td>" +
-        date(i.confirme || i.inscrit) + "</td><td>" + esc(ORIGINE[i.source] || i.source || "—") + "</td></tr>"));
+        date(i.confirme || i.inscrit) + "</td><td>" + esc(ORIGINE[i.source] || i.source || "—") + "</td><td>" + (i.offres ? "oui" : "non") + "</td></tr>"));
     }).catch(() => {});
   }
+  // « Écrire aux inscrits » : offres et réductions, envoyées aux inscrits qui les ont acceptées.
+  let ofNombre = 0;
+  function chargerOffres() {
+    fetch("/api/admin/offres").then((r) => (r.ok ? r.json() : null)).then((d) => {
+      if (!d) return;
+      ofNombre = d.destinataires;
+      $("ofCompte").textContent = d.destinataires + " personne" + (d.destinataires > 1 ? "s ont" : " a") + " accepté de recevoir vos offres (sur "
+        + d.confirmes + " inscrit" + (d.confirmes > 1 ? "s" : "") + " confirmé" + (d.confirmes > 1 ? "s" : "") + ").";
+      $("ofEnvoyer").textContent = "Envoyer à " + d.destinataires + " personne" + (d.destinataires > 1 ? "s" : "");
+      $("ofHistorique").innerHTML = table(["Date", "Objet", "Envoyés", "Échecs", "Statut"], d.historique.map((e) =>
+        "<tr><td>" + date(e.date) + "</td><td>" + esc(e.objet) + "</td><td>" + e.envoyes + " / " + e.destinataires + "</td><td>" + e.echecs +
+        "</td><td>" + esc(e.statut) + (e.erreur ? '<br><span class="muted">' + esc(e.erreur) + "</span>" : "") + "</td></tr>"));
+      if (d.historique.some((e) => e.statut === "en cours")) setTimeout(chargerOffres, 4000);
+    }).catch(() => {});
+  }
+  $("ofLien").addEventListener("change", () => { $("ofLienAutre").hidden = $("ofLien").value !== "autre"; });
+  function offre(action) {
+    const lien = $("ofLien").value === "autre" ? $("ofLienAutre").value.trim() : $("ofLien").value;
+    return fetch("/api/admin/offres", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action, objet: $("ofObjet").value.trim(), texte: $("ofTexte").value, bouton: $("ofBouton").value.trim(), lien }) })
+      .then((r) => r.json().then((j) => ({ ok: r.ok, j })));
+  }
+  const ofMsg = (ok, t) => { $("ofMsg").textContent = t || ""; $("ofMsg").className = "form-msg " + (ok ? "ok" : "err"); };
+  $("ofApercu").addEventListener("click", () => offre("apercu").then(({ ok, j }) => {
+    if (!ok) return ofMsg(false, j.error);
+    ofMsg(true, ""); $("ofApercuCadre").hidden = false; $("ofApercuCadre").srcdoc = j.html;
+  }));
+  $("ofEssai").addEventListener("click", () => { ofMsg(true, "Envoi de l'essai…"); offre("essai").then(({ ok, j }) => ofMsg(ok, j.message || j.error)); });
+  $("ofEnvoyer").addEventListener("click", () => {
+    if (!ofNombre) return ofMsg(false, "Personne n'a encore accepté de recevoir les offres.");
+    if (!$("ofObjet").value.trim() || !$("ofTexte").value.trim()) return ofMsg(false, "Écrivez un objet et un message.");
+    if (!confirm("Envoyer « " + $("ofObjet").value.trim() + " » à " + ofNombre + " personne" + (ofNombre > 1 ? "s" : "") + " ? L'envoi ne peut pas être annulé.")) return;
+    $("ofEnvoyer").disabled = true;
+    offre("envoyer").then(({ ok, j }) => { ofMsg(ok, j.message || j.error); chargerOffres(); }).finally(() => { $("ofEnvoyer").disabled = false; });
+  });
+
   $("anSuspendre").addEventListener("click", () => {
     const b = $("anSuspendre");
     fetch("/api/admin/analyse", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: b.dataset.action }) })
@@ -76,6 +113,7 @@
     const t = e.target.closest(".admin-tab"); if (!t) return;
     if (t.dataset.tab === "analyse") chargerAnalyse();
     if (t.dataset.tab === "inscrits") chargerInscrits();
+    if (t.dataset.tab === "offres") chargerOffres();
     if (t.dataset.tab === "eleves") chargerEleves();
   });
 })();

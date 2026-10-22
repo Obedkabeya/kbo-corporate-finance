@@ -318,3 +318,8 @@
   .reveal,.reveal-image,.reveal-children > *{opacity:1!important;transform:none!important;transition:none!important}
   .page-head .wrap > *{animation:none!important}
 }
+
+/* Case « offres et réductions » du formulaire de L'analyse du matin (facultative) */
+.analyse-form .check-offres{grid-column:1/-1;font-size:14px;line-height:1.5}
+.maison .analyse-bande .check-offres{color:rgba(255,255,255,.82)}
+.analyse-offres{margin-top:14px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
