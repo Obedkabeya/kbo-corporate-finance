@@ -2416,6 +2416,8 @@ class Handler(BaseHTTPRequestHandler):
         """Plan du site pour les moteurs de recherche : pages publiques et articles, adresses propres."""
         base = _public_url() or self._public_base()
         adresses = [base + p for p in PAGES_PUBLIQUES]
+        if pole:
+            adresses += [base + p for p in pole.pages_publiques()]
         for a in _read_json(ARTICLES_FILE, []):
             if a.get("id"):
                 adresses.append(base + "/article?id=" + quote(str(a["id"]), safe=""))

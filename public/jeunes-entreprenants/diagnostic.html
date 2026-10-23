@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Demander un diagnostic — {{IJE_NOM}}</title>
+  <meta name="description" content="Demande ton diagnostic d'une heure trente : un rapport et un plan d'action pour ton activité." />
+  <link rel="icon" href="/assets/logo/favicon.ico" sizes="16x16 32x32 48x48" />
+  <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/marches.css" />
+  <link rel="stylesheet" href="/css/maison.css" />
+  <link rel="stylesheet" href="/css/accueil.css" />
+  <link rel="stylesheet" href="/css/programme.css" />
+  <link rel="stylesheet" href="/css/ije.css" />
+</head>
+<!-- Pôle « Jeunes Entreprenants » (ébauche), même modèle que l'école. {{IJE_NOM}} = nom réglé dans l'administration. -->
+<body data-page="ije-diagnostic" data-ije-nav="contact" class="maison ije programme ">
+  <div id="ije-header"></div>
+  <main id="contenu">
+    <section class="p-hero">
+      <figure class="p-hero__photo zoom-cadre"><img src="/images/ije/ije-patisserie-1080.webp" srcset="/images/ije/ije-patisserie-640.webp 640w, /images/ije/ije-patisserie-1080.webp 1080w, /images/ije/ije-patisserie-1600.webp 1600w" sizes="(max-width: 980px) 100vw, 50vw" alt="Une jeune pâtissière au travail" fetchpriority="high" decoding="async"><figcaption class="p-hero__legende">Une heure trente pour y voir clair.</figcaption></figure>
+      <div class="p-hero__panneau">
+        <p class="p-hero__label">Demander un diagnostic · Déclic</p>
+        <h1 class="p-hero__titre">Demander un diagnostic</h1>
+        <p class="p-hero__texte">Ton premier pas&nbsp;: un diagnostic d'une heure trente. Remplis ce court formulaire, nous te rappelons pour fixer un rendez-vous, sur ton campus, au marché ou par téléphone.</p>
+        <div class="p-hero__boutons"><a class="p-btn p-btn--plein" href="#formulaire">Remplir le formulaire <span aria-hidden="true">→</span></a><a class="p-btn p-btn--contour" href="#contact">Nous contacter</a></div>
+      </div>
+    </section>
+    <section class="p-escalier" id="comment">
+      <div class="wrap">
+        <div class="a-entete">
+          <div><p class="a-label a-label--point">Comment ça se passe</p><h2 class="titre-rempli">Une heure trente pour y voir clair.</h2></div>
+          <p class="a-entete__texte">Le diagnostic dure une heure trente, sur ton campus, au marché ou par téléphone.</p>
+        </div>
+        <div class="p-escalier__barres"><div class="p-barre">Le formulaire</div><div class="p-barre">L'appel</div><div class="p-barre">Le diagnostic</div><div class="p-barre">Le plan d'action</div></div>
+        <div class="p-cartes"><div class="p-carte"><span class="p-carte__n">[01]</span><h3>Le formulaire</h3><p>Tu remplis ce formulaire en deux minutes.</p></div><div class="p-carte"><span class="p-carte__n">[02]</span><h3>L'appel</h3><p>Nous te rappelons pour fixer ton rendez-vous.</p></div><div class="p-carte"><span class="p-carte__n">[03]</span><h3>Le diagnostic</h3><p>Tu nous racontes ton activité, et on regarde tes traces&nbsp;: mobile money, cahiers, reçus.</p></div><div class="p-carte"><span class="p-carte__n">[04]</span><h3>Le plan d'action</h3><p>Tu repars avec un rapport et un plan d'action.</p></div></div>
+      </div>
+    </section>
+    <section class="p-intro" id="formulaire">
+      <div class="wrap p-intro__grille">
+        <div>
+          <p class="a-label a-label--point">Ta demande</p>
+          <h2 class="titre-rempli">Quelques informations, et on te rappelle.</h2>
+          <div class="p-intro__texte"><p>Tes informations servent seulement à te recontacter et à préparer ton diagnostic. Elles ne sont partagées avec personne sans ton accord.</p></div>
+        </div>
+        <div>
+          <form class="ije-form" id="ijeDiagnostic" novalidate>
+            <div class="fields">
+              <div class="field"><label for="d_prenom">Prénom <span class="req">*</span></label><input id="d_prenom" name="prenom" type="text" autocomplete="given-name" maxlength="80" required></div>
+              <div class="field"><label for="d_nom">Nom <span class="req">*</span></label><input id="d_nom" name="nom" type="text" autocomplete="family-name" maxlength="80" required></div>
+              <div class="field"><label for="d_tel">Téléphone <span class="req">*</span></label><input id="d_tel" name="telephone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" required></div>
+              <div class="field"><label for="d_wa">WhatsApp <small>(si différent)</small></label><input id="d_wa" name="whatsapp" type="tel" inputmode="tel" maxlength="40"></div>
+              <div class="field field--large"><label for="d_email">E-mail <small>(facultatif)</small></label><input id="d_email" name="email" type="email" autocomplete="email" maxlength="200"></div>
+              <div class="field"><label for="d_ville">Ville <span class="req">*</span></label><input id="d_ville" name="ville" type="text" autocomplete="address-level2" maxlength="80" required></div>
+              <div class="field"><label for="d_quartier">Quartier</label><input id="d_quartier" name="quartier" type="text" maxlength="80"></div>
+              <div class="field"><label for="d_age">Âge <span class="req">*</span></label><input id="d_age" name="age" type="number" inputmode="numeric" min="15" max="99" required></div>
+              <fieldset class="field"><legend>Es-tu étudiant&nbsp;?</legend><div class="ije-choix"><label><input type="radio" name="etudiant" value="oui"> Oui</label><label><input type="radio" name="etudiant" value="non"> Non</label></div></fieldset>
+              <div class="field"><label for="d_act">Ton activité <span class="req">*</span></label><select id="d_act" name="activite" required><option value="">Choisir…</option><option>Pâtisserie et cuisine</option><option>Jus et boissons</option><option>Couture et mode</option><option>Coiffure et beauté</option><option>Commerce</option><option>Artisanat</option><option>Autre</option></select></div>
+              <div class="field"><label for="d_depuis">Depuis combien de temps&nbsp;?</label><select id="d_depuis" name="anciennete"><option value="">Choisir…</option><option>Moins de 6 mois</option><option>6 mois à 1 an</option><option>1 à 3 ans</option><option>Plus de 3 ans</option></select></div>
+              <div class="field field--large"><label for="d_att">Ce que tu attends de nous</label><textarea id="d_att" name="attentes" maxlength="2000" placeholder="Par exemple : savoir si je gagne vraiment de l'argent, obtenir un crédit pour un four…"></textarea></div>
+              <div class="ije-piege" aria-hidden="true"><label>Site<input name="site" type="text" tabindex="-1" autocomplete="off"></label></div>
+            </div>
+            <label class="ije-consent"><input type="checkbox" name="consentement" required> <span>J'accepte que KBO Corporate Finance utilise ces informations pour me recontacter. Elles ne seront partagées avec personne sans mon accord.</span></label>
+            <div class="ije-form__actions"><button class="ije-btn ije-btn--or" type="submit">Envoyer ma demande <span aria-hidden="true">→</span></button><span class="form-msg" role="status"></span></div>
+          </form>
+          <div class="ije-merci" hidden><h2>Merci, ta demande est bien arrivée.</h2><p>Nous te rappelons dans les prochains jours pour fixer ton diagnostic. Garde ton téléphone à portée de main&nbsp;!</p></div>
+        </div>
+      </div>
+    </section>
+    <section class="p-reperes">
+      <div class="wrap"><p class="a-label a-label--point">En pratique</p><div class="p-reperes__grille"><div class="p-repere"><small>Durée</small><b>1 h 30</b></div><div class="p-repere"><small>Où</small><b>Sur ton campus, au marché ou par téléphone</b></div><div class="p-repere"><small>Tu reçois</small><b>Un rapport et un plan d'action</b></div><div class="p-repere"><small>Tes données</small><b>Partagées seulement avec ton accord</b></div></div></div>
+    </section>
+    <section class="p-suite" id="contact">
+      <div class="wrap p-suite__grille">
+        <div><p class="a-label">Nous contacter</p><h2>Une question avant de te lancer&nbsp;?</h2><p>Le plus rapide, c'est WhatsApp&nbsp;: écris-nous, on te répond vite.</p></div>
+        <div class="p-suite__liens"><a href="/jeunes-entreprenants/diagnostic#contact" data-wa-repli="/jeunes-entreprenants/diagnostic#contact" data-wa-link data-wa-msg="Bonjour, je souhaite des informations sur l'accompagnement {{IJE_SIGLE}}.">Écrire sur WhatsApp</a><a href="#formulaire">Remplir le formulaire de diagnostic</a><a href="/jeunes-entreprenants/partenaires#devenir-partenaire">Vous êtes une institution&nbsp;? Devenir partenaire</a></div>
+      </div>
+    </section>
+
+  </main>
+  <a class="a-haut" href="#contenu" aria-label="Revenir en haut de la page"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+  <div id="ije-footer"></div>
+  <script src="/js/ije.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/apparition.js"></script>
+  <script src="/js/effets.js"></script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Partenaires — {{IJE_NOM}}</title>
+  <meta name="description" content="L'écosystème dans lequel nous travaillons, et comment devenir partenaire." />
+  <link rel="icon" href="/assets/logo/favicon.ico" sizes="16x16 32x32 48x48" />
+  <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/marches.css" />
+  <link rel="stylesheet" href="/css/maison.css" />
+  <link rel="stylesheet" href="/css/accueil.css" />
+  <link rel="stylesheet" href="/css/programme.css" />
+  <link rel="stylesheet" href="/css/ije.css" />
+</head>
+<!-- Pôle « Jeunes Entreprenants » (ébauche), même modèle que l'école. {{IJE_NOM}} = nom réglé dans l'administration. -->
+<body data-page="ije-partenaires" data-ije-nav="partenaires" class="maison ije programme ">
+  <div id="ije-header"></div>
+  <main id="contenu">
+    <section class="p-hero">
+      <figure class="p-hero__photo zoom-cadre"><img src="/images/ije/ije-atelier-1080.webp" srcset="/images/ije/ije-atelier-640.webp 640w, /images/ije/ije-atelier-1080.webp 1080w, /images/ije/ije-atelier-1600.webp 1600w" sizes="(max-width: 980px) 100vw, 50vw" alt="Un menuisier souriant dans son atelier" fetchpriority="high" decoding="async"><figcaption class="p-hero__legende">L'écosystème du passage au formel.</figcaption></figure>
+      <div class="p-hero__panneau">
+        <p class="p-hero__label">Partenaires · Écosystème</p>
+        <h1 class="p-hero__titre">Partenaires</h1>
+        <p class="p-hero__texte">Les institutions vers lesquelles nous orientons les jeunes, ou qui travaillent dans le même sens que nous. Et comment travailler avec nous.</p>
+        <div class="p-hero__boutons"><a class="p-btn p-btn--plein" href="#devenir-partenaire">Devenir partenaire <span aria-hidden="true">→</span></a><a class="p-btn p-btn--contour" href="#ecosysteme">L'écosystème</a></div>
+      </div>
+    </section>
+    <section class="p-dimensions" id="ecosysteme">
+      <div class="wrap p-dimensions__grille">
+        <div class="p-dimensions__texte"><p class="a-label a-label--point">L'écosystème</p><h2 class="titre-rempli">L'écosystème dans lequel nous travaillons.</h2><p>Ces institutions sont citées pour présenter l'écosystème. Leur mention n'indique pas un partenariat signé avec KBO Corporate Finance.</p><a class="a-lien" href="#devenir-partenaire">Devenir partenaire</a></div>
+        <figure class="p-dimensions__photo zoom-cadre"><img src="/images/ije/ije-coiffure-1080.webp" srcset="/images/ije/ije-coiffure-640.webp 640w, /images/ije/ije-coiffure-1080.webp 1080w, /images/ije/ije-coiffure-1600.webp 1600w" sizes="(max-width: 980px) 50vw, 28vw" alt="Des coiffeuses au travail dans un salon" loading="lazy" decoding="async"></figure>
+        <div class="p-plis">
+          <details class="p-pli" open><summary>01. L'État</summary><div class="p-pli__corps"><ul class="ije-liste-eco"><li>Ministère des PME et de la Promotion de l'Emploi</li><li>ADPME — Agence de développement des PME</li><li>APIEx — guichet de création d'entreprise (monentreprise.bj)</li><li>ANPE — programme Azôli</li><li>ANPS — programme ARCH</li><li>FNM — Microcrédit Alafia</li><li>FIGPME — Fonds d'investissement et de garantie des PME</li><li>ANSSFD — surveillance des institutions de microfinance</li></ul></div></details>
+          <details class="p-pli"><summary>02. Le financement</summary><div class="p-pli__corps"><ul class="ije-liste-eco"><li>Les SFD agréés (institutions de microfinance)</li><li>Les banques</li></ul></div></details>
+          <details class="p-pli"><summary>03. Le cadre régional</summary><div class="p-pli__corps"><ul class="ije-liste-eco"><li>BCEAO — Banque centrale des États de l'Afrique de l'Ouest</li><li>OHADA — statut de l'entreprenant</li></ul></div></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="p-intro" id="devenir-partenaire">
+      <div class="wrap p-intro__grille">
+        <div>
+          <p class="a-label a-label--point">Devenir partenaire</p>
+          <h2 class="titre-rempli">SFD, banques, institutions, bailleurs&nbsp;: travaillons ensemble.</h2>
+          <div class="p-intro__texte"><p>Nous préparons les jeunes avant qu'ils ne frappent à votre porte, et nous les suivons après.</p>
+          <div class="p-encadres"><div><small>Ce que nous apportons</small><p>Des jeunes préparés, suivis, avec un historique.</p></div><div><small>Et aussi</small><p>Une convention de suivi et de reporting, et un rapport d'impact annuel.</p></div></div></div>
+        </div>
+        <div>
+          <form class="ije-form" id="ijePartenaire" novalidate>
+            <div class="fields">
+              <div class="field"><label for="p_nom">Nom <span class="req">*</span></label><input id="p_nom" name="nom" type="text" autocomplete="name" maxlength="120" required></div>
+              <div class="field"><label for="p_org">Organisation <span class="req">*</span></label><input id="p_org" name="organisation" type="text" autocomplete="organization" maxlength="160" required></div>
+              <div class="field"><label for="p_type">Type</label><select id="p_type" name="type"><option value="">Choisir…</option><option>SFD (microfinance)</option><option>Banque</option><option>Institution publique</option><option>Bailleur ou programme</option><option>Entreprise</option><option>Autre</option></select></div>
+              <div class="field"><label for="p_email">E-mail <span class="req">*</span></label><input id="p_email" name="email" type="email" autocomplete="email" maxlength="200" required></div>
+              <div class="field field--large"><label for="p_tel">Téléphone</label><input id="p_tel" name="telephone" type="tel" autocomplete="tel" maxlength="40"></div>
+              <div class="field field--large"><label for="p_msg">Message <span class="req">*</span></label><textarea id="p_msg" name="message" maxlength="3000" required></textarea></div>
+              <div class="ije-piege" aria-hidden="true"><label>Site<input name="site" type="text" tabindex="-1" autocomplete="off"></label></div>
+            </div>
+            <div class="ije-form__actions"><button class="ije-btn ije-btn--nuit" type="submit">Envoyer <span aria-hidden="true">→</span></button><span class="form-msg" role="status"></span></div>
+          </form>
+        </div>
+      </div>
+    </section>
+    <section class="p-appel">
+      <div class="wrap">
+        <div class="p-appel__boite">
+          <div><h2>Ton premier pas&nbsp;: un diagnostic d'une heure trente.</h2><p>On regarde ensemble ce que tu fais déjà, et on te remet un plan d'action.</p></div>
+          <div class="p-appel__actions"><a class="a-pilule-btn" href="/jeunes-entreprenants/diagnostic">Demander un diagnostic <span aria-hidden="true">↗</span></a><a class="a-lien" href="/jeunes-entreprenants/diagnostic#contact" data-wa-repli="/jeunes-entreprenants/diagnostic#contact" data-wa-link data-wa-msg="Bonjour, je souhaite des informations sur l'accompagnement {{IJE_SIGLE}}.">Poser une question</a></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <a class="a-haut" href="#contenu" aria-label="Revenir en haut de la page"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+  <div id="ije-footer"></div>
+  <script src="/js/ije.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/apparition.js"></script>
+  <script src="/js/effets.js"></script>
+</body>
+</html>

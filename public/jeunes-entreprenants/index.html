@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Accompagner les jeunes entrepreneurs — {{IJE_NOM}}</title>
+  <meta name="description" content="Structurer, piloter, financer : l'accompagnement des jeunes de 18 à 35 ans qui font déjà quelque chose de leurs mains." />
+  <link rel="icon" href="/assets/logo/favicon.ico" sizes="16x16 32x32 48x48" />
+  <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/marches.css" />
+  <link rel="stylesheet" href="/css/maison.css" />
+  <link rel="stylesheet" href="/css/accueil.css" />
+  <link rel="stylesheet" href="/css/programme.css" />
+  <link rel="stylesheet" href="/css/ije.css" />
+</head>
+<!-- Pôle « Jeunes Entreprenants » (ébauche), même modèle que l'école. {{IJE_NOM}} = nom réglé dans l'administration. -->
+<body data-page="ije-accueil" data-ije-nav="accueil" class="maison ije programme accueil ije-accueil-page">
+  <div id="ije-header"></div>
+  <main id="contenu">
+    <!-- 1. Ouverture plein écran : photo sous un voile, très grand titre écrit lettre par lettre -->
+    <section class="a-hero" aria-label="Ouverture">
+      <div class="a-hero__fond zoom-cadre"><img src="/images/ije/ije-patisserie-1080.webp" srcset="/images/ije/ije-patisserie-640.webp 640w, /images/ije/ije-patisserie-1080.webp 1080w, /images/ije/ije-patisserie-1600.webp 1600w" sizes="100vw" alt="Une jeune pâtissière prépare ses gâteaux dans sa cuisine" fetchpriority="high" decoding="async"></div>
+      <div class="wrap a-hero__wrap">
+        <ul class="a-hero__reperes" aria-label="Nos repères">
+          <li>Structurer · Piloter · Financer</li>
+          <li>Jeunes de 18 à 35 ans</li>
+          <li>De l'informel au formel</li>
+        </ul>
+        <p class="eyebrow a-hero__eyebrow">{{IJE_NOM}} · by KBO Corporate Finance</p>
+        <h1 class="a-hero__titre">Ton activité peut devenir plus grande que ce qu'elle est aujourd'hui.</h1>
+        <div class="a-hero__badge"><span>Pour les jeunes</span><b>18-35 ans</b></div>
+        <p class="lead a-hero__lead">Tu fais déjà des gâteaux, des jus, de la couture, du commerce, parfois en même temps que tes études. Nous t'aidons à mettre de l'ordre dans tes chiffres, à donner une direction à ton activité, et à la conduire jusqu'au financement.</p>
+        <div class="a-hero__boutons"><a class="ije-btn ije-btn--or" href="/jeunes-entreprenants/diagnostic">Demander un diagnostic <span aria-hidden="true">→</span></a><a class="ije-btn ije-btn--contour" href="/jeunes-entreprenants/parcours">Découvrir le parcours</a></div>
+        <a class="a-hero__defiler" href="#a-guide" aria-label="Faire défiler vers la suite"><span>Défiler</span></a>
+      </div>
+    </section>
+
+    <!-- 2. La phrase qui se remplit, et les trois piliers -->
+    <section class="a-guide" id="a-guide">
+      <div class="wrap">
+        <p class="a-label">Le constat</p>
+        <p class="a-guide__phrase texte-rempli">Le problème n'est pas le manque d'initiative. C'est le manque de structure et de preuves.</p>
+        <div class="a-guide__cartes a-guide__cartes--3">
+          <div class="a-carte-mot"><span class="a-carte-mot__n">01</span><b>Structurer</b><span>On part de ce que tu as déjà&nbsp;: ton mobile money, ta tontine, tes achats. On en fait une comptabilité simple.</span></div>
+          <div class="a-carte-mot"><span class="a-carte-mot__n">02</span><b>Piloter</b><span>Un plan sur 12 mois, un budget, un tableau de bord, et une revue chaque mois pour garder le cap.</span></div>
+          <div class="a-carte-mot"><span class="a-carte-mot__n">03</span><b>Financer</b><span>Ton enregistrement officiel, un dossier solide, et la rencontre avec les bons prêteurs.</span></div>
+        </div>
+        <p class="a-guide__pied"><span>Structurer · Piloter · Financer</span><a class="a-lien" href="/jeunes-entreprenants/parcours">Découvrir le parcours</a></p>
+      </div>
+    </section>
+
+    <!-- 3. Les chiffres qui comptent jusqu'à leur valeur (avec leur source) -->
+    <section class="a-chiffres" aria-label="Le constat en chiffres">
+      <div class="wrap a-chiffres__grille a-chiffres__grille--3">
+        <div class="a-chiffre"><span class="a-chiffre__label">Travailleurs béninois dans l'informel</span><b><span class="compteur" data-valeur="90">90</span><span class="pct">&nbsp;%</span></b><small>Source&nbsp;: Banque mondiale</small></div>
+        <div class="a-chiffre"><span class="a-chiffre__label">18-35 ans qui veulent créer leur entreprise</span><b><span class="compteur" data-valeur="68">68</span><span class="pct">&nbsp;%</span></b><small>Source&nbsp;: Afrobaromètre, 2026</small></div>
+        <div class="a-chiffre"><span class="a-chiffre__label">Entrepreneurs ayant déjà obtenu un prêt bancaire</span><b><span class="compteur" data-valeur="12">12</span><span class="pct">&nbsp;%</span></b><small>Source&nbsp;: AFD, 2026</small></div>
+      </div>
+    </section>
+
+    <!-- 4. Pourquoi passer au formel : grille asymétrique (image haute, liste numérotée, image carrée, citation) -->
+    <section class="a-processus" id="pourquoi">
+      <div class="wrap">
+        <div class="a-entete">
+          <div>
+            <p class="a-label a-label--fleche">Pourquoi passer au formel&nbsp;?</p>
+            <h2 class="titre-rempli">Exister officiellement, c'est ouvrir des portes.</h2>
+          </div>
+          <p class="a-entete__texte">Personne ne quitte l'informel par obligation. Tu franchiras le pas si tu y vois un intérêt concret. Le voici.</p>
+        </div>
+        <div class="a-processus__grille">
+          <figure class="a-processus__haute zoom-cadre">
+            <img src="/images/ije/ije-couture-1080.webp" srcset="/images/ije/ije-couture-640.webp 640w, /images/ije/ije-couture-1080.webp 1080w, /images/ije/ije-couture-1600.webp 1600w" sizes="(max-width: 767px) 100vw, 36vw" alt="Deux couturières travaillent dans leur atelier" loading="lazy" decoding="async">
+            <span class="a-etiquette"><small>Couture</small><b>Atelier</b></span>
+            <span class="a-badge"><b>6</b><small>raisons de passer au formel</small></span>
+          </figure>
+          <div class="a-processus__milieu">
+            <p class="a-processus__intro">Un nom, un numéro, des documents&nbsp;: et des portes qui s'ouvrent.</p>
+            <ol class="a-etapes">
+              <li><span class="a-etapes__n">01</span><div><h3>Exister professionnellement</h3><p>Un nom, un numéro IFU, des documents officiels&nbsp;: tu passes de «&nbsp;celui qui se débrouille&nbsp;» à entrepreneur.</p></div></li>
+              <li><span class="a-etapes__n">02</span><div><h3>Accéder au crédit</h3><p>Les banques et la microfinance demandent une existence légale et un historique.</p></div></li>
+              <li><span class="a-etapes__n">03</span><div><h3>Vendre à de plus gros clients</h3><p>Hôtels, supermarchés et entreprises n'achètent qu'avec une facture en règle.</p></div></li>
+              <li><span class="a-etapes__n">04</span><div><h3>Entrer dans les réseaux et les programmes</h3><p>Incubateurs, concours, subventions et salons sont souvent réservés aux activités enregistrées.</p></div></li>
+              <li><span class="a-etapes__n">05</span><div><h3>Être protégé</h3><p>Plus de risque d'amende ni de fermeture, et un accès possible à une protection sociale.</p></div></li>
+              <li><span class="a-etapes__n">06</span><div><h3>Grandir et embaucher</h3><p>Embaucher légalement, ouvrir une boutique, créer une marque, travailler avec des revendeurs.</p></div></li>
+            </ol>
+            <a class="a-lien" href="/jeunes-entreprenants/parcours">Voir le parcours</a>
+          </div>
+          <div class="a-processus__droite">
+            <figure class="a-processus__carree zoom-cadre"><img src="/images/ije/ije-marche-1080.webp" srcset="/images/ije/ije-marche-640.webp 640w, /images/ije/ije-marche-1080.webp 1080w, /images/ije/ije-marche-1600.webp 1600w" sizes="(max-width: 767px) 100vw, 26vw" alt="Une commerçante sur son étal consulte son téléphone" loading="lazy" decoding="async"></figure>
+            <blockquote class="a-citation">«&nbsp;L'informel n'est pas une faute&nbsp;: c'est un point de départ.&nbsp;»<cite>Nos valeurs</cite></blockquote>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. Nos offres en action : grandes cartes photo avec un mot géant -->
+    <section class="a-programmes">
+      <div class="wrap">
+        <div class="a-entete">
+          <div>
+            <p class="a-label a-label--point">L'accompagnement en action</p>
+            <h2 class="titre-rempli">Nos offres en action.</h2>
+          </div>
+          <div class="a-entete__texte">
+            <p>Du premier diagnostic jusqu'au financement, et après&nbsp;: une offre pour chaque étape de ton activité.</p>
+            <a class="a-lien" href="/jeunes-entreprenants/offres">Voir toutes les offres</a>
+          </div>
+        </div>
+        <div class="a-programmes__liste">
+          <article class="a-prog">
+            <a class="a-prog__image zoom-cadre" href="/jeunes-entreprenants/diagnostic" aria-label="Déclic"><img src="/images/ije/ije-etudiante-1080.webp" srcset="/images/ije/ije-etudiante-640.webp 640w, /images/ije/ije-etudiante-1080.webp 1080w, /images/ije/ije-etudiante-1600.webp 1600w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Une étudiante travaille sur son ordinateur" loading="lazy" decoding="async"><span class="a-prog__mot" aria-hidden="true">Commencer</span></a>
+            <div class="a-prog__bas"><div><h3><a href="/jeunes-entreprenants/diagnostic">Déclic</a></h3><p>Le diagnostic d'une heure trente&nbsp;: on regarde tes traces, et tu repars avec un rapport et un plan d'action.</p></div><ul class="a-pilules"><li>1 h 30</li><li>Rapport</li><li>Plan d'action</li></ul></div>
+          </article>
+          <article class="a-prog">
+            <a class="a-prog__image zoom-cadre" href="/jeunes-entreprenants/offres" aria-label="Structuration"><img src="/images/ije/ije-jus-1080.webp" srcset="/images/ije/ije-jus-640.webp 640w, /images/ije/ije-jus-1080.webp 1080w, /images/ije/ije-jus-1600.webp 1600w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Un vendeur souriant devant son étal de fruits" loading="lazy" decoding="async"><span class="a-prog__mot" aria-hidden="true">Structurer</span></a>
+            <div class="a-prog__bas"><div><h3><a href="/jeunes-entreprenants/offres">Structuration</a></h3><p>Cahier de caisse, bilans mensuels, revue mensuelle et score {{IJE_SIGLE}}&nbsp;: tu sais enfin ce que gagne ton activité.</p></div><ul class="a-pilules"><li>Cahier de caisse</li><li>Bilans mensuels</li><li>Score {{IJE_SIGLE}}</li></ul></div>
+          </article>
+          <article class="a-prog">
+            <a class="a-prog__image zoom-cadre" href="/jeunes-entreprenants/parcours#etapes" aria-label="Formalisation"><img src="/images/ije/ije-couture-atelier-1080.webp" srcset="/images/ije/ije-couture-atelier-640.webp 640w, /images/ije/ije-couture-atelier-1080.webp 1080w, /images/ije/ije-couture-atelier-1600.webp 1600w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Un couturier travaille à sa machine dans son atelier" loading="lazy" decoding="async"><span class="a-prog__mot" aria-hidden="true">Exister</span></a>
+            <div class="a-prog__bas"><div><h3><a href="/jeunes-entreprenants/parcours#etapes">Formalisation</a></h3><p>Le statut de l'entreprenant et ton IFU&nbsp;: ton activité existe officiellement.</p></div><ul class="a-pilules"><li>Entreprenant</li><li>IFU</li><li>En ligne</li></ul></div>
+          </article>
+          <article class="a-prog">
+            <a class="a-prog__image zoom-cadre" href="/jeunes-entreprenants/parcours" aria-label="Financement"><img src="/images/ije/ije-atelier-1080.webp" srcset="/images/ije/ije-atelier-640.webp 640w, /images/ije/ije-atelier-1080.webp 1080w, /images/ije/ije-atelier-1600.webp 1600w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Un menuisier souriant dans son atelier" loading="lazy" decoding="async"><span class="a-prog__mot" aria-hidden="true">Financer</span></a>
+            <div class="a-prog__bas"><div><h3><a href="/jeunes-entreprenants/parcours">Financement</a></h3><p>Un dossier solide, et la rencontre avec les bons prêteurs&nbsp;: d'abord un petit crédit, puis un plus grand, puis la banque.</p></div><ul class="a-pilules"><li>Dossier</li><li>Prêteurs</li><li>Suivi</li></ul></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Pour qui ? Trois profils types (des exemples, pas des témoignages) -->
+    <section class="a-parcours">
+      <div class="wrap">
+        <p class="a-label a-label--point">Pour qui&nbsp;?</p>
+        <h2 class="titre-rempli">Des jeunes de 18 à 35 ans<br>qui font déjà quelque chose.</h2>
+        <div class="a-parcours__grandes a-parcours__grandes--3">
+          <a class="a-pcarte" href="/jeunes-entreprenants/diagnostic">
+            <span class="a-pcarte__image zoom-cadre"><img src="/images/ije/ije-patisserie-1080.webp" srcset="/images/ije/ije-patisserie-640.webp 640w, /images/ije/ije-patisserie-1080.webp 1080w, /images/ije/ije-patisserie-1600.webp 1600w" sizes="(max-width: 767px) 100vw, 33vw" alt="Photo d'illustration : une jeune pâtissière" loading="lazy" decoding="async"><span class="a-pcarte__badge">Profil type</span></span>
+            <span class="a-pcarte__corps"><span class="a-pcarte__titre">Aïcha, 22 ans, étudiante, gâteaux sur commande</span><span class="a-pcarte__texte">Elle vend par WhatsApp, ne sait pas si elle gagne de l'argent et mélange la caisse et son argent de poche.</span><span class="a-pcarte__encart"><small>Ce que nous lui apportons</small><b>Un cahier de caisse, un prix de revient, un plan pour un four professionnel.</b></span><span class="a-lien">Demander un diagnostic</span></span>
+          </a>
+          <a class="a-pcarte" href="/jeunes-entreprenants/diagnostic">
+            <span class="a-pcarte__image zoom-cadre"><img src="/images/ije/ije-jus-1080.webp" srcset="/images/ije/ije-jus-640.webp 640w, /images/ije/ije-jus-1080.webp 1080w, /images/ije/ije-jus-1600.webp 1600w" sizes="(max-width: 767px) 100vw, 33vw" alt="Photo d'illustration : un vendeur sur un marché" loading="lazy" decoding="async"><span class="a-pcarte__badge">Profil type</span></span>
+            <span class="a-pcarte__corps"><span class="a-pcarte__titre">Koffi, 26 ans, jus naturels</span><span class="a-pcarte__texte">Il vend sur un marché, achète au jour le jour et subit des pertes fréquentes.</span><span class="a-pcarte__encart"><small>Ce que nous lui apportons</small><b>Une gestion des achats, un groupement d'achat, un premier crédit d'équipement.</b></span><span class="a-lien">Demander un diagnostic</span></span>
+          </a>
+          <a class="a-pcarte" href="/jeunes-entreprenants/diagnostic">
+            <span class="a-pcarte__image zoom-cadre"><img src="/images/ije/ije-couture-1080.webp" srcset="/images/ije/ije-couture-640.webp 640w, /images/ije/ije-couture-1080.webp 1080w, /images/ije/ije-couture-1600.webp 1600w" sizes="(max-width: 767px) 100vw, 33vw" alt="Photo d'illustration : deux couturières" loading="lazy" decoding="async"><span class="a-pcarte__badge">Profil type</span></span>
+            <span class="a-pcarte__corps"><span class="a-pcarte__titre">Fatou, 30 ans, couturière</span><span class="a-pcarte__texte">Une bonne clientèle, mais aucun document&nbsp;; sa banque l'a refusée.</span><span class="a-pcarte__encart"><small>Ce que nous lui apportons</small><b>Un historique, le statut de l'entreprenant, un dossier de financement.</b></span><span class="a-lien">Demander un diagnostic</span></span>
+          </a>
+        </div>
+        <p class="ije-avertissement">Ces profils sont des exemples pour illustrer notre accompagnement&nbsp;: ce ne sont pas des témoignages. Photos d'illustration.</p>
+        <div class="a-parcours__petites">
+          <a class="a-mcarte" href="/jeunes-entreprenants/parcours"><b>Le parcours</b><span>Huit étapes, de ta première rencontre avec nous jusqu'au financement.</span><em class="a-lien">Découvrir</em></a>
+          <a class="a-mcarte" href="/jeunes-entreprenants/partenaires"><b>Partenaires</b><span>L'écosystème dans lequel nous travaillons, et comment devenir partenaire.</span><em class="a-lien">Découvrir</em></a>
+          <a class="a-mcarte" href="/jeunes-entreprenants/diagnostic#contact"><b>Une question&nbsp;?</b><span>Écris-nous sur WhatsApp&nbsp;: on te répond vite.</span><em class="a-lien">Découvrir</em></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. Le parcours : titre fixe à gauche, étapes qui se superposent à droite -->
+    <section class="a-methode" id="a-methode">
+      <div class="wrap a-methode__grille">
+        <div class="a-methode__fixe">
+          <p class="a-label a-label--point">Le parcours</p>
+          <h2 class="titre-rempli">Du diagnostic<br> au<br> financement.</h2>
+          <p>On ne passe jamais à l'étape suivante sans avoir consolidé la précédente.</p>
+          <a class="a-lien" href="/jeunes-entreprenants/parcours">Voir les huit étapes</a>
+        </div>
+        <ol class="a-methode__etapes">
+          <li class="a-mstep"><div class="a-mstep__tete"><span class="a-mstep__n">01</span><h3>Diagnostic «&nbsp;Déclic&nbsp;»</h3></div><p>1 h 30 d'entretien&nbsp;: on regarde tes traces. Tu reçois un rapport et un plan d'action.</p><ul class="a-pilules"><li>1 semaine</li><li>Rapport</li></ul><figure class="zoom-cadre"><img src="/images/ije/ije-etudiante-1080.webp" srcset="/images/ije/ije-etudiante-640.webp 640w, /images/ije/ije-etudiante-1080.webp 1080w, /images/ije/ije-etudiante-1600.webp 1600w" sizes="(max-width: 767px) 100vw, 55vw" alt="Une étudiante travaille sur son ordinateur" loading="lazy" decoding="async"></figure></li>
+          <li class="a-mstep"><div class="a-mstep__tete"><span class="a-mstep__n">02</span><h3>Structuration</h3></div><p>Cahier de caisse, séparation de ton argent et de celui de l'activité, prix de revient. Tu reçois tes premiers bilans mensuels.</p><ul class="a-pilules"><li>3 mois minimum</li><li>Bilans mensuels</li></ul><figure class="zoom-cadre"><img src="/images/ije/ije-marche-1080.webp" srcset="/images/ije/ije-marche-640.webp 640w, /images/ije/ije-marche-1080.webp 1080w, /images/ije/ije-marche-1600.webp 1600w" sizes="(max-width: 767px) 100vw, 55vw" alt="Une commerçante sur son étal consulte son téléphone" loading="lazy" decoding="async"></figure></li>
+          <li class="a-mstep"><div class="a-mstep__tete"><span class="a-mstep__n">03</span><h3>Pilotage</h3></div><p>Un plan sur 12 mois, un budget, un tableau de bord, et une revue chaque mois.</p><ul class="a-pilules"><li>En continu</li><li>Revue mensuelle</li></ul><figure class="zoom-cadre"><img src="/images/ije/ije-coiffure-1080.webp" srcset="/images/ije/ije-coiffure-640.webp 640w, /images/ije/ije-coiffure-1080.webp 1080w, /images/ije/ije-coiffure-1600.webp 1600w" sizes="(max-width: 767px) 100vw, 55vw" alt="Des coiffeuses au travail dans un salon" loading="lazy" decoding="async"></figure></li>
+          <li class="a-mstep"><div class="a-mstep__tete"><span class="a-mstep__n">04</span><h3>Formalisation</h3></div><p>Ton enregistrement comme entreprenant et ton IFU. Tu reçois ton attestation officielle.</p><ul class="a-pilules"><li>1 à 2 semaines</li><li>Attestation</li></ul><figure class="zoom-cadre"><img src="/images/ije/ije-couture-atelier-1080.webp" srcset="/images/ije/ije-couture-atelier-640.webp 640w, /images/ije/ije-couture-atelier-1080.webp 1080w, /images/ije/ije-couture-atelier-1600.webp 1600w" sizes="(max-width: 767px) 100vw, 55vw" alt="Un couturier travaille à sa machine" loading="lazy" decoding="async"></figure></li>
+          <li class="a-mstep"><div class="a-mstep__tete"><span class="a-mstep__n">05</span><h3>Financement et suivi</h3></div><p>Ton dossier, ton score {{IJE_SIGLE}}, la rencontre des prêteurs, puis un suivi chaque mois qui rassure ton prêteur.</p><ul class="a-pilules"><li>1 à 3 mois</li><li>Dossier complet</li></ul><figure class="zoom-cadre"><img src="/images/ije/ije-atelier-1080.webp" srcset="/images/ije/ije-atelier-640.webp 640w, /images/ije/ije-atelier-1080.webp 1080w, /images/ije/ije-atelier-1600.webp 1600w" sizes="(max-width: 767px) 100vw, 55vw" alt="Un menuisier dans son atelier" loading="lazy" decoding="async"></figure></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 8. Les peurs, et nos réponses (en texte) -->
+    <section class="a-position">
+      <div class="wrap">
+        <div class="a-entete">
+          <div>
+            <p class="a-label a-label--fleche">Les peurs, et nos réponses</p>
+            <h2 class="titre-rempli">Ce qui te fait hésiter.</h2>
+          </div>
+          <p class="a-entete__texte">Passer au formel fait souvent peur. Voici les questions qu'on nous pose le plus.</p>
+        </div>
+        <ol class="a-refus">
+          <li><span class="a-refus__n">01</span><b>Les impôts</b><span class="a-refus__texte">«&nbsp;Je vais payer beaucoup d'impôts.&nbsp;» Le statut de l'entreprenant relève d'un impôt unique et simplifié pour les petites activités. Nous t'expliquons exactement ce qui s'applique à toi.</span></li>
+          <li><span class="a-refus__n">02</span><b>Le coût</b><span class="a-refus__texte">«&nbsp;C'est cher et compliqué.&nbsp;» L'enregistrement se fait en ligne. Nous t'accompagnons à chaque étape.</span></li>
+          <li><span class="a-refus__n">03</span><b>Le temps</b><span class="a-refus__texte">«&nbsp;Je n'ai pas le temps de tenir des comptes.&nbsp;» Un cahier simple et des rappels sur WhatsApp suffisent.</span></li>
+          <li><span class="a-refus__n">04</span><b>Le contrôle</b><span class="a-refus__texte">«&nbsp;On va contrôler ce que je fais.&nbsp;» Tu restes maître de ton activité. Rien n'est transmis sans ton accord écrit.</span></li>
+        </ol>
+        <p class="a-position__lien"><a class="a-lien" href="/jeunes-entreprenants/diagnostic">Demander un diagnostic</a></p>
+      </div>
+    </section>
+
+    <!-- 9. Bande d'appel -->
+    <section class="block analyse-bande">
+      <div class="wrap narrow">
+        <p class="eyebrow">Ton premier pas</p>
+        <h2 class="analyse-archives-titre">Un diagnostic d'une heure trente.</h2>
+        <p class="lead" style="margin:14px 0 6px">On regarde ensemble ce que tu fais déjà, et on te remet un plan d'action.</p>
+        <a class="btn" href="/jeunes-entreprenants/diagnostic">Demander un diagnostic <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </section>
+
+    <!-- 10. Grands mots qui défilent sur fond sombre, avec petites photos flottantes -->
+    <section class="a-defile" aria-hidden="true">
+      <div class="a-defile__fond zoom-cadre"><img src="/images/ije/ije-atelier-1080.webp" alt="" loading="lazy" decoding="async"></div>
+      <div class="a-defile__ligne" data-sens="1"><span>Structurer · Piloter · Financer · Structurer · Piloter · Financer ·&nbsp;</span><span>Structurer · Piloter · Financer · Structurer · Piloter · Financer ·&nbsp;</span></div>
+      <div class="a-defile__ligne a-defile__ligne--creux" data-sens="-1"><span>De l'informel au formel · De l'informel au formel ·&nbsp;</span><span>De l'informel au formel · De l'informel au formel ·&nbsp;</span></div>
+      <div class="a-defile__ligne" data-sens="1"><span>Tes chiffres · Ton activité · Ton avenir · Tes chiffres · Ton activité · Ton avenir ·&nbsp;</span><span>Tes chiffres · Ton activité · Ton avenir · Tes chiffres · Ton activité · Ton avenir ·&nbsp;</span></div>
+      <span class="a-defile__photo a-defile__photo--1 zoom-cadre"><img src="/images/ije/ije-patisserie-640.webp" alt="" loading="lazy" decoding="async"></span>
+      <span class="a-defile__photo a-defile__photo--2 zoom-cadre"><img src="/images/ije/ije-couture-640.webp" alt="" loading="lazy" decoding="async"></span>
+      <span class="a-defile__photo a-defile__photo--3 zoom-cadre"><img src="/images/ije/ije-jus-640.webp" alt="" loading="lazy" decoding="async"></span>
+    </section>
+
+  </main>
+  <a class="a-haut" href="#contenu" aria-label="Revenir en haut de la page"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+  <div id="ije-footer"></div>
+  <script src="/js/ije.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/apparition.js"></script>
+  <script src="/js/effets.js"></script>
+</body>
+</html>

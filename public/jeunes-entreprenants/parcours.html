@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Le parcours — {{IJE_NOM}}</title>
+  <meta name="description" content="Les huit étapes de l'accompagnement, de la rencontre au financement." />
+  <link rel="icon" href="/assets/logo/favicon.ico" sizes="16x16 32x32 48x48" />
+  <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/marches.css" />
+  <link rel="stylesheet" href="/css/maison.css" />
+  <link rel="stylesheet" href="/css/accueil.css" />
+  <link rel="stylesheet" href="/css/programme.css" />
+  <link rel="stylesheet" href="/css/ije.css" />
+</head>
+<!-- Pôle « Jeunes Entreprenants » (ébauche), même modèle que l'école. {{IJE_NOM}} = nom réglé dans l'administration. -->
+<body data-page="ije-parcours" data-ije-nav="parcours" class="maison ije programme ">
+  <div id="ije-header"></div>
+  <main id="contenu">
+    <section class="p-hero">
+      <figure class="p-hero__photo zoom-cadre"><img src="/images/ije/ije-marche-1080.webp" srcset="/images/ije/ije-marche-640.webp 640w, /images/ije/ije-marche-1080.webp 1080w, /images/ije/ije-marche-1600.webp 1600w" sizes="(max-width: 980px) 100vw, 50vw" alt="Une commerçante sur son étal consulte son téléphone" fetchpriority="high" decoding="async"><figcaption class="p-hero__legende">De la rencontre au financement.</figcaption></figure>
+      <div class="p-hero__panneau">
+        <p class="p-hero__label">Le parcours · Huit étapes</p>
+        <h1 class="p-hero__titre">Le parcours</h1>
+        <p class="p-hero__texte">De ta première rencontre avec nous jusqu'au financement. On ne passe jamais à l'étape suivante sans avoir consolidé la précédente.</p>
+        <div class="p-hero__boutons"><a class="p-btn p-btn--plein" href="/jeunes-entreprenants/diagnostic">Demander un diagnostic <span aria-hidden="true">→</span></a><a class="p-btn p-btn--contour" href="#etapes">Voir les étapes</a></div>
+      </div>
+    </section>
+    <section class="p-intro">
+      <div class="wrap p-intro__grille">
+        <div><p class="a-label">Trois piliers, dans cet ordre</p><h2 class="titre-rempli">Structurer, piloter, financer.</h2></div>
+        <div class="p-intro__texte"><p>On part de ce que tu as déjà&nbsp;: ton mobile money, ta tontine, tes achats. On en fait une comptabilité simple.</p><p>Ensuite, un plan sur 12 mois, un budget et un tableau de bord te donnent une direction, avec une revue chaque mois.</p><p>Enfin, ton enregistrement officiel, un dossier solide et la rencontre avec les bons prêteurs.</p>
+          <div class="p-encadres"><div><small>Pour qui</small><p>Les jeunes de 18 à 35 ans qui ont déjà une activité&nbsp;: étudiants, jeunes femmes, artisans, petits commerçants.</p></div><div><small>Ce que tu reçois</small><p>À chaque étape, un livrable concret&nbsp;: un rapport, des bilans, un plan, une attestation, un dossier.</p></div></div>
+        </div>
+      </div>
+    </section>
+    <section class="p-escalier" id="etapes">
+      <div class="wrap">
+        <div class="a-entete">
+          <div><p class="a-label a-label--point">Huit étapes · De la rencontre à la croissance</p><h2 class="titre-rempli">Ce qui se passe, et ce que tu reçois.</h2></div>
+          <p class="a-entete__texte">Chaque carte donne ce qui se passe, ce que tu reçois et la durée indicative.</p>
+        </div>
+        <div class="p-escalier__barres"><div class="p-barre">Structurer</div><div class="p-barre">Piloter</div><div class="p-barre">Formaliser</div><div class="p-barre">Financer</div></div>
+        <div class="p-cartes"><div class="p-carte"><span class="p-carte__n">[00]</span><h3>Rencontre</h3><p>Sur ton campus, au marché, par recommandation. <strong>Tu reçois&nbsp;:</strong> un premier échange.</p></div><div class="p-carte"><span class="p-carte__n">[01]</span><h3>Diagnostic «&nbsp;Déclic&nbsp;»</h3><p>1 h 30 d'entretien, on regarde tes traces. <strong>Tu reçois&nbsp;:</strong> un rapport et un plan d'action. <em>1 semaine.</em></p></div><div class="p-carte"><span class="p-carte__n">[02]</span><h3>Structuration</h3><p>Cahier de caisse, séparation de ton argent et de celui de l'activité, prix de revient. <strong>Tu reçois&nbsp;:</strong> tes premiers bilans mensuels. <em>3 mois minimum.</em></p></div><div class="p-carte"><span class="p-carte__n">[03]</span><h3>Pilotage</h3><p>Plan sur 12 mois, budget, tableau de bord. <strong>Tu reçois&nbsp;:</strong> une revue chaque mois. <em>En continu.</em></p></div><div class="p-carte"><span class="p-carte__n">[04]</span><h3>Formalisation</h3><p>Enregistrement comme entreprenant, IFU. <strong>Tu reçois&nbsp;:</strong> ton attestation officielle. <em>1 à 2 semaines.</em></p></div><div class="p-carte"><span class="p-carte__n">[05]</span><h3>Financement</h3><p>Dossier, score {{IJE_SIGLE}}, rencontre des prêteurs. <strong>Tu reçois&nbsp;:</strong> un dossier complet. <em>1 à 3 mois.</em></p></div><div class="p-carte"><span class="p-carte__n">[06]</span><h3>Suivi</h3><p>Revue mensuelle, rapport au prêteur avec ton accord. <strong>Tu reçois&nbsp;:</strong> un suivi qui rassure ton prêteur. <em>Pendant la durée du crédit.</em></p></div><div class="p-carte"><span class="p-carte__n">[07]</span><h3>Croissance</h3><p>Financement suivant, embauche. <strong>Tu reçois&nbsp;:</strong> un plan à 3 ans.</p></div></div>
+      </div>
+    </section>
+    <section class="p-dimensions">
+      <div class="wrap p-dimensions__grille">
+        <div class="p-dimensions__texte"><p class="a-label a-label--point">Deux outils</p><h2 class="titre-rempli">Ton score, ton escalier.</h2><p>Deux repères pour voir ta progression, et pour la montrer aux prêteurs.</p><a class="a-lien" href="/jeunes-entreprenants/offres">Voir nos offres</a></div>
+        <figure class="p-dimensions__photo zoom-cadre"><img src="/images/ije/ije-coiffure-1080.webp" srcset="/images/ije/ije-coiffure-640.webp 640w, /images/ije/ije-coiffure-1080.webp 1080w, /images/ije/ije-coiffure-1600.webp 1600w" sizes="(max-width: 980px) 50vw, 28vw" alt="Des coiffeuses au travail dans un salon" loading="lazy" decoding="async"></figure>
+        <div class="p-plis"><details class="p-pli" open><summary>01. Le score {{IJE_SIGLE}} (0 à 100)</summary><div class="p-pli__corps"><p>Chaque mois, ton score mesure cinq choses&nbsp;: la régularité de tes ventes, ta discipline d'épargne, la séparation de tes caisses, la tenue de ton cahier et le respect de ton budget. Tu le vois monter. Les prêteurs aussi.</p><ul class="a-pilules"><li>Ventes</li><li>Épargne</li><li>Caisses</li><li>Cahier</li><li>Budget</li></ul></div></details><details class="p-pli"><summary>02. L'escalier de financement</summary><div class="p-pli__corps"><p>D'abord un petit crédit, puis un crédit plus important, puis la banque. Chaque marche remboursée ouvre la suivante.</p><ul class="a-pilules"><li>Petit crédit</li><li>Crédit plus important</li><li>Banque</li></ul></div></details></div>
+      </div>
+    </section>
+    <section class="p-reperes">
+      <div class="wrap"><p class="a-label a-label--point">En pratique</p><div class="p-reperes__grille"><div class="p-repere"><small>Durée du diagnostic</small><b>1 h 30</b></div><div class="p-repere"><small>Structuration</small><b>3 mois minimum</b></div><div class="p-repere"><small>Revue</small><b>Une fois par mois</b></div><div class="p-repere"><small>Tes données</small><b>Partagées seulement avec ton accord écrit</b></div></div></div>
+    </section>
+    <section class="p-suite">
+      <div class="wrap p-suite__grille">
+        <div><p class="a-label">Aller plus loin</p><h2>Passer à l'action.</h2><p>Découvre nos offres, nos fiches pratiques, ou demande directement ton diagnostic.</p></div>
+        <div class="p-suite__liens"><a href="/jeunes-entreprenants/offres">Nos offres</a><a href="/jeunes-entreprenants/diagnostic">Demander un diagnostic</a><a href="/jeunes-entreprenants/partenaires">L'écosystème</a></div>
+      </div>
+    </section>
+    <section class="p-appel">
+      <div class="wrap">
+        <div class="p-appel__boite">
+          <div><h2>Ton premier pas&nbsp;: un diagnostic d'une heure trente.</h2><p>On regarde ensemble ce que tu fais déjà, et on te remet un plan d'action.</p></div>
+          <div class="p-appel__actions"><a class="a-pilule-btn" href="/jeunes-entreprenants/diagnostic">Demander un diagnostic <span aria-hidden="true">↗</span></a><a class="a-lien" href="/jeunes-entreprenants/diagnostic#contact" data-wa-repli="/jeunes-entreprenants/diagnostic#contact" data-wa-link data-wa-msg="Bonjour, je souhaite des informations sur l'accompagnement {{IJE_SIGLE}}.">Poser une question</a></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <a class="a-haut" href="#contenu" aria-label="Revenir en haut de la page"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+  <div id="ije-footer"></div>
+  <script src="/js/ije.js"></script>
+  <script src="/js/components.js"></script>
+  <script src="/js/apparition.js"></script>
+  <script src="/js/effets.js"></script>
+</body>
+</html>
