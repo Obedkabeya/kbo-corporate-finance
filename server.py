@@ -111,7 +111,8 @@ ACCUEIL_FICHIER = "/ecole.html"
 ANCIENNES_ACCUEIL = ("/index", "/index.html", "/ecole", "/ecole.html")
 FICHIERS_CACHES = {fichier: propre for propre, fichier in PAGES_CACHEES.items()}
 # Pages publiques du plan du site (sitemap.xml), dans l'ordre d'importance.
-PAGES_PUBLIQUES = ("/", "/admission", "/publications", "/analyse-du-matin", "/contact", "/faq",
+PAGES_PUBLIQUES = ("/", "/admission", "/formations/trading-institutionnel", "/formations/finance-des-marches",
+                   "/formations/webinars-et-communaute", "/publications", "/analyse-du-matin", "/contact", "/faq",
                    "/risques", "/mentions-legales", "/confidentialite")
 
 # Image de partage sur les réseaux (Open Graph) : logo blanc sur bleu nuit.

@@ -23,8 +23,8 @@
   // fonds bleu nuit (pied de page, menu transparent posé sur une photo).
   const logo = (extra) => `
     <a class="logo ${extra || ""}" href="/" aria-label="KBO Corporate Finance — accueil">
-      <img class="logo__img logo__img--clair" src="assets/logo/kbo-logo-horizontal-clair.svg" alt="" width="935" height="400">
-      <img class="logo__img logo__img--fonce" src="assets/logo/kbo-logo-horizontal-fonce.svg" alt="" width="935" height="400">
+      <img class="logo__img logo__img--clair" src="/assets/logo/kbo-logo-horizontal-clair.svg" alt="" width="935" height="400">
+      <img class="logo__img logo__img--fonce" src="/assets/logo/kbo-logo-horizontal-fonce.svg" alt="" width="935" height="400">
     </a>`;
 
   const header = `

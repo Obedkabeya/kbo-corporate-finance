@@ -19,7 +19,7 @@
 </head>
 <!-- Accueil (page « L'école »). Les textes déjà modifiés par Obed gardent leur
      sauvegarde grâce à data-cle ; les autres textes restent modifiables comme partout. -->
-<body data-page="m-accueil" data-nav="ecole" class="maison accueil">
+<body data-page="m-accueil-ecole" data-nav="ecole" class="maison accueil">
   <div id="site-header"></div>
   <main id="contenu">
 
@@ -28,6 +28,7 @@
       <div class="a-hero__fond zoom-cadre" data-slot="bandeau-ecole" data-keep data-alt="Gratte-ciel d'un quartier d'affaires illuminés la nuit">
         <img src="images/site/home-hero-1280.webp" srcset="images/site/home-hero-768.webp 768w, images/site/home-hero-1280.webp 1280w, images/site/home-hero-1920.webp 1920w" sizes="100vw" alt="Gratte-ciel d'un quartier d'affaires illuminés la nuit" fetchpriority="high" decoding="async">
       </div>
+      <canvas class="a-hero__graphe" aria-hidden="true"></canvas>
       <div class="wrap a-hero__wrap">
         <ul class="a-hero__reperes" aria-label="Nos repères">
           <li>Finance des marchés</li>
@@ -122,42 +123,42 @@
         </div>
         <div class="a-programmes__liste">
           <article class="a-prog">
-            <a class="a-prog__image zoom-cadre" href="/admission">
+            <a class="a-prog__image zoom-cadre" href="/formations/trading-institutionnel" aria-label="Trading institutionnel">
               <img src="images/site/page-admission-v2-1280.webp" srcset="images/site/page-admission-v2-768.webp 768w, images/site/page-admission-v2-1280.webp 1280w, images/site/page-admission-v2-1920.webp 1920w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Une main annote un graphique de cours sur une tablette" loading="lazy" decoding="async">
               <span class="a-prog__mot" aria-hidden="true">Trader</span>
             </a>
             <div class="a-prog__bas">
-              <div><h3>Trading institutionnel</h3><p>Lire le marché comme une institution&nbsp;: contexte, plan de trading, gestion du risque et discipline.</p></div>
+              <div><h3><a href="/formations/trading-institutionnel">Trading institutionnel</a></h3><p>Lire le marché comme une institution&nbsp;: contexte, plan de trading, gestion du risque et discipline.</p></div>
               <ul class="a-pilules"><li>6 modules</li><li>À votre rythme</li><li>En ligne</li></ul>
             </div>
           </article>
           <article class="a-prog">
-            <a class="a-prog__image zoom-cadre" href="/admission">
+            <a class="a-prog__image zoom-cadre" href="/formations/finance-des-marches" aria-label="Finance des marchés">
               <img src="images/site/home-position-1280.webp" srcset="images/site/home-position-768.webp 768w, images/site/home-position-1280.webp 1280w, images/site/home-position-1920.webp 1920w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Les tours d'un quartier d'affaires la nuit, en noir et blanc" loading="lazy" decoding="async">
               <span class="a-prog__mot" aria-hidden="true">Analyser</span>
             </a>
             <div class="a-prog__bas">
-              <div><h3>Finance des marchés</h3><p>Microstructure, dérivés, risque et construction de stratégies, pour les professionnels du secteur financier.</p></div>
+              <div><h3><a href="/formations/finance-des-marches">Finance des marchés</a></h3><p>Microstructure, dérivés, risque et construction de stratégies, pour les professionnels du secteur financier.</p></div>
               <ul class="a-pilules"><li>6 modules</li><li>Sur candidature</li><li>Professionnels</li></ul>
             </div>
           </article>
           <article class="a-prog">
-            <a class="a-prog__image zoom-cadre" href="/analyse-du-matin">
+            <a class="a-prog__image zoom-cadre" href="/analyse-du-matin" aria-label="L&#39;analyse du matin">
               <img src="images/site/page-publications-1280.webp" srcset="images/site/page-publications-768.webp 768w, images/site/page-publications-1280.webp 1280w, images/site/page-publications-1920.webp 1920w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Une pile de journaux économiques" loading="lazy" decoding="async">
               <span class="a-prog__mot" aria-hidden="true">Comprendre</span>
             </a>
             <div class="a-prog__bas">
-              <div><h3>L'analyse du matin</h3><p>Chaque matin, la lecture fondamentale des marchés dans votre boîte e-mail&nbsp;: dollar, euro, or, énergie et l'agenda du jour.</p></div>
+              <div><h3><a href="/analyse-du-matin">L'analyse du matin</a></h3><p>Chaque matin, la lecture fondamentale des marchés dans votre boîte e-mail&nbsp;: dollar, euro, or, énergie et l'agenda du jour.</p></div>
               <ul class="a-pilules"><li>Gratuit</li><li>Chaque matin</li><li>Par e-mail</li></ul>
             </div>
           </article>
           <article class="a-prog">
-            <a class="a-prog__image zoom-cadre" href="/contact">
+            <a class="a-prog__image zoom-cadre" href="/formations/webinars-et-communaute" aria-label="Webinars et communauté">
               <img src="images/site/page-faq-1280.webp" srcset="images/site/page-faq-768.webp 768w, images/site/page-faq-1280.webp 1280w, images/site/page-faq-1920.webp 1920w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Les rayonnages d'une grande bibliothèque" loading="lazy" decoding="async">
               <span class="a-prog__mot" aria-hidden="true">Transmettre</span>
             </a>
             <div class="a-prog__bas">
-              <div><h3>Webinars et communauté</h3><p>Un webinar en direct chaque semaine et une communauté de membres qui s'entraident, se conseillent et évoluent ensemble.</p></div>
+              <div><h3><a href="/formations/webinars-et-communaute">Webinars et communauté</a></h3><p>Un webinar en direct chaque semaine et une communauté de membres qui s'entraident, se conseillent et évoluent ensemble.</p></div>
               <ul class="a-pilules"><li>En direct</li><li>Chaque semaine</li><li>Discord</li></ul>
             </div>
           </article>
@@ -171,11 +172,11 @@
         <p class="a-label a-label--point">Nos parcours</p>
         <h2 class="titre-rempli">Deux parcours,<br>une même exigence.</h2>
         <div class="a-parcours__grandes">
-          <a class="a-pcarte" href="/inscription/trading-institutionnel">
+          <a class="a-pcarte" href="/formations/trading-institutionnel">
             <span class="a-pcarte__image zoom-cadre"><img src="images/site/home-marches-1280.webp" srcset="images/site/home-marches-768.webp 768w, images/site/home-marches-1280.webp 1280w" sizes="(max-width: 767px) 100vw, 50vw" alt="Graphique de cours en chandeliers sur un écran sombre" loading="lazy" decoding="async"></span>
             <span class="a-pcarte__corps"><span class="a-pcarte__titre">Trading institutionnel</span><span class="a-pcarte__texte">Pour apprendre à lire le marché comme une institution, à votre rythme.</span><span class="a-pcarte__encart"><small>Parcours 1 · Ouvert</small><b>89 € par mois ou 800 € par an</b><em>S'inscrire</em></span><span class="a-lien">Découvrir</span></span>
           </a>
-          <a class="a-pcarte" href="/candidature/finance-des-marches">
+          <a class="a-pcarte" href="/formations/finance-des-marches">
             <span class="a-pcarte__image zoom-cadre"><img src="images/site/home-finance-1080.webp" srcset="images/site/home-finance-640.webp 640w, images/site/home-finance-1080.webp 1080w" sizes="(max-width: 767px) 100vw, 50vw" alt="Deux professionnels se serrent la main autour d'une table de travail" loading="lazy" decoding="async"></span>
             <span class="a-pcarte__corps"><span class="a-pcarte__titre">Finance des marchés</span><span class="a-pcarte__texte">Pour les professionnels du secteur financier : dérivés, risque et stratégies.</span><span class="a-pcarte__encart"><small>Parcours 2 · Sur candidature</small><b>900 €</b><em>Déposer ma candidature</em></span><span class="a-lien">Découvrir</span></span>
           </a>
@@ -189,13 +190,13 @@
     </section>
 
     <!-- 7. La méthode : titre fixe à gauche, étapes numérotées qui défilent à droite -->
-    <section class="a-methode">
+    <section class="a-methode" id="a-methode">
       <div class="wrap a-methode__grille">
         <div class="a-methode__fixe">
           <p class="a-label a-label--point">Du contexte au prix</p>
           <h2 class="titre-rempli">Voir le contexte.<br>Comprendre<br>le prix.</h2>
           <p>Quatre savoirs, dans cet ordre&nbsp;: chacun prépare le suivant.</p>
-          <a class="a-lien" href="/admission">Découvrir la méthode</a>
+          <a class="a-lien" href="/formations/trading-institutionnel">Découvrir la méthode</a>
         </div>
         <ol class="a-methode__etapes">
           <li class="a-mstep"><div class="a-mstep__tete"><span class="a-mstep__n">01</span><h3>Lire l'économie</h3></div><p>Emploi, inflation, croissance&nbsp;: les données qui fixent la trajectoire d'une monnaie et la valeur des actifs.</p><ul class="a-pilules"><li>Données</li><li>Monnaies</li></ul><figure class="zoom-cadre"><img src="images/site/page-publications-1280.webp" srcset="images/site/page-publications-768.webp 768w, images/site/page-publications-1280.webp 1280w" sizes="(max-width: 767px) 100vw, 55vw" alt="Une pile de journaux économiques" loading="lazy" decoding="async"></figure></li>
@@ -262,5 +263,6 @@
   <script src="js/components.js"></script>
   <script src="/js/apparition.js"></script>
   <script src="/js/effets.js"></script>
+  <script src="/js/graphe.js"></script>
 </body>
 </html>

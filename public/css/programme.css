@@ -1,0 +1,145 @@
+/* =====================================================================
+   Pages détaillées des formations (inspirées des pages programme
+   d'eloquence360.org), avec la charte KBO. S'appuie sur accueil.css.
+   ===================================================================== */
+.programme{--a-fond-gris:#F3F4F6;--a-trait:#E6E8EE;background:#fff}
+
+/* ---------- 1. Ouverture en deux parties : photo | panneau bleu nuit ---------- */
+.p-hero{display:grid;grid-template-columns:1fr 1fr;min-height:640px;background:var(--m-nuit)}
+.p-hero__photo{position:relative;min-height:420px}
+.p-hero__legende{position:absolute;right:18px;bottom:18px;z-index:1;background:rgba(13,26,58,.88);color:#fff;font:500 13px var(--sans);padding:10px 14px}
+.p-hero__panneau{display:flex;flex-direction:column;justify-content:center;gap:22px;padding:80px clamp(28px,6vw,96px);color:#fff}
+.p-hero__label{font:600 12px var(--sans);letter-spacing:.16em;text-transform:uppercase;color:var(--m-or);margin:0}
+.p-hero__titre{font:800 clamp(44px,5.4vw,84px)/.95 var(--title);letter-spacing:-.035em;color:#fff;margin:0}
+.p-hero__texte{font:400 18px/1.6 var(--sans);color:rgba(255,255,255,.86);margin:0;max-width:520px}
+.p-hero__boutons{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+.p-btn{display:inline-flex;align-items:center;gap:10px;font:600 15px var(--sans);padding:15px 24px;border-radius:var(--m-rayon);text-decoration:none;border:1px solid transparent;transition:background .3s ease,color .3s ease,border-color .3s ease}
+.p-btn--plein{background:var(--m-bleu);color:#fff;border-color:var(--m-bleu)}
+.p-btn--plein:hover{background:#fff;color:var(--m-nuit);border-color:#fff}
+.p-btn--contour{background:#fff;color:var(--m-nuit);border-color:#fff}
+.p-btn--contour:hover{background:transparent;color:#fff}
+
+/* ---------- 2. Présentation ---------- */
+.p-intro{padding:110px 0}
+.p-intro__grille{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start}
+.p-intro h2,.p-escalier h2,.p-dimensions h2,.p-galerie h2,.p-suite h2{font:700 56px/1.03 var(--title);letter-spacing:-.03em;color:var(--m-nuit);margin:0}
+.p-intro__texte p{font:400 17px/1.7 var(--sans);color:var(--m-gris);margin:0 0 18px}
+.p-encadres{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--a-trait);background:var(--a-fond-gris);margin-top:30px}
+.p-encadres > div{padding:22px 22px 24px}
+.p-encadres > div + div{border-left:1px solid var(--a-trait)}
+.p-encadres small{display:block;font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--m-bleu);margin-bottom:10px}
+.p-encadres p{font:400 15px/1.6 var(--sans);color:var(--m-encre);margin:0}
+
+/* ---------- 3. Escalier d'étapes + cartes numérotées ---------- */
+.p-escalier{padding:110px 0;background:var(--a-fond-gris)}
+.p-escalier .a-entete{margin-bottom:48px}
+.p-escalier__barres{display:flex;flex-direction:column;gap:12px;margin-bottom:48px}
+.p-barre{font:700 13px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:#fff;background:var(--m-nuit);padding:16px 22px;width:34%}
+.p-barre:nth-child(2){margin-left:16%}
+.p-barre:nth-child(3){margin-left:32%}
+.p-barre:nth-child(4){margin-left:48%;width:52%;background:var(--m-bleu)}
+.p-cartes{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--a-trait);background:#fff}
+.p-carte{padding:28px 24px 30px;display:flex;flex-direction:column;gap:12px}
+.p-carte + .p-carte{border-left:1px solid var(--a-trait)}
+.p-carte__n{font:600 13px var(--sans);color:var(--m-bleu)}
+.p-carte h3{font:700 22px/1.2 var(--title);letter-spacing:-.01em;color:var(--m-nuit);margin:18px 0 0}
+.p-carte p{font:400 15px/1.6 var(--sans);color:var(--m-gris);margin:0}
+
+/* ---------- 4. Ce que l'on y travaille : texte | photo | liste dépliable ---------- */
+.p-dimensions{padding:110px 0}
+.p-dimensions__grille{display:grid;grid-template-columns:1fr .85fr 1.1fr;gap:48px;align-items:start}
+.p-dimensions__texte{display:flex;flex-direction:column;align-items:flex-start;gap:20px}
+.p-dimensions__texte h2{font-size:48px}
+.p-dimensions__texte p{font:400 16px/1.65 var(--sans);color:var(--m-gris);margin:0}
+.p-dimensions__photo{aspect-ratio:3/4}
+.p-plis{border-top:1px solid var(--a-trait)}
+.p-pli{border-bottom:1px solid var(--a-trait)}
+.p-pli summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;padding:20px 0;font:700 18px/1.3 var(--title);color:var(--m-nuit)}
+.p-pli summary::-webkit-details-marker{display:none}
+.p-pli summary::after{content:"+";font:400 26px/1 var(--sans);color:var(--m-bleu);transition:transform .3s ease}
+.p-pli[open] summary::after{transform:rotate(45deg)}
+.p-pli__corps{padding:0 0 22px;display:flex;flex-direction:column;gap:14px}
+.p-pli__corps p{font:400 15px/1.65 var(--sans);color:var(--m-gris);margin:0}
+
+/* ---------- 5. En images (bande sombre, photos qui défilent) ---------- */
+.p-galerie{padding:110px 0 90px;background:var(--m-nuit);color:#fff}
+.p-galerie h2{color:#fff}
+.p-galerie .a-label{color:rgba(255,255,255,.85)}
+.p-galerie .a-entete__texte,.p-galerie .a-entete__texte p{color:rgba(255,255,255,.75)}
+.p-galerie__piste{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 28px) / 2);gap:28px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.p-galerie__piste::-webkit-scrollbar{display:none}
+.p-galerie__piste figure{scroll-snap-align:start;margin:0;position:relative;aspect-ratio:16/10}
+.p-galerie__piste figcaption{position:absolute;left:16px;bottom:16px;z-index:1;font:500 13px var(--sans);background:rgba(13,26,58,.85);padding:8px 12px}
+.p-galerie__fleches{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.p-galerie__fleches button{border:0;border-radius:999px;background:var(--m-bleu);color:#fff;font:600 14px var(--sans);padding:12px 20px;cursor:pointer;transition:background .3s ease}
+.p-galerie__fleches button:hover{background:#fff;color:var(--m-nuit)}
+
+/* ---------- 6. Repères pratiques ---------- */
+.p-reperes{padding:90px 0 40px}
+.p-reperes__grille{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--a-trait);border-bottom:1px solid var(--a-trait)}
+.p-repere{padding:30px 24px 32px;display:flex;flex-direction:column;gap:12px}
+.p-repere:first-child{padding-left:0}
+.p-repere + .p-repere{border-left:1px solid var(--a-trait)}
+.p-repere small{font:600 11px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--m-gris)}
+.p-repere b{font:700 20px/1.3 var(--title);color:var(--m-nuit)}
+
+/* ---------- 7. Aller plus loin ---------- */
+.p-suite{padding:70px 0 90px}
+.p-suite__grille{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start}
+.p-suite h2{font-size:44px}
+.p-suite__grille > div > p{font:400 16px/1.65 var(--sans);color:var(--m-gris);margin:18px 0 0}
+.p-suite__liens{border-top:1px solid var(--a-trait)}
+.p-suite__liens a{display:flex;justify-content:space-between;align-items:center;padding:22px 0;border-bottom:1px solid var(--a-trait);font:600 17px var(--sans);color:var(--m-nuit);text-decoration:none;transition:color .3s ease,padding .3s ease}
+.p-suite__liens a::after{content:"↗";color:var(--m-bleu);transition:transform .3s ease}
+.p-suite__liens a:hover{color:var(--m-bleu);padding-left:8px}
+.p-suite__liens a:hover::after{transform:translate(3px,-3px)}
+
+/* ---------- 8. Appel final (encadré bleu) ---------- */
+.p-appel{padding:0 0 110px}
+.p-appel__boite{background:var(--m-bleu);color:#fff;border-radius:10px;padding:56px clamp(28px,5vw,72px);display:flex;justify-content:space-between;align-items:center;gap:40px}
+.p-appel__boite h2{font:700 38px/1.1 var(--title);letter-spacing:-.02em;color:#fff;margin:0 0 12px;max-width:560px}
+.p-appel__boite p{font:400 16px/1.6 var(--sans);color:rgba(255,255,255,.88);margin:0;max-width:520px}
+.p-appel__actions{display:flex;align-items:center;gap:22px;flex-shrink:0}
+.p-appel__actions .a-pilule-btn{background:#fff;color:var(--m-nuit)}
+.p-appel__actions .a-pilule-btn:hover{background:var(--m-nuit);color:#fff}
+.p-appel__actions .a-lien{color:#fff}
+
+/* ---------- Téléphone et tablette ---------- */
+@media (max-width:980px){
+  .p-hero{grid-template-columns:1fr}
+  .p-intro__grille,.p-suite__grille{grid-template-columns:1fr;gap:32px}
+  .p-dimensions__grille{grid-template-columns:1fr 1fr}
+  .p-dimensions__texte{grid-column:1 / -1}
+  .p-cartes{grid-template-columns:1fr 1fr}
+  .p-carte:nth-child(3){border-left:0}
+  .p-carte:nth-child(n+3){border-top:1px solid var(--a-trait)}
+  .p-reperes__grille{grid-template-columns:1fr 1fr}
+  .p-repere:nth-child(3){border-left:0;padding-left:0}
+  .p-repere:nth-child(n+3){border-top:1px solid var(--a-trait)}
+  .p-appel__boite{flex-direction:column;align-items:flex-start}
+}
+@media (max-width:767px){
+  .p-hero__photo{min-height:300px}
+  .p-hero__panneau{padding:44px 20px 52px}
+  .p-hero__texte{font-size:16px}
+  .p-intro,.p-escalier,.p-dimensions,.p-galerie{padding:64px 0}
+  .p-intro h2,.p-escalier h2,.p-dimensions h2,.p-galerie h2,.p-suite h2,.p-dimensions__texte h2{font-size:34px}
+  .p-encadres{grid-template-columns:1fr}
+  .p-encadres > div + div{border-left:0;border-top:1px solid var(--a-trait)}
+  .p-barre{width:auto!important;margin-left:0!important;font-size:11px;padding:13px 16px}
+  .p-cartes{grid-template-columns:1fr}
+  .p-carte + .p-carte{border-left:0;border-top:1px solid var(--a-trait)}
+  .p-dimensions__grille{grid-template-columns:1fr}
+  .p-dimensions__photo{aspect-ratio:4/3}
+  .p-galerie__piste{grid-auto-columns:86%}
+  .p-reperes__grille{grid-template-columns:1fr}
+  .p-repere{padding-left:0!important}
+  .p-repere + .p-repere{border-left:0;border-top:1px solid var(--a-trait)}
+  .p-appel__boite{padding:36px 22px}
+  .p-appel__boite h2{font-size:28px}
+  .p-appel__actions{flex-direction:column;align-items:flex-start}
+}
+
+/* --- Effets (actifs avec effets.js) --- */
+.js-effets .p-barre{opacity:0;transform:translateX(-60px);transition:opacity .8s cubic-bezier(.33,1,.68,1),transform .8s cubic-bezier(.33,1,.68,1)}
+.js-effets .p-carte,.js-effets .p-repere{opacity:0;transform:translateY(30px);transition:opacity .8s cubic-bezier(.33,1,.68,1),transform .8s cubic-bezier(.33,1,.68,1)}
