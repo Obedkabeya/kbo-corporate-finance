@@ -190,9 +190,9 @@
       var sens = parseFloat(l.getAttribute("data-sens")) || 1;
       l.style.setProperty("--dx", (sens * (g.p - 0.5) * -420).toFixed(1) + "px");
     });
-    // Méthode : sur grand écran, le bloc reste fixe et chaque étape monte par-dessus la précédente.
+    // Méthode : le bloc reste fixe et chaque étape monte par-dessus la précédente (tous écrans).
     var pile = document.querySelector(".a-methode");
-    if (pile && window.innerWidth > 980) {
+    if (pile) {
       var cartes = $$(".a-mstep", pile), n = cartes.length;
       pile.classList.add("est-empile");
       pile.style.setProperty("--n", n);
@@ -206,7 +206,7 @@
         c.classList.toggle("est-actif", Math.round(p) === i);
       });
       return;
-    } else if (pile) pile.classList.remove("est-empile");
+    }
     var etapes = $$(".a-mstep"), actif = null, meilleur = 1e9;
     etapes.forEach(function (s) {
       var r = s.getBoundingClientRect(), d = Math.abs(r.top + Math.min(r.height, 260) / 2 - H * 0.45);

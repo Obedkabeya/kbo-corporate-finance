@@ -247,18 +247,33 @@
 .js-effets .est-apparu{opacity:1!important;transform:none!important}
 .js-effets .a-carte-mot.est-apparu:hover,.js-effets .a-mcarte.est-apparu:hover,.js-effets .a-pcarte.est-apparu:hover{transform:translateY(-5px)!important}
 
-/* ---------- 7 bis. La méthode : étapes qui se superposent (ordinateur et tablette en largeur) ---------- */
-@media (min-width:981px){
-  .js-effets .a-methode.est-empile{height:calc(var(--n,4) * 80vh + 100vh);padding:0}
-  .js-effets .a-methode.est-empile .a-methode__grille{position:sticky;top:0;height:100vh;align-items:center;padding-top:84px;box-sizing:border-box}
-  .js-effets .a-methode.est-empile .a-methode__fixe{position:static}
-  .js-effets .a-methode.est-empile .a-methode__etapes{position:relative;height:min(660px,calc(100vh - 150px));gap:0;overflow:hidden}
-  .js-effets .a-methode.est-empile .a-mstep{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--a-fond-gris);
-    transform:translateY(calc(var(--d,1) * 100%)) scale(var(--e,1));transform-origin:50% 0;will-change:transform}
-  .js-effets .a-methode.est-empile .a-mstep:first-child{--d:0}
-  .js-effets .a-methode.est-empile .a-mstep figure{flex:1;min-height:0;aspect-ratio:auto;margin-top:22px}
-  .js-effets .a-methode.est-empile .a-mstep::after{content:"";position:absolute;inset:0;background:var(--a-fond-gris);opacity:var(--voile,0);pointer-events:none}
+/* ---------- 7 bis. La méthode : étapes qui se superposent (ordinateur, tablette et téléphone) ---------- */
+.js-effets .a-methode.est-empile{height:calc(var(--n,4) * 80vh + 100vh);padding:0}
+.js-effets .a-methode.est-empile .a-methode__grille{position:sticky;top:0;height:100vh;height:100svh;align-items:center;padding-top:84px;box-sizing:border-box}
+.js-effets .a-methode.est-empile .a-methode__fixe{position:static}
+.js-effets .a-methode.est-empile .a-methode__etapes{position:relative;height:min(660px,calc(100vh - 150px));gap:0;overflow:hidden}
+.js-effets .a-methode.est-empile .a-mstep{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--a-fond-gris);
+  transform:translateY(calc(var(--d,1) * 100%)) scale(var(--e,1));transform-origin:50% 0;will-change:transform}
+.js-effets .a-methode.est-empile .a-mstep:first-child{--d:0}
+.js-effets .a-methode.est-empile .a-mstep figure{flex:1;min-height:0;aspect-ratio:auto;margin-top:22px}
+.js-effets .a-methode.est-empile .a-mstep::after{content:"";position:absolute;inset:0;background:var(--a-fond-gris);opacity:var(--voile,0);pointer-events:none}
+/* Téléphone et tablette en hauteur : le titre en haut, la pile d'étapes dessous, le tout fixé à l'écran */
+@media (max-width:980px){
+  .js-effets .a-methode.est-empile{height:calc(var(--n,4) * 70svh + 100svh)}
+  .js-effets .a-methode.est-empile .a-methode__grille{display:flex;flex-direction:column;align-items:stretch;gap:14px;padding-top:86px;padding-bottom:18px}
+  .js-effets .a-methode.est-empile .a-methode__fixe{gap:8px;flex:none}
+  .js-effets .a-methode.est-empile .a-methode__fixe .a-label{margin-bottom:4px}
+  .js-effets .a-methode.est-empile .a-methode__fixe h2{font-size:28px}
+  .js-effets .a-methode.est-empile .a-methode__fixe h2 br{display:none}
+  .js-effets .a-methode.est-empile .a-methode__fixe p:not(.a-label),.js-effets .a-methode.est-empile .a-methode__fixe .a-lien{display:none}
+  .js-effets .a-methode.est-empile .a-methode__etapes{flex:1;height:auto;min-height:0}
+  .js-effets .a-methode.est-empile .a-mstep__tete{gap:12px;margin-bottom:8px}
+  .js-effets .a-methode.est-empile .a-mstep__n{font-size:48px}
+  .js-effets .a-methode.est-empile .a-mstep h3{font-size:20px}
+  .js-effets .a-methode.est-empile .a-mstep > p{font-size:14px;margin-bottom:10px}
+  .js-effets .a-methode.est-empile .a-mstep figure{margin-top:12px}
 }
+
 .a-prog__bas h3 a{color:inherit;text-decoration:none;transition:color .3s ease}
 .a-prog__bas h3 a:hover{color:var(--m-bleu)}
 /* Graphique de marché animé, mêlé à la photo d'ouverture (js/graphe.js) */

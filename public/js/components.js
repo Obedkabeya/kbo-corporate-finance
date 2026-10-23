@@ -223,7 +223,7 @@
         a.href = "https://wa.me/" + waNum + "?text=" + encodeURIComponent(msg);
         a.target = "_blank"; a.rel = "noopener";
       } else {
-        a.href = "/contact"; a.removeAttribute("target");
+        a.href = a.getAttribute("data-wa-repli") || "/contact"; a.removeAttribute("target");
       }
     });
     const photo = document.getElementById("heroPhoto");
