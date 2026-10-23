@@ -268,16 +268,21 @@
     });
     return [...set];
   }
+  // data-cle : clé d'enregistrement fixe (un texte déjà modifié garde sa sauvegarde
+  // même si la mise en page change et qu'il n'est plus au même endroit).
+  function contentKey(el) {
+    return el.getAttribute("data-cle") || (pageKey + "|" + domPath(el));
+  }
   function editableKey(el) {
     if (el.hasAttribute("data-text")) return { kind: "setting", key: el.getAttribute("data-text") };
-    return { kind: "content", key: pageKey + "|" + domPath(el) };
+    return { kind: "content", key: contentKey(el) };
   }
 
   function applyContent(map) {
     if (!map) return;
     editableElements().forEach(el => {
       if (el.hasAttribute("data-text")) return;                 // handled by settings
-      const k = pageKey + "|" + domPath(el);
+      const k = contentKey(el);
       if (Object.prototype.hasOwnProperty.call(map, k)) el.innerHTML = map[k];
     });
     document.dispatchEvent(new CustomEvent("kbo:content"));

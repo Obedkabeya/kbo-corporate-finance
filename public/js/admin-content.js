@@ -83,7 +83,7 @@
 
         var info = el.hasAttribute("data-text")
           ? { kind: "setting", key: el.getAttribute("data-text") }
-          : { kind: "content", key: pageKey + "|" + domPath(el, doc.body) };
+          : { kind: "content", key: el.getAttribute("data-cle") || (pageKey + "|" + domPath(el, doc.body)) };
         var original = el.innerHTML.trim();
         var value = info.kind === "setting"
           ? (texts[info.key] != null && texts[info.key] !== "" ? texts[info.key] : original)

@@ -12,75 +12,255 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preload" as="image" href="images/site/home-hero-1280.webp" imagesrcset="images/site/home-hero-768.webp 768w, images/site/home-hero-1280.webp 1280w, images/site/home-hero-1920.webp 1920w" imagesizes="100vw" />
   <link rel="stylesheet" href="css/marches.css" />
   <link rel="stylesheet" href="css/maison.css" />
+  <link rel="stylesheet" href="css/accueil.css" />
 </head>
-<body data-page="m-ecole" data-nav="ecole" class="maison">
+<!-- Accueil (page « L'école »). Les textes déjà modifiés par Obed gardent leur
+     sauvegarde grâce à data-cle ; les autres textes restent modifiables comme partout. -->
+<body data-page="m-accueil" data-nav="ecole" class="maison accueil">
   <div id="site-header"></div>
   <main id="contenu">
-    <section class="page-head with-ph with-candles">
-      <div class="wrap">
-        <div class="crumb"><a href="/">Accueil</a> / L'école</div>
-        <p class="eyebrow">L'école</p>
-        <h1>Comprendre avant d'<em>agir</em>.</h1>
-        <p class="lead">Un prix n'est jamais un hasard&nbsp;: il résume des décisions, des taux, des flux de capitaux. Notre enseignement suit cet ordre, du contexte vers le prix.</p>
-        <div class="hero-actions"><a class="btn btn--blanc" href="/admission">Découvrir les formations <span class="arrow" aria-hidden="true">→</span></a></div>
-      </div>
-      <div class="ph" data-slot="bandeau-ecole" data-keep data-alt="Gratte-ciel d'un quartier d'affaires illuminés la nuit"><img src="images/site/home-hero-1280.webp" srcset="images/site/home-hero-768.webp 768w, images/site/home-hero-1280.webp 1280w, images/site/home-hero-1920.webp 1920w" sizes="100vw" alt="Gratte-ciel d'un quartier d'affaires illuminés la nuit" fetchpriority="high" decoding="async"></div>
-    </section>
 
-    <section class="block" id="enseignement">
-      <div class="wrap">
-        <div class="sec-head">
-        <div><p class="eyebrow">Ce que nous enseignons</p></div>
-        <div><h2>Quatre savoirs, dans cet ordre.</h2><p>Chaque savoir prépare le suivant. On ne lit pas un graphique avant d'avoir compris ce qui le fait bouger.</p></div>
+    <!-- 1. Ouverture plein écran : photo (ou vidéo) avec voile, très grand titre -->
+    <section class="a-hero" aria-label="Ouverture">
+      <div class="a-hero__fond zoom-cadre" data-slot="bandeau-ecole" data-keep data-alt="Gratte-ciel d'un quartier d'affaires illuminés la nuit">
+        <img src="images/site/home-hero-1280.webp" srcset="images/site/home-hero-768.webp 768w, images/site/home-hero-1280.webp 1280w, images/site/home-hero-1920.webp 1920w" sizes="100vw" alt="Gratte-ciel d'un quartier d'affaires illuminés la nuit" fetchpriority="high" decoding="async">
       </div>
-        <div class="list">
-          <div class="row"><span class="n">01</span><h3>Lire l'économie</h3><p>Emploi, inflation, croissance&nbsp;: les données qui fixent la trajectoire d'une monnaie et la valeur des actifs.</p></div>
-          <div class="row"><span class="n">02</span><h3>Comprendre les banques centrales</h3><p>Taux directeurs, anticipations, différentiels de taux&nbsp;: ce qui déplace réellement les capitaux.</p></div>
-          <div class="row"><span class="n">03</span><h3>Suivre l'argent institutionnel</h3><p>Rapports de positionnement des grands fonds, structure de marché&nbsp;: lire où se trouve l'argent avant de lire le graphique.</p></div>
-          <div class="row"><span class="n">04</span><h3>Maîtriser le risque</h3><p>Taille de position, levier, journal, discipline&nbsp;: la méthode qui protège le capital avant de chercher à le faire croître.</p></div>
-        </div>
+      <div class="wrap a-hero__wrap">
+        <ul class="a-hero__reperes" aria-label="Nos repères">
+          <li>Finance des marchés</li>
+          <li>Contexte · Méthode</li>
+          <li>Risque · Discipline</li>
+        </ul>
+        <p class="eyebrow a-hero__eyebrow" data-cle="m-ecole|MAIN1/SECTION0/DIV0/P1">L'école</p>
+        <h1 class="a-hero__titre" data-cle="m-ecole|MAIN1/SECTION0/DIV0/H12">L'école est ouverte</h1>
+        <p class="lead a-hero__lead" data-cle="m-ecole|MAIN1/SECTION0/DIV0/P3">Notre école en ligne vous apprend une stratégie complète qui se base sur l'étude des prix et les caractéristiques des algorithmes institutionnels.</p>
+        <div class="a-hero__badge"><span>École en ligne</span><b>KBO</b></div>
+        <button class="a-lecture" type="button" data-video="" data-cible="#a-processus" aria-label="Découvrir l'école">
+          <span class="a-lecture__rond" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg></span>
+          <span class="a-lecture__texte">Découvrir l'école</span>
+        </button>
+        <a class="a-hero__defiler" href="#a-processus" aria-label="Faire défiler vers la suite"><span>Défiler</span></a>
       </div>
     </section>
 
-    <section class="stance">
-      <div class="wrap grid">
-        <div>
-          <p class="eyebrow">Notre position</p>
-          <h2>Ce que nous ne faisons pas.</h2>
+    <!-- 2. Ce qui nous guide : phrase qui se remplit au défilement + cartes -->
+    <section class="a-guide">
+      <div class="wrap">
+        <p class="a-label">Ce qui nous guide</p>
+        <p class="a-guide__phrase texte-rempli">Comprendre ce qui fait bouger les marchés avant d'agir&nbsp;: une méthode exigeante, transmise avec patience.</p>
+        <div class="a-guide__cartes">
+          <div class="a-carte-mot"><span class="a-carte-mot__n">01</span><b>Comprendre</b><span>Le contexte avant le prix</span></div>
+          <div class="a-carte-mot"><span class="a-carte-mot__n">02</span><b>Analyser</b><span>Les données, les taux, les flux</span></div>
+          <div class="a-carte-mot"><span class="a-carte-mot__n">03</span><b>Décider</b><span>Un plan, un risque mesuré</span></div>
+          <div class="a-carte-mot"><span class="a-carte-mot__n">04</span><b>Transmettre</b><span>Une communauté qui progresse</span></div>
         </div>
-        <div>
-          <ul>
-            <li><b data-edit>Gain</b><span data-edit>Nous ne promettons aucun rendement. Les marchés comportent un risque réel de perte.</span></li>
-            <li><b data-edit>Signaux</b><span data-edit>Nous ne vendons ni signaux, ni robots, ni «&nbsp;stratégies gagnantes&nbsp;».</span></li>
-            <li><b data-edit>Raccourcis</b><span data-edit>Nous ne formons pas en un week-end. Une méthode se construit dans la durée.</span></li>
-          </ul>
-          
+        <p class="a-guide__pied"><span>Comprendre · Analyser · Transmettre</span><a class="a-lien" href="/admission">Découvrir les formations</a></p>
+      </div>
+    </section>
+
+    <!-- 3. Le processus : grand titre, grille asymétrique (image haute, liste numérotée, image carrée, citation) -->
+    <section class="a-processus" id="a-processus">
+      <div class="wrap">
+        <div class="a-entete">
+          <div>
+            <p class="a-label a-label--fleche">Ce que nous enseignons</p>
+            <h2 class="titre-rempli" data-cle="m-ecole|MAIN1/SECTION1/DIV0/DIV0/DIV1/H20">Le processus</h2>
+          </div>
+          <p class="a-entete__texte" data-cle="m-ecole|MAIN1/SECTION1/DIV0/DIV0/DIV1/P1">Chaque étape prépare la suivante. On ne lit pas un graphique avant d'avoir compris ce qui le fait bouger.</p>
+        </div>
+        <div class="a-processus__grille">
+          <figure class="a-processus__haute zoom-cadre">
+            <img src="images/site/home-trading-1080.webp" srcset="images/site/home-trading-640.webp 640w, images/site/home-trading-1080.webp 1080w" sizes="(max-width: 767px) 100vw, 36vw" alt="Un étudiant travaille sur son ordinateur portable" loading="lazy" decoding="async">
+            <span class="a-etiquette"><small>Formation</small><b>En ligne</b></span>
+            <span class="a-badge"><b>4</b><small>étapes, dans cet ordre</small></span>
+          </figure>
+          <div class="a-processus__milieu">
+            <p class="a-processus__intro">Du système de trading à la communauté, chaque élève avance au rythme de la méthode.</p>
+            <ol class="a-etapes">
+              <li><span class="a-etapes__n">01</span><div><h3 data-cle="m-ecole|MAIN1/SECTION1/DIV0/DIV1/DIV0/H31">Le système</h3><p data-cle="m-ecole|MAIN1/SECTION1/DIV0/DIV1/DIV0/P2">Notre système de trading complet et détaillé. de l'analyse technique a la gestion du risque, en passant par la psychologie et l'analyse fondamentale</p></div></li>
+              <li><span class="a-etapes__n">02</span><div><h3 data-cle="m-ecole|MAIN1/SECTION1/DIV0/DIV1/DIV1/H31">Les capitaux</h3><p data-cle="m-ecole|MAIN1/SECTION1/DIV0/DIV1/DIV1/P2">Une explication complète de comment acquérir de très gros capitaux en tradant l'argent d'investisseurs.</p></div></li>
+              <li><span class="a-etapes__n">03</span><div><h3 data-cle="m-ecole|MAIN1/SECTION1/DIV0/DIV1/DIV2/H31">Les webinars</h3><p data-cle="m-ecole|MAIN1/SECTION1/DIV0/DIV1/DIV2/P2">Un webinar en direct par semaine avec tous les membres, construit en deux parties.</p></div></li>
+              <li><span class="a-etapes__n">04</span><div><h3 data-cle="m-ecole|MAIN1/SECTION1/DIV0/DIV1/DIV3/H31">La communauté</h3><p data-cle="m-ecole|MAIN1/SECTION1/DIV0/DIV1/DIV3/P2">Une communauté engagée et soudée de membres actifs qui s'entraident, se conseillent et évoluent ensemble.</p></div></li>
+            </ol>
+            <a class="a-lien" href="/admission">Découvrir les formations</a>
+          </div>
+          <div class="a-processus__droite">
+            <figure class="a-processus__carree zoom-cadre">
+              <img src="images/site/home-finance-1080.webp" srcset="images/site/home-finance-640.webp 640w, images/site/home-finance-1080.webp 1080w" sizes="(max-width: 767px) 100vw, 26vw" alt="Deux professionnels se serrent la main autour d'une table de travail" loading="lazy" decoding="async">
+            </figure>
+            <blockquote class="a-citation">«&nbsp;Un prix n'est jamais un hasard&nbsp;: il résume des décisions, des taux, des flux de capitaux.&nbsp;»<cite>Notre conviction</cite></blockquote>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="closing">
+    <!-- 4. Repères chiffrés (vrais chiffres de nos formations) : les chiffres comptent jusqu'à leur valeur -->
+    <section class="a-chiffres" aria-label="Repères chiffrés">
+      <div class="wrap a-chiffres__grille">
+        <div class="a-chiffre"><span class="a-chiffre__label">Parcours de formation</span><b class="compteur" data-valeur="2">2</b></div>
+        <div class="a-chiffre"><span class="a-chiffre__label">Modules par parcours</span><b class="compteur" data-valeur="6">6</b></div>
+        <div class="a-chiffre"><span class="a-chiffre__label">Étapes de la méthode</span><b class="compteur" data-valeur="4">4</b></div>
+        <div class="a-chiffre"><span class="a-chiffre__label">Webinar en direct par semaine</span><b class="compteur" data-valeur="1">1</b></div>
+      </div>
+    </section>
+
+    <!-- 5. Nos formations en action : grandes cartes photo avec un mot géant -->
+    <section class="a-programmes">
       <div class="wrap">
-        <div class="actions">
-          <a class="btn" href="/admission"><span data-edit>Découvrir les formations</span> <span class="arrow" aria-hidden="true">→</span></a>
-          <a class="tlink" href="/contact" data-wa-link data-wa-msg="Bonjour, je souhaite des informations sur les formations KBO."><span data-edit>Poser une question sur WhatsApp</span></a>
+        <div class="a-entete">
+          <div>
+            <p class="a-label a-label--point">L'école en action</p>
+            <h2 class="titre-rempli">Nos formations en action.</h2>
+          </div>
+          <div class="a-entete__texte">
+            <p>Des parcours pour comprendre, s'exercer, décider avec méthode et progresser au sein d'une communauté.</p>
+            <a class="a-lien" href="/admission">Voir toutes les formations</a>
+          </div>
+        </div>
+        <div class="a-programmes__liste">
+          <article class="a-prog">
+            <a class="a-prog__image zoom-cadre" href="/admission">
+              <img src="images/site/page-admission-v2-1280.webp" srcset="images/site/page-admission-v2-768.webp 768w, images/site/page-admission-v2-1280.webp 1280w, images/site/page-admission-v2-1920.webp 1920w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Une main annote un graphique de cours sur une tablette" loading="lazy" decoding="async">
+              <span class="a-prog__mot" aria-hidden="true">Trader</span>
+            </a>
+            <div class="a-prog__bas">
+              <div><h3>Trading institutionnel</h3><p>Lire le marché comme une institution&nbsp;: contexte, plan de trading, gestion du risque et discipline.</p></div>
+              <ul class="a-pilules"><li>6 modules</li><li>À votre rythme</li><li>En ligne</li></ul>
+            </div>
+          </article>
+          <article class="a-prog">
+            <a class="a-prog__image zoom-cadre" href="/admission">
+              <img src="images/site/home-position-1280.webp" srcset="images/site/home-position-768.webp 768w, images/site/home-position-1280.webp 1280w, images/site/home-position-1920.webp 1920w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Les tours d'un quartier d'affaires la nuit, en noir et blanc" loading="lazy" decoding="async">
+              <span class="a-prog__mot" aria-hidden="true">Analyser</span>
+            </a>
+            <div class="a-prog__bas">
+              <div><h3>Finance des marchés</h3><p>Microstructure, dérivés, risque et construction de stratégies, pour les professionnels du secteur financier.</p></div>
+              <ul class="a-pilules"><li>6 modules</li><li>Sur candidature</li><li>Professionnels</li></ul>
+            </div>
+          </article>
+          <article class="a-prog">
+            <a class="a-prog__image zoom-cadre" href="/analyse-du-matin">
+              <img src="images/site/page-publications-1280.webp" srcset="images/site/page-publications-768.webp 768w, images/site/page-publications-1280.webp 1280w, images/site/page-publications-1920.webp 1920w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Une pile de journaux économiques" loading="lazy" decoding="async">
+              <span class="a-prog__mot" aria-hidden="true">Comprendre</span>
+            </a>
+            <div class="a-prog__bas">
+              <div><h3>L'analyse du matin</h3><p>Chaque matin, la lecture fondamentale des marchés dans votre boîte e-mail&nbsp;: dollar, euro, or, énergie et l'agenda du jour.</p></div>
+              <ul class="a-pilules"><li>Gratuit</li><li>Chaque matin</li><li>Par e-mail</li></ul>
+            </div>
+          </article>
+          <article class="a-prog">
+            <a class="a-prog__image zoom-cadre" href="/contact">
+              <img src="images/site/page-faq-1280.webp" srcset="images/site/page-faq-768.webp 768w, images/site/page-faq-1280.webp 1280w, images/site/page-faq-1920.webp 1920w" sizes="(max-width: 1280px) 100vw, 1170px" alt="Les rayonnages d'une grande bibliothèque" loading="lazy" decoding="async">
+              <span class="a-prog__mot" aria-hidden="true">Transmettre</span>
+            </a>
+            <div class="a-prog__bas">
+              <div><h3>Webinars et communauté</h3><p>Un webinar en direct chaque semaine et une communauté de membres qui s'entraident, se conseillent et évoluent ensemble.</p></div>
+              <ul class="a-pilules"><li>En direct</li><li>Chaque semaine</li><li>Discord</li></ul>
+            </div>
+          </article>
         </div>
       </div>
     </section>
+
+    <!-- 6. Les parcours : deux grandes cartes, trois petites -->
+    <section class="a-parcours">
+      <div class="wrap">
+        <p class="a-label a-label--point">Nos parcours</p>
+        <h2 class="titre-rempli">Deux parcours,<br>une même exigence.</h2>
+        <div class="a-parcours__grandes">
+          <a class="a-pcarte" href="/inscription/trading-institutionnel">
+            <span class="a-pcarte__image zoom-cadre"><img src="images/site/home-marches-1280.webp" srcset="images/site/home-marches-768.webp 768w, images/site/home-marches-1280.webp 1280w" sizes="(max-width: 767px) 100vw, 50vw" alt="Graphique de cours en chandeliers sur un écran sombre" loading="lazy" decoding="async"></span>
+            <span class="a-pcarte__corps"><span class="a-pcarte__titre">Trading institutionnel</span><span class="a-pcarte__texte">Pour apprendre à lire le marché comme une institution, à votre rythme.</span><span class="a-pcarte__encart"><small>Parcours 1 · Ouvert</small><b>89 € par mois ou 800 € par an</b><em>S'inscrire</em></span><span class="a-lien">Découvrir</span></span>
+          </a>
+          <a class="a-pcarte" href="/candidature/finance-des-marches">
+            <span class="a-pcarte__image zoom-cadre"><img src="images/site/home-finance-1080.webp" srcset="images/site/home-finance-640.webp 640w, images/site/home-finance-1080.webp 1080w" sizes="(max-width: 767px) 100vw, 50vw" alt="Deux professionnels se serrent la main autour d'une table de travail" loading="lazy" decoding="async"></span>
+            <span class="a-pcarte__corps"><span class="a-pcarte__titre">Finance des marchés</span><span class="a-pcarte__texte">Pour les professionnels du secteur financier : dérivés, risque et stratégies.</span><span class="a-pcarte__encart"><small>Parcours 2 · Sur candidature</small><b>900 €</b><em>Déposer ma candidature</em></span><span class="a-lien">Découvrir</span></span>
+          </a>
+        </div>
+        <div class="a-parcours__petites">
+          <a class="a-mcarte" href="/analyse-du-matin"><b>L'analyse du matin</b><span>La lecture fondamentale des marchés, gratuite, chaque matin par e-mail.</span><em class="a-lien">Découvrir</em></a>
+          <a class="a-mcarte" href="/publications"><b>Publications</b><span>Nos articles pour comprendre l'économie, les taux et les marchés.</span><em class="a-lien">Découvrir</em></a>
+          <a class="a-mcarte" href="/contact"><b>Une question&nbsp;?</b><span>Écrivez-nous&nbsp;: chaque message reçoit une réponse personnelle.</span><em class="a-lien">Découvrir</em></a>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. La méthode : titre fixe à gauche, étapes numérotées qui défilent à droite -->
+    <section class="a-methode">
+      <div class="wrap a-methode__grille">
+        <div class="a-methode__fixe">
+          <p class="a-label a-label--point">Du contexte au prix</p>
+          <h2 class="titre-rempli">Voir le contexte.<br>Comprendre<br>le prix.</h2>
+          <p>Quatre savoirs, dans cet ordre&nbsp;: chacun prépare le suivant.</p>
+          <a class="a-lien" href="/admission">Découvrir la méthode</a>
+        </div>
+        <ol class="a-methode__etapes">
+          <li class="a-mstep"><div class="a-mstep__tete"><span class="a-mstep__n">01</span><h3>Lire l'économie</h3></div><p>Emploi, inflation, croissance&nbsp;: les données qui fixent la trajectoire d'une monnaie et la valeur des actifs.</p><ul class="a-pilules"><li>Données</li><li>Monnaies</li></ul><figure class="zoom-cadre"><img src="images/site/page-publications-1280.webp" srcset="images/site/page-publications-768.webp 768w, images/site/page-publications-1280.webp 1280w" sizes="(max-width: 767px) 100vw, 55vw" alt="Une pile de journaux économiques" loading="lazy" decoding="async"></figure></li>
+          <li class="a-mstep"><div class="a-mstep__tete"><span class="a-mstep__n">02</span><h3>Comprendre les banques centrales</h3></div><p>Taux directeurs, anticipations, différentiels de taux&nbsp;: ce qui déplace réellement les capitaux.</p><ul class="a-pilules"><li>Taux</li><li>Anticipations</li></ul><figure class="zoom-cadre"><img src="images/site/home-position-1280.webp" srcset="images/site/home-position-768.webp 768w, images/site/home-position-1280.webp 1280w" sizes="(max-width: 767px) 100vw, 55vw" alt="Les tours d'un quartier d'affaires la nuit, en noir et blanc" loading="lazy" decoding="async"></figure></li>
+          <li class="a-mstep"><div class="a-mstep__tete"><span class="a-mstep__n">03</span><h3>Suivre l'argent institutionnel</h3></div><p>Rapports de positionnement des grands fonds, structure de marché&nbsp;: lire où se trouve l'argent avant de lire le graphique.</p><ul class="a-pilules"><li>Positionnement</li><li>Structure</li></ul><figure class="zoom-cadre"><img src="images/site/home-hero-1280.webp" srcset="images/site/home-hero-768.webp 768w, images/site/home-hero-1280.webp 1280w" sizes="(max-width: 767px) 100vw, 55vw" alt="Gratte-ciel d'un quartier d'affaires illuminés la nuit" loading="lazy" decoding="async"></figure></li>
+          <li class="a-mstep"><div class="a-mstep__tete"><span class="a-mstep__n">04</span><h3>Maîtriser le risque</h3></div><p>Taille de position, levier, journal, discipline&nbsp;: la méthode qui protège le capital avant de chercher à le faire croître.</p><ul class="a-pilules"><li>Discipline</li><li>Capital</li></ul><figure class="zoom-cadre"><img src="images/site/page-admission-v2-1280.webp" srcset="images/site/page-admission-v2-768.webp 768w, images/site/page-admission-v2-1280.webp 1280w" sizes="(max-width: 767px) 100vw, 55vw" alt="Une main annote un graphique de cours sur une tablette" loading="lazy" decoding="async"></figure></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 8. Notre position : titre au centre, cartes photo qui flottent autour, déclaration -->
+    <section class="a-position">
+      <div class="a-position__scene">
+        <a class="a-flotte a-flotte--1" href="/risques" data-vitesse="-0.12"><span class="zoom-cadre"><img src="images/site/home-marches-768.webp" alt="" loading="lazy" decoding="async"></span><span class="a-flotte__texte"><b data-edit>Gain</b><small data-edit>Aucun rendement promis</small></span><i class="a-flotte__fleche" aria-hidden="true">↗</i></a>
+        <a class="a-flotte a-flotte--2" href="/admission" data-vitesse="0.1"><span class="zoom-cadre"><img src="images/site/page-contact-768.webp" alt="" loading="lazy" decoding="async"></span><span class="a-flotte__texte"><b data-edit>Signaux</b><small data-edit>Ni signaux, ni robots</small></span><i class="a-flotte__fleche" aria-hidden="true">↗</i></a>
+        <div class="wrap a-position__centre">
+          <p class="a-label a-label--fleche">Notre position</p>
+          <h2 class="titre-rempli">Ce que nous ne faisons pas.</h2>
+        </div>
+        <a class="a-flotte a-flotte--3" href="/admission" data-vitesse="-0.08"><span class="zoom-cadre"><img src="images/site/page-faq-768.webp" alt="" loading="lazy" decoding="async"></span><span class="a-flotte__texte"><b data-edit>Raccourcis</b><small data-edit>Pas de formation en un week-end</small></span><i class="a-flotte__fleche" aria-hidden="true">↗</i></a>
+        <a class="a-flotte a-flotte--4" href="/risques" data-vitesse="0.14"><span class="zoom-cadre"><img src="images/site/home-trading-640.webp" alt="" loading="lazy" decoding="async"></span><span class="a-flotte__texte"><b data-edit>Risque</b><small data-edit>Une perte réelle est possible</small></span><i class="a-flotte__fleche" aria-hidden="true">↗</i></a>
+      </div>
+      <div class="wrap a-position__declaration">
+        <p class="a-declaration">Nous ne promettons aucun rendement. Nous ne vendons ni signaux, ni robots, ni «&nbsp;stratégies gagnantes&nbsp;». Une méthode se construit dans la durée.</p>
+        <a class="a-pilule-btn" href="/admission">Découvrir les formations <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
+    <!-- 9. L'analyse du matin (inscription) -->
     <section class="block analyse-bande" id="analyse-du-matin">
       <div class="wrap narrow">
         <p class="eyebrow">L'analyse du matin</p>
         <h2 class="analyse-archives-titre">Recevez chaque matin l'analyse fondamentale KBO.</h2>
         <p class="lead" style="margin:14px 0 6px">Gratuit, chaque matin de semaine : la lecture du jour, l'agenda à l'heure du Bénin et une notion expliquée simplement.</p>
-        <a class="btn" href="analyse-du-matin">Je m'inscris à L'analyse du matin <span class="arrow" aria-hidden="true">→</span></a>
+        <a class="btn" href="/analyse-du-matin">Je m'inscris à L'analyse du matin <span class="arrow" aria-hidden="true">→</span></a>
       </div>
     </section>
+
+    <!-- 10. Grands mots qui défilent sur fond sombre, avec petites photos flottantes -->
+    <section class="a-defile" aria-hidden="true">
+      <div class="a-defile__fond zoom-cadre"><img src="images/site/home-hero-1280.webp" srcset="images/site/home-hero-768.webp 768w, images/site/home-hero-1280.webp 1280w" sizes="100vw" alt="" loading="lazy" decoding="async"></div>
+      <div class="a-defile__ligne" data-sens="1"><span>Comprendre · Analyser · Transmettre · Comprendre · Analyser · Transmettre ·&nbsp;</span><span>Comprendre · Analyser · Transmettre · Comprendre · Analyser · Transmettre ·&nbsp;</span></div>
+      <div class="a-defile__ligne a-defile__ligne--creux" data-sens="-1"><span>Du contexte vers le prix · Du contexte vers le prix ·&nbsp;</span><span>Du contexte vers le prix · Du contexte vers le prix ·&nbsp;</span></div>
+      <div class="a-defile__ligne" data-sens="1"><span>Méthode · Risque · Discipline · Méthode · Risque · Discipline ·&nbsp;</span><span>Méthode · Risque · Discipline · Méthode · Risque · Discipline ·&nbsp;</span></div>
+      <span class="a-defile__photo a-defile__photo--1 zoom-cadre"><img src="images/site/page-admission-v2-768.webp" alt="" loading="lazy" decoding="async"></span>
+      <span class="a-defile__photo a-defile__photo--2 zoom-cadre"><img src="images/site/page-publications-768.webp" alt="" loading="lazy" decoding="async"></span>
+      <span class="a-defile__photo a-defile__photo--3 zoom-cadre"><img src="images/site/home-marches-768.webp" alt="" loading="lazy" decoding="async"></span>
+    </section>
+
+    <!-- Bande de logos partenaires : prévue, affichée seulement quand Obed aura fourni de vrais partenaires -->
+    <section class="a-partenaires" hidden aria-label="Ils nous accompagnent">
+      <div class="wrap"><p class="a-label">Ils nous accompagnent</p><div class="a-partenaires__piste"></div></div>
+    </section>
   </main>
+
+  <!-- Fenêtre vidéo (bouton « Découvrir l'école » quand une vidéo de présentation est fournie) -->
+  <div class="a-modale" id="aModale" hidden role="dialog" aria-modal="true" aria-label="Vidéo de présentation">
+    <button class="a-modale__fermer" type="button" aria-label="Fermer la vidéo">×</button>
+    <div class="a-modale__cadre"></div>
+  </div>
+  <a class="a-haut" href="#contenu" aria-label="Revenir en haut de la page"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></a>
+
   <div id="site-footer"></div>
   <script src="js/components.js"></script>
   <script src="/js/apparition.js"></script>
-  <script src="js/visuel.js" defer></script>
+  <script src="/js/effets.js"></script>
 </body>
 </html>
