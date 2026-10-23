@@ -301,23 +301,11 @@ a.p-btn--contour:hover{color:#fff}
 .p-appel__actions a.a-pilule-btn:hover{color:#fff}
 .p-appel__actions a.a-lien,.p-appel__actions a.a-lien:visited,.p-appel__actions a.a-lien:hover{color:#fff}
 
-/* Méthode : point « Ce que nous ne faisons pas » de chaque étape (affiché seulement sur téléphone et tablette) */
-.a-mstep__refus{display:none}
+/* Téléphone et tablette en hauteur : dans la pile d'étapes, la photo se place à côté du texte */
 @media (max-width:980px){
-  /* Comme sur ordinateur : le texte de l'étape au-dessus ; dessous, la photo de taille moyenne
-     et, à côté, le point « Ce que nous ne faisons pas » correspondant. */
-  .js-effets .a-methode.est-empile .a-mstep{display:grid;grid-template-columns:44% 1fr;grid-template-rows:auto auto auto 1fr;column-gap:16px;align-content:start}
-  .js-effets .a-methode.est-empile .a-mstep__tete,
-  .js-effets .a-methode.est-empile .a-mstep > p,
-  .js-effets .a-methode.est-empile .a-mstep .a-pilules{grid-column:1 / -1}
-  .js-effets .a-methode.est-empile .a-mstep .a-pilules{margin-bottom:12px}
-  .js-effets .a-methode.est-empile .a-mstep figure{grid-column:1;grid-row:4;margin-top:0;aspect-ratio:3/4;height:auto;align-self:start;flex:none}
-  .a-mstep__refus{display:flex;flex-direction:column;gap:6px;grid-column:2;grid-row:4;align-self:start;border-top:2px solid var(--m-nuit);padding-top:10px}
-  .a-mstep__refus small{font:600 10px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--m-bleu)}
-  .a-mstep__refus b{font:700 22px/1.1 var(--title);letter-spacing:-.02em;color:var(--m-nuit)}
-  .a-mstep__refus span{font:400 13px/1.5 var(--sans);color:var(--m-gris)}
-  .a-mstep__refus .a-lien{font-size:12px;margin-top:4px;align-self:flex-start}
-  /* Sur téléphone, ces points sont dans la méthode : la section séparée n'est plus affichée. */
-  .js-effets .a-position--avec-methode{display:none}
+  .js-effets .a-methode.est-empile .a-mstep{display:grid;grid-template-columns:1fr 42%;grid-template-rows:auto auto 1fr;column-gap:16px;align-content:start}
+  .js-effets .a-methode.est-empile .a-mstep__tete{grid-column:1 / -1;grid-row:1}
+  .js-effets .a-methode.est-empile .a-mstep > p{grid-column:1;grid-row:2}
+  .js-effets .a-methode.est-empile .a-mstep .a-pilules{grid-column:1;grid-row:3;align-self:start}
+  .js-effets .a-methode.est-empile .a-mstep figure{grid-column:2;grid-row:2 / 4;margin-top:0;aspect-ratio:3/4;height:auto;align-self:start;flex:none}
 }
-
