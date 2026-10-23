@@ -55,7 +55,7 @@
 .a-guide__cartes{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
 .a-carte-mot{border:1px solid var(--a-trait);padding:26px 24px 28px;display:flex;flex-direction:column;gap:8px;background:#fff;transition:border-color .3s ease,transform .45s cubic-bezier(.33,1,.68,1),box-shadow .45s ease}
 .a-carte-mot:hover{border-color:var(--m-bleu);transform:translateY(-6px);box-shadow:0 18px 40px -24px rgba(13,26,58,.35)}
-.a-carte-mot__n{font:600 12px var(--sans);letter-spacing:.14em;color:var(--m-or)}
+.a-carte-mot__n{font:600 12px var(--sans);letter-spacing:.14em;color:var(--m-or-texte,#8A6A2C)}
 .a-carte-mot b{font:700 24px/1.1 var(--title);letter-spacing:-.02em;color:var(--m-nuit)}
 .a-carte-mot span:last-child{font:400 14px/1.5 var(--sans);color:var(--m-gris)}
 .a-guide__pied{display:flex;flex-direction:column;align-items:center;gap:10px;margin:48px 0 0;font:500 14px var(--sans);color:var(--m-gris)}
@@ -142,27 +142,14 @@
 .a-mstep > p{font:400 16px/1.65 var(--sans);color:var(--m-gris);margin:0 0 16px;max-width:520px}
 .a-mstep figure{aspect-ratio:16/9;margin-top:26px}
 
-/* ---------- 8. Notre position (cartes flottantes) ---------- */
-.a-position{background:#fff;padding:90px 0 110px;overflow:hidden}
-.a-position__scene{position:relative;min-height:980px;display:flex;align-items:center;justify-content:center}
-.a-position__centre{position:relative;z-index:2;text-align:center;display:flex;flex-direction:column;align-items:center}
-.a-position__centre h2{max-width:520px;font-size:56px}
-.a-flotte{position:absolute;z-index:1;width:clamp(200px,20vw,280px);aspect-ratio:3/4;display:block;color:#fff;text-decoration:none;transform:translateY(var(--fy,0px));border-radius:6px;overflow:hidden;box-shadow:0 30px 60px -30px rgba(13,26,58,.5)}
-.a-flotte .zoom-cadre{position:absolute;inset:0;border-radius:inherit}
-.a-flotte .zoom-cadre::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,26,58,0) 40%,rgba(13,26,58,.88) 100%)}
-.a-flotte img{transition:scale .9s cubic-bezier(.33,1,.68,1)}
-.a-flotte:hover img{scale:1.07}
-.a-flotte__texte{position:absolute;left:18px;right:18px;bottom:18px;display:flex;flex-direction:column;gap:4px;z-index:1}
-.a-flotte__texte b{font:700 22px/1.1 var(--title)}
-.a-flotte__texte small{font:400 13px/1.4 var(--sans);color:rgba(255,255,255,.85)}
-.a-flotte__fleche{position:absolute;right:14px;top:14px;z-index:1;width:34px;height:34px;border-radius:50%;background:var(--m-nuit);display:grid;place-items:center;font-style:normal;font-size:15px;transition:background .3s ease,transform .3s ease}
-.a-flotte:hover .a-flotte__fleche{background:var(--m-bleu);transform:rotate(45deg)}
-.a-flotte--1{left:3%;top:2%}
-.a-flotte--2{right:4%;top:6%}
-.a-flotte--3{left:6%;bottom:2%}
-.a-flotte--4{right:2%;bottom:5%}
-.a-position__declaration{display:flex;flex-direction:column;align-items:center;gap:30px;text-align:center;margin-top:20px}
-.a-declaration{font:700 clamp(20px,2.2vw,28px)/1.35 var(--title);letter-spacing:-.01em;text-transform:uppercase;color:var(--m-nuit);max-width:980px;margin:0}
+/* ---------- 8. Notre position (texte seulement) ---------- */
+.a-position{background:#fff;padding:110px 0}
+.a-refus{list-style:none;margin:0;padding:0;border-top:1px solid var(--a-trait)}
+.a-refus li{display:grid;grid-template-columns:72px minmax(220px,.9fr) 1.6fr;gap:32px;align-items:baseline;padding:30px 0;border-bottom:1px solid var(--a-trait)}
+.a-refus__n{font:600 13px var(--sans);letter-spacing:.1em;color:var(--m-bleu)}
+.a-refus b{font:700 clamp(30px,3.6vw,48px)/1.05 var(--title);letter-spacing:-.03em;color:var(--m-nuit)}
+.a-refus__texte{font:400 18px/1.6 var(--sans);color:var(--m-gris)}
+.a-position__lien{margin:36px 0 0}
 .a-pilule-btn{display:inline-flex;align-items:center;gap:12px;background:var(--m-nuit);color:#fff;border-radius:999px;padding:16px 28px;font:600 15px var(--sans);text-decoration:none;transition:background .3s ease}
 .a-pilule-btn:hover{background:var(--m-bleu)}
 
@@ -213,9 +200,8 @@
   .a-methode__grille{grid-template-columns:1fr;gap:48px}
   .a-methode__fixe{position:static}
   .a-parcours__petites{grid-template-columns:1fr}
-  .a-position__scene{min-height:0;flex-direction:column;gap:20px}
-  .a-flotte{position:relative;left:auto;right:auto;top:auto;bottom:auto;width:100%;aspect-ratio:16/10;transform:none}
-  .a-position__centre{order:-1;margin-bottom:12px}
+  .a-refus li{grid-template-columns:56px 1fr;gap:8px 20px}
+  .a-refus__texte{grid-column:2}
 }
 @media (max-width:767px){
   .accueil .a-hero__wrap{grid-template-columns:1fr;grid-template-rows:none;padding-top:104px;padding-bottom:36px}
@@ -248,8 +234,8 @@
   .a-mstep__n{font-size:60px}
   .a-mstep h3{font-size:22px}
   .a-position{padding:64px 0 72px}
-  .a-position__centre h2{font-size:36px}
-  .a-declaration{font-size:18px}
+  .a-refus li{grid-template-columns:44px 1fr;gap:6px 14px;padding:22px 0}
+  .a-refus__texte{grid-column:2;font-size:16px}
   .a-defile{padding:72px 0}
   .a-defile__photo{display:none}
   .a-haut{bottom:84px;right:16px}
@@ -257,7 +243,7 @@
 
 /* --- Effets propres à l'accueil (actifs avec effets.js) --- */
 .js-effets .a-hero__titre{animation:none!important}
-.js-effets .a-carte-mot,.js-effets .a-mcarte,.js-effets .a-pcarte{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.33,1,.68,1),transform .8s cubic-bezier(.33,1,.68,1),box-shadow .45s ease,border-color .3s ease}
+.js-effets .a-carte-mot,.js-effets .a-mcarte,.js-effets .a-pcarte,.js-effets .a-refus li{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.33,1,.68,1),transform .8s cubic-bezier(.33,1,.68,1),box-shadow .45s ease,border-color .3s ease}
 .js-effets .est-apparu{opacity:1!important;transform:none!important}
 .js-effets .a-carte-mot.est-apparu:hover,.js-effets .a-mcarte.est-apparu:hover,.js-effets .a-pcarte.est-apparu:hover{transform:translateY(-5px)!important}
 
@@ -277,3 +263,25 @@
 .a-prog__bas h3 a:hover{color:var(--m-bleu)}
 /* Graphique de marché animé, mêlé à la photo d'ouverture (js/graphe.js) */
 .a-hero__graphe{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+/* Liens déjà visités : la règle générale « a:visited { color: inherit } » rendait certains
+   textes foncés sur fond foncé. Chaque bouton garde ici sa couleur, visité ou non. */
+a.a-pilule-btn,a.a-pilule-btn:visited{color:#fff}
+a.a-pilule-btn:hover{color:#fff}
+a.a-lien,a.a-lien:visited{color:var(--m-nuit)}
+a.a-lien:hover{color:var(--m-bleu)}
+a.a-hero__defiler,a.a-hero__defiler:visited{color:rgba(255,255,255,.75)}
+a.a-haut,a.a-haut:visited{color:#fff}
+a.a-prog__image,a.a-prog__image:visited{color:#fff}
+.a-prog__bas h3 a,.a-prog__bas h3 a:visited{color:var(--m-nuit)}
+.a-prog__bas h3 a:hover{color:var(--m-bleu)}
+a.a-pcarte,a.a-pcarte:visited,a.a-mcarte,a.a-mcarte:visited{color:var(--m-encre)}
+a.p-btn--plein,a.p-btn--plein:visited{color:#fff}
+a.p-btn--plein:hover{color:var(--m-nuit)}
+a.p-btn--contour,a.p-btn--contour:visited{color:var(--m-nuit)}
+a.p-btn--contour:hover{color:#fff}
+.p-suite__liens a,.p-suite__liens a:visited{color:var(--m-nuit)}
+.p-suite__liens a:hover{color:var(--m-bleu)}
+.p-appel__actions a.a-pilule-btn,.p-appel__actions a.a-pilule-btn:visited{color:var(--m-nuit)}
+.p-appel__actions a.a-pilule-btn:hover{color:#fff}
+.p-appel__actions a.a-lien,.p-appel__actions a.a-lien:visited,.p-appel__actions a.a-lien:hover{color:#fff}

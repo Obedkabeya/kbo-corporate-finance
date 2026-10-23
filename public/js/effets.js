@@ -83,7 +83,7 @@
   function observer() {
     $$(".zoom-cadre:not([data-vu]), .compteur:not([data-vu])").forEach(function (el) { el.setAttribute("data-vu", "1"); io.observe(el); });
     [".a-guide__cartes > *", ".a-parcours__grandes > *", ".a-parcours__petites > *",
-     ".p-escalier__barres > *", ".p-cartes > *", ".p-reperes__grille > *"].forEach(function (sel) {
+     ".p-escalier__barres > *", ".p-cartes > *", ".p-reperes__grille > *", ".a-refus > *"].forEach(function (sel) {
       $$(sel).forEach(function (el, i) {
         if (el.hasAttribute("data-vu")) return;
         el.setAttribute("data-vu", "1"); el.setAttribute("data-rang", i); io.observe(el);

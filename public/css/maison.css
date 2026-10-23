@@ -345,3 +345,14 @@
 .mot-ensemble{display:inline-block;white-space:nowrap}
 @keyframes kbo-lettre{from{opacity:0;transform:translateY(.42em)}to{opacity:1;transform:none}}
 .js-effets .lettres-cible .lettre{display:inline-block;animation:kbo-lettre .7s cubic-bezier(.33,1,.68,1) both;animation-delay:calc(var(--n) * 32ms + 120ms)}
+
+/* Admission : lien « En savoir plus » vers la page détaillée de chaque parcours */
+.maison .offer .offer__plus,.maison .offer .offer__plus:visited{display:inline-flex;align-items:center;gap:10px;margin:14px 0 0;font:600 15px var(--sans);color:#fff;border-bottom:1px solid rgba(255,255,255,.5);padding-bottom:3px;align-self:flex-start}
+.maison .offer .offer__plus:hover{color:var(--m-or);border-color:var(--m-or)}
+
+/* Lisibilité : sur fond clair, le doré des petits textes est légèrement foncé
+   (#8A6A2C, contraste suffisant) ; sur fond bleu nuit il reste l'or KBO. */
+.maison{--m-or-texte:#8A6A2C}
+.maison .sec-head .eyebrow,.maison .list .row .n,.maison .post-card__meta .tag,.maison .channel .eyebrow,
+.maison .faq-cat>h2,.maison .faq summary::after,.maison .checkout__marque,.maison .closing .eyebrow,
+.a-carte-mot__n{color:var(--m-or-texte)}
