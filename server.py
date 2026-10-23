@@ -1979,6 +1979,11 @@ class Handler(BaseHTTPRequestHandler):
     # ---- routing ----
     def do_GET(self):
         path = urlparse(self.path).path
+        if path.startswith(POLE_PREFIXES):
+            if pole and pole.get(self, path):
+                return
+            if not pole:
+                return self._serve_static("/404.html")
         if path.startswith("/api/"):
             return self._api_get(path)
         if path == "/discord/connect":
@@ -2014,6 +2019,8 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
+        if pole and path.startswith(POLE_PREFIXES) and pole.post(self, path):
+            return
         if path.startswith("/api/"):
             return self._api_post(path)
         self._send_json({"error": "Not found"}, 404)
@@ -3807,6 +3814,8 @@ class Handler(BaseHTTPRequestHandler):
         # L'éditeur en ligne (pages publiques, admin connecté) se charge en fin de body.
         if is_admin and base != "admin.html":
             text = text.replace("</body>", '<script src="/js/editor.js"></script></body>', 1)
+        if pole:
+            text = pole.injecter(self, text, base)
         return text.encode("utf-8")
 
     def _inject_default_og(self, body, status=200):
@@ -4022,6 +4031,16 @@ def main():
     except KeyboardInterrupt:
         print("\n  Arrêt du serveur.")
         server.shutdown()
+
+
+# Module optionnel d'un second pôle du site (fichier séparé). Sans lui, le site
+# fonctionne exactement comme avant et ses adresses répondent « introuvable ».
+POLE_PREFIXES = ("/jeunes-entreprenants", "/api/ije/", "/api/admin/ije")
+try:
+    import ije as pole
+    pole.installer(globals())
+except ImportError:
+    pole = None
 
 
 if __name__ == "__main__":
