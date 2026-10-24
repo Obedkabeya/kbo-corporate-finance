@@ -892,3 +892,18 @@ body.kbo-fm-ouverte{overflow:hidden}
   .kbo-fm__corps{grid-template-columns:1fr}
   .kbo-fm__col--apercu{position:static;order:-1}
 }
+
+/* Survol des cartes clés (comme eloquence360) : la carte se soulève et une barre de couleur
+   de 3 px grandit sur son bord gauche ; elle disparaît quand on passe à une autre carte. */
+.a-pcarte,.a-mcarte,.a-carte-mot,.maison .offer,.p-carte{position:relative}
+.a-pcarte::before,.a-mcarte::before,.a-carte-mot::before,.maison .offer::before,.p-carte::before{
+  content:"";position:absolute;left:-1px;top:-1px;bottom:-1px;width:3px;background:var(--kbo-accent,#1E3A8A);
+  transform:scaleY(0);transform-origin:center top;transition:transform .5s cubic-bezier(.25,.46,.45,.94);z-index:3;pointer-events:none}
+.a-mcarte{border-left-width:1px!important}
+@media (hover:hover){
+  .a-pcarte:hover::before,.a-mcarte:hover::before,.a-carte-mot:hover::before,.maison .offer:hover::before,.p-carte:hover::before{transform:scaleY(1)}
+  .a-pcarte:hover,.a-mcarte:hover,.a-carte-mot:hover,.maison .offer:hover{transform:translateY(-4px);box-shadow:0 20px 48px rgba(13,26,58,.10)}
+}
+.a-pcarte:focus-visible::before,.a-mcarte:focus-visible::before{transform:scaleY(1)}
+.ije{--kbo-accent:var(--ije-or,#B8934A)}
+@media (prefers-reduced-motion:reduce){.a-pcarte::before,.a-mcarte::before,.a-carte-mot::before,.maison .offer::before,.p-carte::before{transition:none}}
