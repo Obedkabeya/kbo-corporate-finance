@@ -625,15 +625,16 @@
   }
 
   // ---- Fenêtre « Rester informé » (L'analyse du matin), comme sur eloquence360 ----
-  // Après 10 secondes, pour les visiteurs de L'école seulement ; jamais sur les pages
-  // d'inscription, de paiement ou légales. Fermée : pas avant 30 jours ; inscrit : plus jamais.
+  // Après 10 secondes, à chaque visite, pour les visiteurs de L'école seulement ; jamais sur les
+  // pages d'inscription, de paiement ou légales. Fermée : plus pendant cette visite ; inscrit : plus jamais.
   (function () {
     const SANS = ["m-analyse", "m-paiement", "m-acces", "m-invitation", "m-candidature-finance", "m-inscription-trading",
                   "m-404", "m-confidentialite", "m-mentions", "m-risques"];
     if (window.__KBO_ADMIN__ === true || !page || /^ije-/.test(page) || SANS.indexOf(page) >= 0) return;
-    let vu = null;
-    try { vu = localStorage.getItem("kbo-rester-informe"); } catch (e) { return; }
-    if (vu === "inscrit" || (vu && Date.now() - Number(vu) < 30 * 864e5)) return;
+    try {
+      if (localStorage.getItem("kbo-rester-informe") === "inscrit") return;
+      if (sessionStorage.getItem("kbo-rester-informe")) return;
+    } catch (e) { return; }
     function ouvrir() {
       // On n'interrompt pas quelqu'un qui écrit dans un formulaire.
       const a = document.activeElement;

@@ -1,10 +1,15 @@
 /* Fenêtre « Rester informé » : propose L'analyse du matin aux visiteurs de L'école.
-   Chargée par components.js après quelques secondes, seulement si elle peut s'afficher.
-   Fermée : elle ne revient pas avant 30 jours. Inscription faite : elle ne revient plus. */
+   Chargée par components.js après quelques secondes, à chaque visite.
+   Fermée : elle ne revient pas pendant cette visite. Inscription faite : elle ne revient plus. */
 (function () {
   if (document.querySelector(".kbo-ri")) return;
   var CLE = "kbo-rester-informe";
-  function noter(v) { try { localStorage.setItem(CLE, v); } catch (e) { /* stockage indisponible */ } }
+  function noter(v) {
+    try {
+      if (v === "inscrit") localStorage.setItem(CLE, v);
+      else sessionStorage.setItem(CLE, "fermee");      // revient à la prochaine visite
+    } catch (e) { /* stockage indisponible */ }
+  }
 
   var style = document.createElement("style");
   style.textContent =
