@@ -280,8 +280,10 @@ h2.serif{font:700 38px/1.14 var(--title);letter-spacing:-.02em}
 .article__body a{color:var(--navy);font-weight:500}
 .share{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:48px;padding-top:28px;border-top:1px solid var(--rule)}
 .share__label{font:500 12px var(--sans);letter-spacing:.14em;text-transform:uppercase;color:var(--slate);margin-right:8px}
-.share__btn{font:500 13px var(--sans);border:1px solid var(--rule);padding:8px 14px;color:var(--ink);background:#fff;cursor:pointer}
-.share__btn:hover{border-color:var(--navy);color:var(--navy)}
+.share__btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:42px;height:42px;padding:0;border:1px solid var(--rule);border-radius:50%;color:var(--navy);background:#fff;cursor:pointer;transition:background .2s,color .2s,border-color .2s}
+.share__btn svg{width:18px;height:18px;flex-shrink:0}
+.share__btn:hover,.share__btn:focus-visible{background:var(--navy);border-color:var(--navy);color:#fff}
+.share__btn--copy{width:auto;padding:0 16px;border-radius:100px;font:600 13px var(--sans)}
 .share__copied{font-size:13px;color:#1A7A4C}
 .comments{max-width:780px;margin:72px auto 0}
 .comments h3{font:700 28px var(--title);letter-spacing:-.02em}
