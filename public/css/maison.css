@@ -75,14 +75,31 @@
 
 /* ---------- Bande « L'analyse du matin » : bleu nuit, bouton blanc ---------- */
 .maison .analyse-bande{background:var(--m-nuit);padding:72px 0}
-.maison .analyse-bande .wrap.narrow{max-width:1280px;display:grid;grid-template-columns:1fr auto;gap:16px 64px;align-items:center}
+.maison .analyse-bande .wrap.narrow{max-width:1280px;display:grid;grid-template-columns:1fr minmax(0,540px);gap:16px 64px;align-items:center}
 .maison .analyse-bande .wrap > *{grid-column:1}
 .maison .analyse-bande .eyebrow{font:600 13px var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--m-or)}
 .maison .analyse-bande .eyebrow::before{content:"";display:block;width:40px;height:2px;background:var(--m-or);margin-bottom:16px}
 .maison .analyse-bande h2{font:700 40px/1.05 var(--title);letter-spacing:-.02em;color:#fff;margin:0}
 .maison .analyse-bande .lead{font:400 17px/1.6 var(--sans);color:rgba(255,255,255,.82);margin:0!important;max-width:620px}
-.maison .analyse-bande .btn{grid-column:2;grid-row:1 / span 3;background:#fff;color:var(--m-nuit);border-color:#fff}
-.maison .analyse-bande .btn:hover{background:transparent;color:#fff}
+.maison .analyse-bande .wrap > .btn{grid-column:2;grid-row:1 / span 3;background:#fff;color:var(--m-nuit);border-color:#fff}
+.maison .analyse-bande .wrap > .btn:hover{background:transparent;color:#fff}
+/* Inscription directement dans la bande : un seul champ, lisible sur le bleu nuit */
+.maison .analyse-bande .analyse-form--bande{grid-column:2;grid-row:1 / span 3;border:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.analyse-form__label{font:600 14px var(--sans);color:#fff;letter-spacing:.01em}
+.analyse-form__ligne{display:flex;gap:10px}
+.analyse-form__ligne input{flex:1;min-width:0;height:56px;padding:0 18px;border:1.5px solid rgba(255,255,255,.9);border-radius:0;background:#fff;color:var(--m-nuit);font:500 16px var(--sans)}
+.analyse-form__ligne input::placeholder{color:#7A8197}
+.analyse-form__ligne input:focus{outline:3px solid var(--m-or);outline-offset:2px}
+.maison .analyse-bande .analyse-form__ligne .btn{height:56px;white-space:nowrap;background:var(--m-or);border-color:var(--m-or);color:var(--m-nuit);font-weight:600}
+.maison .analyse-bande .analyse-form__ligne .btn:hover{background:#fff;border-color:#fff;color:var(--m-nuit)}
+.maison .analyse-bande .check{color:rgba(255,255,255,.85);font-size:14px;gap:10px}
+.maison .analyse-bande .check input{accent-color:var(--m-or);margin-top:2px}
+.maison .analyse-bande .form-msg{color:#fff}
+.maison .analyse-bande .form-msg:empty{display:none}
+.maison .analyse-bande .form-msg.ok{color:#8FE3B0}
+.maison .analyse-bande .form-msg.err{color:#FFB4AD}
+.maison .analyse-bande .form-note{color:rgba(255,255,255,.62);font-size:13px;line-height:1.55;margin:0}
+.maison .analyse-bande .form-note a{color:var(--m-or)}
 
 /* ---------- Pied de page bleu nuit ---------- */
 .maison .site-footer{background:var(--m-nuit);padding:56px 0 32px;border-top:1px solid rgba(255,255,255,.08)}
@@ -126,7 +143,10 @@
   .maison .analyse-bande .wrap.narrow{grid-template-columns:1fr;gap:14px}
   .maison .analyse-bande h2{font-size:26px}
   .maison .analyse-bande .lead{font-size:15px}
-  .maison .analyse-bande .btn{grid-column:1;grid-row:auto;width:100%}
+  .maison .analyse-bande .wrap > .btn{grid-column:1;grid-row:auto;width:100%}
+  .maison .analyse-bande .analyse-form--bande{grid-column:1;grid-row:auto;margin-top:8px}
+  .analyse-form__ligne{flex-direction:column}
+  .maison .analyse-bande .analyse-form__ligne .btn{width:100%;justify-content:center}
   .maison .site-footer{padding:28px 0 96px}
   .maison .site-footer .fgrid{grid-template-columns:1fr 1fr;gap:24px}
 }
@@ -143,7 +163,7 @@
    ========================================================= */
 /* Grand titre : plus grand qu'avant, mais plus modéré que la maquette (choix d'Obed) */
 .maison .page-head h1{font-size:48px;line-height:1.05}
-.maison .page-head h1 [data-fmt]{font-size:inherit!important}
+.maison .page-head h1 [data-fmt][style*="px"]{font-size:inherit!important}
 /* Bandeau photo : grand sur la page d'accueil (L'école), bas sur les autres pages */
 .maison:not([data-page="m-ecole"]) .page-head.with-ph{min-height:40vh;padding-bottom:56px}
 .maison .page-head:not(.with-ph){padding:72px 0 64px}
@@ -356,3 +376,7 @@
 .maison .sec-head .eyebrow,.maison .list .row .n,.maison .post-card__meta .tag,.maison .channel .eyebrow,
 .maison .faq-cat>h2,.maison .faq summary::after,.maison .checkout__marque,.maison .closing .eyebrow,
 .a-carte-mot__n{color:var(--m-or-texte)}
+@media (max-width:1100px){
+  .maison .analyse-bande .wrap.narrow{grid-template-columns:1fr}
+  .maison .analyse-bande .analyse-form--bande{grid-column:1;grid-row:auto;max-width:620px;margin-top:8px}
+}

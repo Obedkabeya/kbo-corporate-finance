@@ -233,7 +233,16 @@
         <p class="eyebrow">L'analyse du matin</p>
         <h2 class="analyse-archives-titre">Recevez chaque matin l'analyse fondamentale KBO.</h2>
         <p class="lead" style="margin:14px 0 6px">Gratuit, chaque matin de semaine : la lecture du jour, l'agenda à l'heure du Bénin et une notion expliquée simplement.</p>
-        <a class="btn" href="/analyse-du-matin">Je m'inscris à L'analyse du matin <span class="arrow" aria-hidden="true">→</span></a>
+        <form class="analyse-form analyse-form--bande" data-source="accueil" novalidate>
+          <label class="analyse-form__label" for="ecole_email">Votre adresse e-mail</label>
+          <div class="analyse-form__ligne">
+            <input id="ecole_email" name="email" type="email" autocomplete="email" inputmode="email" required maxlength="200" placeholder="exemple@gmail.com" />
+            <button class="btn" type="submit">Je m'inscris <span class="arrow" aria-hidden="true">→</span></button>
+          </div>
+          <label class="check check-offres"><input type="checkbox" name="offres" value="oui" /> <span>Je souhaite aussi recevoir les offres et réductions sur les formations KBO (facultatif).</span></label>
+          <span class="form-msg" role="status"></span>
+          <p class="form-note">Gratuit. Un e-mail de confirmation vous sera envoyé, et vous pouvez vous désinscrire en un clic. Contenu éducatif, pas un conseil en investissement. Voir notre <a href="/confidentialite">politique de confidentialité</a>.</p>
+        </form>
       </div>
     </section>
 
@@ -266,5 +275,6 @@
   <script src="/js/apparition.js"></script>
   <script src="/js/effets.js"></script>
   <script src="/js/graphe.js"></script>
+  <script src="js/analyse.js" defer></script>
 </body>
 </html>

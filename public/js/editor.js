@@ -60,17 +60,35 @@
     tb.className = "fmt-bar";
     tb.hidden = true;
     tb.innerHTML =
+      '<span class="fmt-bar__cible" title="Texte en cours de modification">Cliquez un texte</span>' +
+      '<button type="button" data-cmd="undo" title="Annuler la dernière modification"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>' +
+      '<button type="button" data-cmd="redo" title="Rétablir"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/></svg></button>' +
+      '<span class="fmt-bar__sep"></span>' +
       '<button type="button" data-cmd="bold" title="Gras"><b>G</b></button>' +
       '<button type="button" data-cmd="italic" title="Italique"><i>I</i></button>' +
       '<button type="button" data-cmd="underline" title="Souligné"><u>S</u></button>' +
+      '<button type="button" data-link title="Mettre un lien sur le texte sélectionné (vide = retirer le lien)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg></button>' +
       '<span class="fmt-bar__sep"></span>' +
-      '<button type="button" data-align="left" title="Aligner à gauche">⯇</button>' +
-      '<button type="button" data-align="center" title="Centrer">≡</button>' +
-      '<button type="button" data-align="right" title="Aligner à droite">⯈</button>' +
+      '<button type="button" data-align="left" title="Aligner à gauche"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 10h10M4 14h16M4 18h10"/></svg></button>' +
+      '<button type="button" data-align="center" title="Centrer"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M7 10h10M4 14h16M7 18h10"/></svg></button>' +
+      '<button type="button" data-align="justify" title="Justifier (aligné des deux côtés)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg></button>' +
+      '<button type="button" data-align="right" title="Aligner à droite"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M10 10h10M4 14h16M10 18h10"/></svg></button>' +
       '<span class="fmt-bar__sep"></span>' +
-      '<button type="button" data-size="-1" title="Réduire la taille">A−</button>' +
-      '<button type="button" data-size="1" title="Agrandir la taille">A+</button>' +
+      '<button type="button" data-size="-1" title="Réduire la taille du texte">A−</button>' +
+      '<button type="button" class="fmt-bar__taille" data-size="0" title="Taille d\'origine">100 %</button>' +
+      '<button type="button" data-size="1" title="Agrandir la taille du texte">A+</button>' +
+      '<button type="button" data-lh="-1" title="Resserrer les lignes">↕−</button>' +
+      '<button type="button" data-lh="1" title="Espacer les lignes">↕+</button>' +
       '<button type="button" data-case="upper" title="MAJUSCULES">AA</button>' +
+      '<span class="fmt-bar__sep"></span>' +
+      '<span class="fmt-bar__cible">Cadre</span>' +
+      '<button type="button" data-larg="-1" title="Rétrécir le cadre du texte">⇥⇤</button>' +
+      '<button type="button" data-larg="1" title="Élargir le cadre du texte">⇤⇥</button>' +
+      '<button type="button" data-dep="x-1" title="Déplacer vers la gauche">←</button>' +
+      '<button type="button" data-dep="x1" title="Déplacer vers la droite">→</button>' +
+      '<button type="button" data-dep="y-1" title="Monter">↑</button>' +
+      '<button type="button" data-dep="y1" title="Descendre">↓</button>' +
+      '<button type="button" data-cadre title="Remettre le cadre comme à l\'origine (taille et place)">⟲ cadre</button>' +
       '<span class="fmt-bar__sep"></span>' +
       fontSelectHTML() +
       '<span class="fmt-bar__sep"></span>' +
@@ -87,7 +105,24 @@
     function targetEl() {
       return activeEl && activeEl.isContentEditable ? activeEl : null;
     }
-    function afterFormat(el) { if (el) save(el); }
+    function afterFormat(el) { if (el) { save(el); majCible(); } }
+    function taillePct(el, w) {
+      const v = w.style.fontSize || "";
+      if (/%$/.test(v)) return parseFloat(v);
+      if (/px$/.test(v)) return Math.round(parseFloat(v) / (parseFloat(getComputedStyle(el).fontSize) || 16) * 100);
+      return 100;
+    }
+    // Nom lisible du texte en cours de modification, et sa taille.
+    function majCible() {
+      const c = tb.querySelector(".fmt-bar__cible"), t = tb.querySelector(".fmt-bar__taille");   // 1re étiquette : la cible
+      const el = targetEl();
+      if (!el) { c.textContent = "Cliquez un texte"; t.textContent = "100 %"; return; }
+      const noms = { H1: "Grand titre", H2: "Titre", H3: "Sous-titre", H4: "Sous-titre", H5: "Sous-titre", P: "Paragraphe",
+                     LI: "Élément de liste", A: "Lien", BLOCKQUOTE: "Citation", FIGCAPTION: "Légende" };
+      c.textContent = noms[el.tagName] || "Texte";
+      const w = el.querySelector(":scope > span[data-fmt]");
+      t.textContent = (w ? taillePct(el, w) : 100) + " %";
+    }
 
     // Les styles posés sur l'élément lui-même ne sont pas enregistrés (seul son
     // contenu l'est) : on les applique donc à un conteneur INTERNE, qui, lui,
@@ -101,6 +136,7 @@
         while (el.firstChild) w.appendChild(el.firstChild);
         el.appendChild(w);
       }
+      w.style.display = "block";        // (les anciens réglages enregistrés n'avaient plus ce réglage)
       return w;
     }
     function unwrapFmt(el) {
@@ -122,10 +158,42 @@
       } else if (btn.dataset.align) {
         fmtWrap(el).style.textAlign = btn.dataset.align;
       } else if (btn.dataset.size) {
+        // Taille en pourcentage de la taille d'origine : le texte garde sa taille
+        // adaptée à chaque écran (téléphone, ordinateur), même agrandi ou réduit.
         const w = fmtWrap(el);
-        const cur = parseFloat(getComputedStyle(w).fontSize) || 16;
-        const next = Math.min(72, Math.max(10, cur + (parseInt(btn.dataset.size, 10) * 2)));
-        w.style.fontSize = next + "px";
+        const pas = parseInt(btn.dataset.size, 10);
+        const p = pas === 0 ? 100 : Math.min(300, Math.max(30, taillePct(el, w) + pas * 10));
+        w.style.fontSize = p === 100 ? "" : p + "%";
+      } else if (btn.dataset.larg) {
+        // Largeur du cadre en % de sa largeur d'origine (ordinateur ; sur téléphone le texte reprend toute la largeur).
+        const w = fmtWrap(el);
+        const cur = parseFloat(w.style.width) || 100;
+        const next = Math.min(220, Math.max(30, cur + parseInt(btn.dataset.larg, 10) * 10));
+        w.style.width = next === 100 ? "" : next + "%";
+        w.style.maxWidth = next > 100 ? "none" : "";
+      } else if (btn.dataset.dep) {
+        // Déplacement par pas de 8 px (0,5 rem), dans les deux sens.
+        const w = fmtWrap(el);
+        const axe = btn.dataset.dep[0] === "x" ? "left" : "top";
+        const cur = parseFloat(w.style[axe]) || 0;
+        const next = Math.min(40, Math.max(-40, Math.round((cur + parseInt(btn.dataset.dep.slice(1), 10) * 0.5) * 10) / 10));
+        w.style[axe] = next ? next + "rem" : "";
+        w.style.position = (w.style.left || w.style.top) ? "relative" : "";
+      } else if (btn.hasAttribute("data-cadre")) {
+        const w = fmtWrap(el);
+        ["width", "maxWidth", "left", "top", "position"].forEach(k => { w.style[k] = ""; });
+      } else if (btn.dataset.lh) {
+        const w = fmtWrap(el);
+        const cs = getComputedStyle(w);
+        const cur = parseFloat(w.style.lineHeight) || (parseFloat(cs.lineHeight) / parseFloat(cs.fontSize)) || 1.4;
+        w.style.lineHeight = String(Math.min(2.6, Math.max(0.8, Math.round((cur + parseInt(btn.dataset.lh, 10) * 0.1) * 10) / 10)));
+      } else if (btn.hasAttribute("data-link")) {
+        const actuel = (window.getSelection().anchorNode && window.getSelection().anchorNode.parentElement.closest("a")) || null;
+        const url = prompt("Adresse du lien (laisser vide pour retirer le lien) :", actuel ? actuel.getAttribute("href") : "https://");
+        if (url === null) return;
+        if (!url.trim() || url.trim() === "https://") document.execCommand("unlink", false, null);
+        else if (/^(https?:\/\/|\/|mailto:|tel:|#)/i.test(url.trim())) document.execCommand("createLink", false, url.trim());
+        else { hint("Adresse non valable : elle doit commencer par https://, / ou mailto:", "err"); return; }
       } else if (btn.dataset.case) {
         const w = fmtWrap(el);
         w.style.textTransform = w.style.textTransform === "uppercase" ? "none" : "uppercase";
@@ -158,6 +226,13 @@
       fetch("/api/logout", { method: "POST" }).finally(() => { location.href = location.pathname; });
     });
 
+    // En modification, un clic sur un lien sert à écrire dedans, pas à changer de page.
+    document.addEventListener("click", (e) => {
+      if (!editing) return;
+      const a = e.target.closest && e.target.closest("main a[href]");
+      if (a && !e.target.closest(".kbo-imgbtn, .slot-admin, .kbo-fm")) e.preventDefault();
+    }, true);
+
     function setEditing(on) {
       editing = on;
       document.body.classList.toggle("editing", on);
@@ -172,7 +247,7 @@
           el.classList.add("kbo-editable");
           if (!el.__wired) {
             el.__wired = true;
-            el.addEventListener("focus", () => { activeEl = el; });
+            el.addEventListener("focus", () => { activeEl = el; majCible(); });
             el.addEventListener("blur", () => save(el));
             el.addEventListener("keydown", (e) => {
               if (e.key === "Enter" && /^(H[1-5]|SPAN)$/.test(el.tagName)) { e.preventDefault(); el.blur(); }

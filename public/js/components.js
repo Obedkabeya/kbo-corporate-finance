@@ -256,6 +256,15 @@
 
   // Text elements that may be edited. Elements with data-text are saved to the
   // site settings; everything else to the content store (keyed by position).
+  // Petits textes « en ligne » (badges, chiffres, intitulés de cartes, liens « Découvrir… ») :
+  // modifiables aussi, s'ils portent eux-mêmes du texte et ne sont pas dans un bloc déjà modifiable.
+  const INLINE_SELECTOR = "span,b,strong,small,em,i,a,label,dt,dd,td,th";
+  const CHROME = ".site-header, .site-footer, form, .admin-bar, .preview-bar, .kbo-fm, .fmt-bar, " +
+                 ".ije-entete, .ije-pied, .bascule, .slot-admin, .kbo-imgbtn, .wa-fab, .kbo-media__couche, button, svg, script, noscript";
+  function ownText(el) {
+    for (const n of el.childNodes) if (n.nodeType === 3 && n.nodeValue.trim()) return true;
+    return false;
+  }
   function editableElements() {
     const set = new Set();
     document.querySelectorAll(EDIT_SELECTOR + ",[data-text]").forEach(el => {
@@ -266,7 +275,16 @@
       if (!el.textContent.trim()) return;
       set.add(el);
     });
-    return [...set];
+    const main = document.querySelector("main") || document.body;
+    main.querySelectorAll(INLINE_SELECTOR).forEach(el => {
+      if (!ownText(el) || el.hasAttribute("data-noedit") || el.closest("[aria-hidden='true'], " + CHROME)) return;
+      if (el.closest(".lettre, .mot-rempli, .mot-ensemble")) return;            // découpage des effets
+      for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p)) return;
+      if (el.querySelector(EDIT_SELECTOR)) return;
+      set.add(el);
+    });
+    // Un élément dont un parent est déjà retenu ne l'est pas deux fois.
+    return [...set].filter(el => { for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p)) return false; return true; });
   }
   // data-cle : clé d'enregistrement fixe (un texte déjà modifié garde sa sauvegarde
   // même si la mise en page change et qu'il n'est plus au même endroit).
@@ -605,6 +623,28 @@
     });
     return; // do NOT enable admin mode in preview
   }
+
+  // ---- Fenêtre « Rester informé » (L'analyse du matin), comme sur eloquence360 ----
+  // Après 10 secondes, pour les visiteurs de L'école seulement ; jamais sur les pages
+  // d'inscription, de paiement ou légales. Fermée : pas avant 30 jours ; inscrit : plus jamais.
+  (function () {
+    const SANS = ["m-analyse", "m-paiement", "m-acces", "m-invitation", "m-candidature-finance", "m-inscription-trading",
+                  "m-404", "m-confidentialite", "m-mentions", "m-risques"];
+    if (window.__KBO_ADMIN__ === true || !page || /^ije-/.test(page) || SANS.indexOf(page) >= 0) return;
+    let vu = null;
+    try { vu = localStorage.getItem("kbo-rester-informe"); } catch (e) { return; }
+    if (vu === "inscrit" || (vu && Date.now() - Number(vu) < 30 * 864e5)) return;
+    function ouvrir() {
+      // On n'interrompt pas quelqu'un qui écrit dans un formulaire.
+      const a = document.activeElement;
+      if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) { setTimeout(ouvrir, 8000); return; }
+      if (document.querySelector(".analyse-form .form-msg.ok")) return;   // déjà inscrit sur cette page
+      const sc = document.createElement("script");
+      sc.src = "/js/rester-informe.js";
+      document.body.appendChild(sc);
+    }
+    setTimeout(ouvrir, 10000);
+  })();
 
   // ---- Admin mode: driven by the SERVER (window.__KBO_ADMIN__ injected only
   //      into pages served to an authenticated admin). Visitors never get it. ----

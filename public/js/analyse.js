@@ -13,7 +13,7 @@
       if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = "Indiquez une adresse e-mail valide."; msg.className = "form-msg err"; return; }
       btn.disabled = true; msg.textContent = "Envoi…"; msg.className = "form-msg";
       fetch("/api/analyse/inscription", { method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prenom: f.prenom.value.trim(), email: email, source: f.dataset.source || "",
+        body: JSON.stringify({ prenom: f.prenom ? f.prenom.value.trim() : "", email: email, source: f.dataset.source || "",
           offres: !!(f.offres && f.offres.checked) }) })
         .then((r) => r.json().then((j) => ({ ok: r.ok, j })))
         .then(({ ok, j }) => {

@@ -551,7 +551,9 @@ body.editing .kbo-imgwrap { outline: 2px dashed rgba(31,79,156,0.45); outline-of
 /* Editable text affordances (only while in edit mode) */
 body.editing .kbo-editable { outline: 1px dashed rgba(31,79,156,0.5); outline-offset: 3px; border-radius: 3px; cursor: text; transition: background 0.15s; }
 body.editing .kbo-editable:hover { background: rgba(31,79,156,0.06); }
-body.editing .kbo-editable:focus { outline: 2px solid var(--blue); background: #fff; }
+body.editing .kbo-editable:focus { outline: 2px solid #C9A961; outline-offset: 4px; background: rgba(201,169,97,.08); }
+/* Cadre de texte élargi ou déplacé depuis l'éditeur : sur téléphone, le texte reprend toute la largeur. */
+@media (max-width: 767px) { span[data-fmt] { width: auto !important; max-width: 100% !important; left: 0 !important; } }
 @media (max-width: 620px) { .admin-bar__hint { display: none; } body.has-admin-bar { padding-bottom: 120px; } }
 /* Admin link inside the mobile menu — only for a logged-in admin */
 .nav__admin-item { display: none; }
@@ -577,6 +579,10 @@ body.is-admin .admin-only { display: revert !important; }
   display: inline-flex; align-items: center; gap: .3em;
 }
 .fmt-bar button:hover, .fmt-bar__color:hover { background: rgba(255,255,255,.14); }
+.fmt-bar__cible { font: 600 .74rem var(--sans); letter-spacing: .06em; text-transform: uppercase; color: #C9A961; padding: 0 .6em; white-space: nowrap; }
+.fmt-bar__taille { min-width: 4.2em; justify-content: center; background: rgba(255,255,255,.08) !important; }
+.fmt-bar svg { display: block; }
+body.editing main a[href] { cursor: text; }
 .fmt-bar__sep { width: 1px; height: 20px; background: rgba(255,255,255,.18); margin: 0 3px; }
 .fmt-bar__color { position: relative; }
 .fmt-bar__color input[type="color"] { width: 20px; height: 20px; border: 0; background: transparent; padding: 0; cursor: pointer; }

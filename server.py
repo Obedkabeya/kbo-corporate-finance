@@ -682,6 +682,10 @@ def _sanitize_html(value, limit=20000):
     _CSS_SAFE = {"color", "font-family", "font-size", "font-weight", "font-style",
                  "text-align", "text-transform", "text-decoration", "line-height",
                  "letter-spacing", "background-color"}
+    # Cadre du texte (largeur, déplacement) réglé depuis l'éditeur : valeurs strictement encadrées.
+    _CSS_CADRE = {"display": r"block|inline-block", "position": r"relative",
+                  "width": r"\d{1,3}(\.\d+)?%", "max-width": r"none|100%",
+                  "top": r"-?\d{1,2}(\.\d+)?rem", "left": r"-?\d{1,2}(\.\d+)?rem"}
 
     def _safe_style(raw):
         m2 = re.search(r'style\s*=\s*"([^"]*)"', raw, re.I)
@@ -693,7 +697,10 @@ def _sanitize_html(value, limit=20000):
                 continue
             prop, val = decl.split(":", 1)
             prop = prop.strip().lower(); val = val.strip()
-            if prop in _CSS_SAFE and "url(" not in val.lower() and "expression" not in val.lower() \
+            if prop in _CSS_CADRE:
+                if re.fullmatch(_CSS_CADRE[prop], val.lower()):
+                    out.append("%s:%s" % (prop, val.lower()))
+            elif prop in _CSS_SAFE and "url(" not in val.lower() and "expression" not in val.lower() \
                     and "javascript" not in val.lower() and '"' not in val:
                 out.append("%s:%s" % (prop, val))
         return ' style="%s"' % ";".join(out) if out else ""
@@ -2068,7 +2075,7 @@ class Handler(BaseHTTPRequestHandler):
             "default-src 'self'; "
             "img-src 'self' data: blob:; "
             "media-src 'self' blob:; "
-            "frame-src https://www.youtube-nocookie.com https://player.vimeo.com; "
+            "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://player.vimeo.com; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com; "
             "script-src 'self' 'unsafe-inline'; "
