@@ -1,6 +1,8 @@
 /* Effets de l'accueil (inspirés d'eloquence360.org, avec la charte KBO) :
    - les images « zooment » doucement en entrant à l'écran (cadre .zoom-cadre) ;
-   - les grands titres et la grande phrase se « remplissent » mot à mot au défilement ;
+   - les grands titres et la grande phrase se « remplissent » lettre à lettre au défilement
+     (comme eloquence360 : chaque lettre passe de pâle à foncée en glissant de 7 px, en suivant
+     le défilement avec un léger retard qui adoucit le mouvement) ;
    - le titre d'ouverture s'écrit lettre par lettre ;
    - les chiffres comptent jusqu'à leur valeur ;
    - les cartes apparaissent l'une après l'autre ;
@@ -103,7 +105,7 @@
 
   // Découpe le texte d'un élément (en gardant ses balises) en mots, et si besoin en lettres.
   var decoupes = [];
-  function decouper(el, enLettres) {
+  function decouper(el, enLettres) {   // enLettres : true (titre d'ouverture) ou "car" (remplissage)
     // Texte d'origine : relevé à chaque découpage (il peut avoir été remplacé entre-temps
     // par le texte enregistré par Obed).
     el.__kboOrigine = el.innerHTML;
@@ -118,11 +120,13 @@
           if (!morceau) return;
           if (/^\s+$/.test(morceau)) { frag.appendChild(document.createTextNode(morceau)); return; }
           var mot = document.createElement("span");
-          mot.className = enLettres ? "mot-ensemble" : "mot-rempli";
+          mot.className = enLettres === "car" ? "mot-car" : (enLettres ? "mot-ensemble" : "mot-rempli");
           if (enLettres) {
             Array.prototype.forEach.call(morceau, function (ch) {
               var l = document.createElement("span");
-              l.className = "lettre"; l.style.setProperty("--n", n++); l.textContent = ch;
+              l.className = enLettres === "car" ? "car" : "lettre";
+              if (enLettres !== "car") l.style.setProperty("--n", n++);
+              l.textContent = ch;
               mot.appendChild(l);
             });
           } else mot.textContent = morceau;
@@ -147,27 +151,54 @@
     h.classList.add("lettres-pret");
   }
 
-  // ---- Titres et grande phrase qui se remplissent mot à mot ----
-  var titres = [];
+  // ---- Titres et grande phrase qui se remplissent lettre à lettre ----
+  // Réglages d'eloquence360 : départ quand le haut du texte est à 80 % de l'écran, fin à 20 % ;
+  // chaque lettre dure 0,7 « temps », la suivante démarre 0,2 temps après ; opacité 0,4 → 1,
+  // décalage −7 px → 0 ; la progression suit le défilement avec ~1 s de lissage (« scrub: 1 »).
+  var titres = [], DUREE = 0.7, DECALAGE = 0.2, LISSAGE = 0.3;
   function preparerTitres() {
     titres = [];
     if (edition) return;
     $$(".titre-rempli, .texte-rempli").forEach(function (h) {
-      var mots = h.querySelector(".mot-rempli") ? $$(".mot-rempli", h) : decouper(h, false);
-      if (mots.length) titres.push({ h: h, mots: mots });
+      if (!h.querySelector(".car")) decouper(h, "car");
+      var cars = $$(".car", h);
+      if (cars.length) titres.push({ h: h, cars: cars, cible: 0, val: -1, faits: [] });
     });
   }
   function majTitres(H) {
-    var bas = H * 0.9, hautZ = H * 0.4;
     titres.forEach(function (t) {
       var r = t.h.getBoundingClientRect();
-      if (r.bottom < 0) return remplir(t, t.mots.length);
-      if (r.top > H) return;
-      var p = Math.min(1, Math.max(0, (bas - r.top) / (bas - hautZ)));
-      remplir(t, Math.round(p * t.mots.length));
+      t.cible = Math.min(1, Math.max(0, (H * 0.8 - r.top) / (H * 0.6)));
+      if (t.val < 0) { t.val = t.cible; dessiner(t); }     // premier affichage : sans attendre
     });
+    if (!animation) { animation = true; dernier = performance.now(); requestAnimationFrame(animerTitres); }
   }
-  function remplir(t, k) { t.mots.forEach(function (m, i) { m.classList.toggle("plein", i < k); }); }
+  var animation = false, dernier = 0;
+  function animerTitres(now) {
+    var dt = Math.min(0.1, (now - dernier) / 1000), encore = false;
+    dernier = now;
+    var k = 1 - Math.exp(-dt / LISSAGE);
+    titres.forEach(function (t) {
+      var ecart = t.cible - t.val;
+      if (Math.abs(ecart) < 0.0005) { if (t.val !== t.cible) { t.val = t.cible; dessiner(t); } return; }
+      t.val += ecart * k; encore = true;
+      dessiner(t);
+    });
+    if (encore) requestAnimationFrame(animerTitres); else animation = false;
+  }
+  function dessiner(t) {
+    var n = t.cars.length, temps = t.val * (DECALAGE * (n - 1) + DUREE);
+    for (var i = 0; i < n; i++) {
+      var x = Math.min(1, Math.max(0, (temps - DECALAGE * i) / DUREE));
+      var e = 1 - (1 - x) * (1 - x);                     // « power1.out »
+      e = Math.round(e * 200) / 200;
+      if (t.faits[i] === e) continue;
+      t.faits[i] = e;
+      var st = t.cars[i].style;
+      if (e >= 1) { st.opacity = ""; st.transform = ""; t.cars[i].classList.add("pleine"); }
+      else { t.cars[i].classList.remove("pleine"); st.opacity = (0.4 + 0.6 * e).toFixed(3); st.transform = "translateX(" + (-7 * (1 - e)).toFixed(2) + "px)"; }
+    }
+  }
 
   // ---- Mouvements liés au défilement ----
   function progression(el, H) {                // 0 quand l'élément entre en bas, 1 quand il sort en haut

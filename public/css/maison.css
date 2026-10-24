@@ -359,6 +359,10 @@
 /* 2. Titres : les mots passent de pâle à plein au fil du défilement */
 .js-effets .mot-rempli{opacity:.22;transition:opacity .4s ease}
 .js-effets .mot-rempli.plein{opacity:1}
+/* Remplissage lettre à lettre (réglé par effets.js à chaque image, en suivant le défilement) */
+.js-effets .mot-car{display:inline-block;white-space:nowrap}
+.js-effets .car{display:inline-block;opacity:.4;transform:translateX(-7px)}
+.js-effets .car.pleine{opacity:1;transform:none}
 /* 3. Titre d'ouverture écrit lettre par lettre */
 .js-effets .lettres-cible{animation:none!important}
 .js-effets .lettres-cible:not(.lettres-pret){visibility:hidden}

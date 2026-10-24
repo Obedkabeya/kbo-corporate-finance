@@ -624,6 +624,34 @@
     return; // do NOT enable admin mode in preview
   }
 
+  // ---- Défilement amorti, comme eloquence360 (ScrollSmoother « smooth: 1.35 ») ----
+  // Lenis (bibliothèque libre, hébergée sur le site) : ordinateur uniquement ; au doigt, le
+  // téléphone garde son défilement naturel. Rien si le visiteur a demandé de réduire les animations.
+  (function () {
+    if (!page || !window.matchMedia) return;
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches || !matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    const sc = document.createElement("script");
+    sc.src = "/js/vendor/lenis-1.1.20.min.js";
+    sc.onload = function () {
+      if (!window.Lenis) return;
+      // Zones qui défilent seules (fenêtres, menus, carrousels) : elles gardent leur défilement.
+      const ZONES = ".kbo-fm, .kbo-ri, .menu-panel, .ije-panneau, .slot-track, .fmt-bar, textarea, select, [data-lenis-prevent]";
+      const lenis = new window.Lenis({
+        duration: 1.35, autoRaf: true, anchors: { offset: -96 },
+        prevent: (node) => node.matches && node.matches(ZONES),
+      });
+      window.KBO.lenis = lenis;
+      // Page bloquée (menu ou fenêtre ouverte) : on arrête l'amorti le temps qu'elle se ferme.
+      const suivre = () => {
+        const bloque = getComputedStyle(document.body).overflowY === "hidden" || getComputedStyle(document.documentElement).overflowY === "hidden";
+        if (bloque) lenis.stop(); else lenis.start();
+      };
+      new MutationObserver(suivre).observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+      // Les blocs qui changent de hauteur après coup (images, vidéos) : Lenis recalcule seul (autoResize).
+    };
+    document.head.appendChild(sc);
+  })();
+
   // ---- Fenêtre « Rester informé » (L'analyse du matin), comme sur eloquence360 ----
   // Après 10 secondes, à chaque visite, pour les visiteurs de L'école seulement ; jamais sur les
   // pages d'inscription, de paiement ou légales. Fermée : plus pendant cette visite ; inscrit : plus jamais.
