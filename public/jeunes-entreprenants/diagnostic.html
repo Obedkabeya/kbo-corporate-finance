@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Demander un diagnostic — {{IJE_NOM}}</title>
   <meta name="description" content="Demande ton diagnostic d'une heure trente : un rapport et un plan d'action pour ton activité." />
-  <link rel="icon" href="/assets/logo/favicon.ico" sizes="16x16 32x32 48x48" />
-  <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png" />
+  <link rel="icon" href="/assets/logo-ije/ije-favicon.ico" sizes="16x16 32x32 48x48 64x64" />
+  <link rel="icon" href="/assets/logo-ije/ije-icone.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/assets/logo-ije/ije-apple-touch-icon.png" />
+  <meta name="kbo-og-image" content="assets/logo-ije/ije-partage-1200x630.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -49,6 +50,7 @@
         </div>
         <div>
           <form class="ije-form" id="ijeDiagnostic" novalidate>
+            <img class="ije-form__logo" src="/assets/logo-ije/logo-ije-clair.svg" alt="{{IJE_NOM}}, by KBO Corporate Finance" width="1449" height="318" onerror="this.onerror=null;this.src='/assets/logo-ije/logo-ije-clair.png'">
             <div class="fields">
               <div class="field"><label for="d_prenom">Prénom <span class="req">*</span></label><input id="d_prenom" name="prenom" type="text" autocomplete="given-name" maxlength="80" required></div>
               <div class="field"><label for="d_nom">Nom <span class="req">*</span></label><input id="d_nom" name="nom" type="text" autocomplete="family-name" maxlength="80" required></div>

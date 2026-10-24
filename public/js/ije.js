@@ -19,11 +19,18 @@
   var liens = MENU.map(function (m) {
     return '<a href="' + m[1] + '"' + (m[0] === ici ? ' class="est-actif" aria-current="page"' : "") + ">" + m[2] + "</a>";
   }).join("");
+  // Logo du pôle (version sombre, pour le bleu nuit) ; sigle seul sur les très petits écrans.
+  // Le PNG reste en secours si le SVG ne peut pas s'afficher.
+  var L = "/assets/logo-ije/";
+  var secours = ' onerror="this.onerror=null;this.src=\'' + L + 'logo-ije-sombre.png\'"';
+  function logo(classe) {
+    return '<span class="ije-logo__images ' + (classe || "") + '">' +
+      '<img class="ije-logo__complet" src="' + L + 'logo-ije-sombre.svg" alt="' + esc(cfg.nom) + ', by KBO Corporate Finance" width="1449" height="318"' + secours + '>' +
+      '<img class="ije-logo__sigle" src="' + L + 'logo-ije-sigle-sombre.svg" alt="" aria-hidden="true" width="555" height="272"></span>';
+  }
   var entete =
     '<header class="ije-entete" id="ijeEntete"><div class="wrap ije-entete__barre">' +
-    '<a class="ije-logo" href="' + P + '" aria-label="' + esc(cfg.nom) + ', accueil">' +
-    '<img src="/assets/logo/kbo-icone-blanc.svg" alt="" width="44" height="44">' +
-    '<span class="ije-logo__texte"><b>' + esc(cfg.nom) + '</b><small>by KBO Corporate Finance</small></span></a>' +
+    '<a class="ije-logo" href="' + P + '" aria-label="' + esc(cfg.nom) + ', accueil">' + logo() + '</a>' +
     '<nav class="ije-nav" aria-label="Menu du pôle">' + liens + "</nav>" +
     '<a class="ije-cta" href="' + P + '/diagnostic">Demander un diagnostic</a>' +
     '<button class="ije-menu-btn" type="button" aria-expanded="false" aria-controls="ijePanneau">Menu</button>' +
@@ -33,8 +40,7 @@
   var pied =
     '<footer class="ije-pied"><div class="wrap">' +
     '<div class="ije-pied__grille">' +
-    '<div><a class="ije-logo" href="' + P + '"><img src="/assets/logo/kbo-icone-blanc.svg" alt="" width="40" height="40">' +
-    '<span class="ije-logo__texte"><b>' + esc(cfg.nom) + '</b><small>by KBO Corporate Finance</small></span></a>' +
+    '<div><a class="ije-logo ije-logo--pied" href="' + P + '" aria-label="' + esc(cfg.nom) + ', accueil">' + logo() + '</a>' +
     '<p class="ije-pied__texte">Structurer, piloter, financer : l\'accompagnement des jeunes qui font déjà quelque chose de leurs mains.</p></div>' +
     '<div><h3>Le pôle</h3><ul><li><a href="' + P + '/parcours">Le parcours</a></li><li><a href="' + P + '/offres">Nos offres</a></li>' +
     '<li><a href="' + P + '/partenaires">Partenaires</a></li></ul></div>' +

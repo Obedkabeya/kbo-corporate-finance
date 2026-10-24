@@ -55,6 +55,7 @@ PUBLIC_DIR = os.path.join(ROOT, "public")
 DATA_DIR = os.environ.get("KBO_DATA_DIR", "").strip() or os.path.join(ROOT, "data")
 UPLOAD_DIR = os.path.join(PUBLIC_DIR, "images", "uploads")   # base64 photo uploads (compat)
 MEDIA_DIR = os.path.join(PUBLIC_DIR, "uploads")              # media library (images + vidéos)
+VIDEO_CACHE_DIR = os.path.join(DATA_DIR, "cache-videos")      # vidéos de la base, copiées sur disque pour la lecture
 ARTICLES_FILE = os.path.join(DATA_DIR, "articles.json")
 SUBMISSIONS_FILE = os.path.join(DATA_DIR, "submissions.json")
 SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
@@ -986,11 +987,11 @@ def _entete_email(base):
         'KBO Corporate Finance</td></tr></table>')
 
 
-def _email_html(body):
+def _email_html(body, entete=None):
     """Version HTML d'un e-mail : le logo KBO (image PNG, car beaucoup de
     messageries n'affichent pas le SVG) au-dessus du même texte. Sans adresse
     publique du site, l'image ne serait pas joignable : on n'envoie alors que
-    le texte."""
+    le texte. `entete(base)` remplace l'en-tête KBO (ex. logo d'un pôle)."""
     base = _public_url()
     if not base:
         return None
@@ -1004,19 +1005,19 @@ def _email_html(body):
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F3F4F6">'
         '<tr><td align="center" style="padding:28px 12px">'
         '<table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#FFFFFF">'
-        '<tr><td style="padding:20px 32px 16px;border-bottom:1px solid #DCDFE5">' + _entete_email(base) + '</td></tr>'
+        '<tr><td style="padding:20px 32px 16px;border-bottom:1px solid #DCDFE5">' + (entete or _entete_email)(base) + '</td></tr>'
         '<tr><td style="padding:24px 32px 30px;font:15px/1.6 Arial,Helvetica,sans-serif;color:#14161C">'
         + paras + '</td></tr></table></td></tr></table></body></html>')
 
 
-def _send_via_brevo(api_key, from_email, from_name, to_addr, subject, body, reply_to=None):
+def _send_via_brevo(api_key, from_email, from_name, to_addr, subject, body, reply_to=None, entete=None):
     payload = {
         "sender": {"name": from_name, "email": from_email},
         "to": [{"email": to_addr}],
         "subject": subject,
         "textContent": body,
     }
-    html = _email_html(body)
+    html = _email_html(body, entete)
     if html:
         payload["htmlContent"] = html
     if reply_to:
@@ -1026,14 +1027,14 @@ def _send_via_brevo(api_key, from_email, from_name, to_addr, subject, body, repl
     return ok, ("envoyé (Brevo)" if ok else "erreur Brevo : " + detail)
 
 
-def _send_via_sendgrid(api_key, from_email, from_name, to_addr, subject, body, reply_to=None):
+def _send_via_sendgrid(api_key, from_email, from_name, to_addr, subject, body, reply_to=None, entete=None):
     payload = {
         "personalizations": [{"to": [{"email": to_addr}]}],
         "from": {"email": from_email, "name": from_name},
         "subject": subject,
         "content": [{"type": "text/plain", "value": body}],
     }
-    html = _email_html(body)
+    html = _email_html(body, entete)
     if html:
         payload["content"].append({"type": "text/html", "value": html})
     if reply_to:
@@ -1067,7 +1068,7 @@ class _SMTP_IPv4(smtplib.SMTP):
         return socket.create_connection((ip, port), timeout, getattr(self, "source_address", None))
 
 
-def _send_via_smtp(e, from_email, to_addr, subject, body, reply_to=None):
+def _send_via_smtp(e, from_email, to_addr, subject, body, reply_to=None, entete=None):
     host = e["smtp_host"] or "smtp.gmail.com"
     try:
         port = int(e["smtp_port"] or 465)
@@ -1081,7 +1082,7 @@ def _send_via_smtp(e, from_email, to_addr, subject, body, reply_to=None):
         if reply_to:
             msg["Reply-To"] = reply_to
         msg.set_content(body)
-        html = _email_html(body)
+        html = _email_html(body, entete)
         if html:
             msg.add_alternative(html, subtype="html")
         context = ssl.create_default_context()
@@ -1103,7 +1104,7 @@ def _send_via_smtp(e, from_email, to_addr, subject, body, reply_to=None):
         return False, "erreur SMTP (port %d) : %s" % (port, exc)
 
 
-def _send_email(to_addr, subject, body, reply_to=None):
+def _send_email(to_addr, subject, body, reply_to=None, entete=None):
     """Envoie un e-mail. Renvoie (envoyé: bool, détail: str).
     Priorité : votre boîte e-mail directe (SMTP, ex. Gmail) → Brevo → SendGrid.
     Le choix explicite de l'administrateur passe donc AVANT tout le reste.
@@ -1112,21 +1113,21 @@ def _send_email(to_addr, subject, body, reply_to=None):
     from_email = e["from"] or _get_settings().get("email", "")
     from_name = e["from_name"]
     if e["smtp_host"] and e["smtp_user"] and e["smtp_pass"]:
-        ok, detail = _send_via_smtp(e, from_email, to_addr, subject, body, reply_to)
+        ok, detail = _send_via_smtp(e, from_email, to_addr, subject, body, reply_to, entete)
         if ok:
             return True, detail
         # Si la boîte directe échoue (hébergeur qui bloque le SMTP), on tente
         # un service de secours éventuellement configuré, plutôt que d'échouer.
         if e["brevo"]:
-            return _send_via_brevo(e["brevo"], from_email, from_name, to_addr, subject, body, reply_to)
+            return _send_via_brevo(e["brevo"], from_email, from_name, to_addr, subject, body, reply_to, entete)
         if e["sendgrid"]:
-            return _send_via_sendgrid(e["sendgrid"], from_email, from_name, to_addr, subject, body, reply_to)
+            return _send_via_sendgrid(e["sendgrid"], from_email, from_name, to_addr, subject, body, reply_to, entete)
         return False, detail
     if e["brevo"]:
         return _send_via_brevo(e["brevo"], from_email, from_name, to_addr, subject, body,
-                               reply_to or e["reply_to"])
+                               reply_to or e["reply_to"], entete)
     if e["sendgrid"]:
-        return _send_via_sendgrid(e["sendgrid"], from_email, from_name, to_addr, subject, body, reply_to)
+        return _send_via_sendgrid(e["sendgrid"], from_email, from_name, to_addr, subject, body, reply_to, entete)
     return False, ("Aucune adresse e-mail configurée. Renseignez votre adresse et "
                    "votre mot de passe d'application dans « Compte & e-mail ».")
 
@@ -1151,6 +1152,174 @@ def _save_upload(data_url):
     rel = "images/uploads/%s" % name
     _store_upload(rel, raw, CONTENT_TYPES.get(ext, "image/jpeg"), os.path.join(UPLOAD_DIR, name))
     return rel, None
+
+
+# ---- Médias : image OU vidéo dans chaque emplacement d'image ----
+# Une valeur est soit un chemin d'image (ancien format, toujours accepté),
+# soit un objet {"type": "image"|"video", ...}. Pour une vidéo :
+#   source « fichier » (MP4 envoyé), « youtube » ou « vimeo » ; src = chemin ou identifiant ;
+#   poster = image d'aperçu (obligatoire) ; mode « fond » (muet, en boucle) ou « lecteur » ;
+#   alt = texte alternatif ; titre = titre (obligatoire en mode lecteur).
+_CHEMIN_MEDIA = re.compile(r"^/?[A-Za-z0-9_][A-Za-z0-9_./-]*$")
+_ID_YOUTUBE = re.compile(r"^[A-Za-z0-9_-]{11}$")
+_ID_VIMEO = re.compile(r"^\d{5,12}(/[0-9a-f]{6,20})?$")
+
+
+def _chemin_media(v):
+    v = _clean(v, 500)
+    return v if (v and ".." not in v and _CHEMIN_MEDIA.match(v)) else ""
+
+
+def _clean_media(v):
+    """Valide un média envoyé par l'administration. Renvoie (valeur, erreur)."""
+    if isinstance(v, str):
+        p = _chemin_media(v)
+        return (p, None) if p else (None, "Chemin d'image invalide.")
+    if not isinstance(v, dict):
+        return None, "Média invalide."
+    alt = _clean(v.get("alt"), 300)
+    if v.get("type") == "image":
+        src = _chemin_media(v.get("src"))
+        if not src:
+            return None, "Choisissez une image."
+        return {"type": "image", "src": src, "alt": alt}, None
+    if v.get("type") != "video":
+        return None, "Type de média inconnu."
+    source = v.get("source")
+    src = _clean(v.get("src"), 500)
+    if source == "fichier":
+        src = _chemin_media(src)
+        if not src or os.path.splitext(src)[1].lower() not in (".mp4", ".webm", ".m4v", ".mov"):
+            return None, "Envoyez d'abord le fichier vidéo (MP4)."
+    elif source == "youtube":
+        if not _ID_YOUTUBE.match(src):
+            return None, "Lien YouTube non reconnu."
+    elif source == "vimeo":
+        if not _ID_VIMEO.match(src):
+            return None, "Lien Vimeo non reconnu."
+    else:
+        return None, "Choisissez la source de la vidéo."
+    poster = _chemin_media(v.get("poster"))
+    if not poster:
+        return None, "L'image d'aperçu est obligatoire."
+    mode = v.get("mode") if v.get("mode") in ("fond", "lecteur") else "fond"
+    titre = _clean(v.get("titre"), 160)
+    if not alt:
+        return None, "Écrivez un texte alternatif (une phrase qui décrit la vidéo)."
+    if mode == "lecteur" and not titre:
+        return None, "Donnez un titre à la vidéo (mode lecteur)."
+    return {"type": "video", "source": source, "src": src, "poster": poster, "mode": mode,
+            "alt": alt, "titre": titre}, None
+
+
+# Compression des vidéos envoyées : une à la fois (le serveur n'a qu'un processeur),
+# en tâche de fond. 720p au plus (côté court), son coupé pour les vidéos de fond,
+# lecture rapide sur le web (faststart), et une image d'aperçu tirée de la vidéo.
+VIDEO_MAX_COTE = 720
+VIDEO_LONGUE_S = 120              # au-delà : on conseille YouTube « non répertorié »
+_COMPRESSIONS = {}
+_COMPRESSION_VERROU = threading.Semaphore(1)
+
+
+def _ffmpeg():
+    import shutil
+    return os.environ.get("KBO_FFMPEG", "").strip() or shutil.which("ffmpeg")
+
+
+def _lire_upload(rel):
+    """Octets d'un fichier téléversé (base de données ou disque)."""
+    if DB_ENABLED:
+        hit = _file_get(rel)
+        return hit[0] if hit else None
+    fp = os.path.join(PUBLIC_DIR, rel)
+    if os.path.isfile(fp):
+        with open(fp, "rb") as f:
+            return f.read()
+    return None
+
+
+def _supprimer_upload(rel):
+    name = os.path.basename(rel)
+    if DB_ENABLED:
+        try:
+            _file_delete(rel)
+        except Exception:
+            pass
+    else:
+        try:
+            os.remove(os.path.join(PUBLIC_DIR, rel))
+        except OSError:
+            pass
+    try:
+        os.remove(os.path.join(VIDEO_CACHE_DIR, name))
+    except OSError:
+        pass
+    _write_json(MEDIA_FILE, [m for m in _read_json(MEDIA_FILE, []) if m.get("path") != rel])
+
+
+def _ajouter_media(rel, kind, size, titre):
+    media = _read_json(MEDIA_FILE, [])
+    media.append({"name": os.path.basename(rel), "path": rel, "kind": kind, "size": size,
+                  "title": _clean(titre, 160), "added": datetime.utcnow().isoformat() + "Z"})
+    _write_json(MEDIA_FILE, media)
+
+
+def _compresser_video(job_id, rel, mode):
+    import subprocess
+    import tempfile
+    job = _COMPRESSIONS[job_id]
+    with _COMPRESSION_VERROU:
+        job["etat"] = "en_cours"
+        dossier = tempfile.mkdtemp(prefix="kbo-video-")
+        try:
+            data = _lire_upload(rel)
+            if data is None:
+                raise RuntimeError("fichier introuvable")
+            entree = os.path.join(dossier, "entree" + os.path.splitext(rel)[1])
+            sortie = os.path.join(dossier, "sortie.mp4")
+            image = os.path.join(dossier, "apercu.jpg")
+            with open(entree, "wb") as f:
+                f.write(data)
+            avant = len(data)
+            del data
+            c = VIDEO_MAX_COTE
+            echelle = ("scale='if(gt(iw,ih),-2,min(%d,iw))':'if(gt(iw,ih),min(%d,ih),-2)'" % (c, c))
+            cmd = [_ffmpeg(), "-hide_banner", "-y", "-i", entree, "-vf", echelle, "-fpsmax", "30",
+                   "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p",
+                   "-movflags", "+faststart"]
+            cmd += ["-an"] if mode == "fond" else ["-c:a", "aac", "-b:a", "128k", "-ac", "2"]
+            import shutil
+            if shutil.which("nice"):        # priorité basse : le site reste rapide pendant la compression
+                cmd = ["nice", "-n", "10"] + cmd
+            r = subprocess.run(cmd + [sortie], capture_output=True, timeout=1800)
+            if r.returncode != 0 or not os.path.isfile(sortie):
+                raise RuntimeError("compression impossible (%s)" % r.stderr.decode("utf-8", "ignore")[-300:])
+            m = re.search(r"Duration: (\d+):(\d+):(\d+\.?\d*)", r.stderr.decode("utf-8", "ignore"))
+            duree = (int(m.group(1)) * 3600 + int(m.group(2)) * 60 + float(m.group(3))) if m else 0
+            subprocess.run([_ffmpeg(), "-hide_banner", "-y", "-ss", "0.5" if duree > 1 else "0", "-i", sortie,
+                            "-frames:v", "1", "-q:v", "3", image], capture_output=True, timeout=120)
+            nom = "video-%s.mp4" % uuid.uuid4().hex[:10]
+            with open(sortie, "rb") as f:
+                video = f.read()
+            _store_upload("uploads/" + nom, video, "video/mp4", os.path.join(MEDIA_DIR, nom))
+            _ajouter_media("uploads/" + nom, "video", len(video), job.get("titre") or nom)
+            poster = ""
+            if os.path.isfile(image):
+                nom_image = "image-%s.jpg" % uuid.uuid4().hex[:10]
+                with open(image, "rb") as f:
+                    octets = f.read()
+                _store_upload("uploads/" + nom_image, octets, "image/jpeg", os.path.join(MEDIA_DIR, nom_image))
+                _ajouter_media("uploads/" + nom_image, "image", len(octets), "Aperçu de " + (job.get("titre") or nom))
+                poster = "uploads/" + nom_image
+            _supprimer_upload(rel)          # l'original, trop lourd, n'est plus utile
+            job.update(etat="pret", path="uploads/" + nom, poster=poster, avant=avant, apres=len(video),
+                       duree=round(duree, 1), longue=duree > VIDEO_LONGUE_S)
+        except Exception as exc:  # noqa: BLE001
+            job.update(etat="erreur", erreur=str(exc)[:400])
+            print("  [vidéo] échec de compression : %s" % exc, flush=True)
+        finally:
+            import shutil
+            shutil.rmtree(dossier, ignore_errors=True)
 
 
 def _store_upload(rel_path, data, mime, disk_path):
@@ -1899,6 +2068,7 @@ class Handler(BaseHTTPRequestHandler):
             "default-src 'self'; "
             "img-src 'self' data: blob:; "
             "media-src 'self' blob:; "
+            "frame-src https://www.youtube-nocookie.com https://player.vimeo.com; "
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com; "
             "script-src 'self' 'unsafe-inline'; "
@@ -2116,6 +2286,12 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/slides":
             return self._send_json(_read_json(SLIDES_FILE, {}))
 
+        if path == "/api/media/compresser":
+            if not self._is_admin():
+                return self._send_json({"error": "Non autorisé"}, 401)
+            job = _COMPRESSIONS.get((parse_qs(urlparse(self.path).query).get("id") or [""])[0])
+            return self._send_json(job or {"etat": "inconnu"}, 200 if job else 404)
+
         if path == "/api/mailconfig":  # admin only, never exposes any secret
             if not self._is_admin():
                 return self._send_json({"error": "Non autorisé"}, 401)
@@ -2260,6 +2436,9 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/api/slides":
             return self._save_slides()
+
+        if path == "/api/media/compresser":
+            return self._lancer_compression()
 
         if path == "/api/admin/password":
             return self._change_password()
@@ -3329,16 +3508,20 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_json({"error": "Non autorisé"}, 401)
         data = self._read_body()
         key = _clean(data.get("key"), 300)
-        path = _clean(data.get("path"), 500)
         if not key:
             return self._send_json({"error": "Clé manquante"}, 400)
+        valeur = data.get("media") or _clean(data.get("path"), 500)
+        if valeur:
+            valeur, err = _clean_media(valeur)
+            if err:
+                return self._send_json({"error": err}, 400)
         imgs = _read_json(IMGCONTENT_FILE, {})
         if not isinstance(imgs, dict):
             imgs = {}
-        if not path:
+        if not valeur:
             imgs.pop(key, None)             # revient à l'image d'origine
         else:
-            imgs[key] = path
+            imgs[key] = valeur
         _write_json(IMGCONTENT_FILE, imgs)
         return self._send_json({"ok": True})
 
@@ -3354,9 +3537,10 @@ class Handler(BaseHTTPRequestHandler):
         clean = []
         if isinstance(paths, list):
             for p in paths[:30]:
-                cp = _clean(p, 500)
-                if cp:
-                    clean.append(cp)
+                cp, err = _clean_media(p)
+                if err:
+                    return self._send_json({"error": err}, 400)
+                clean.append(cp)
         slides = _read_json(SLIDES_FILE, {})
         if not isinstance(slides, dict):
             slides = {}
@@ -3366,6 +3550,27 @@ class Handler(BaseHTTPRequestHandler):
             slides.pop(key, None)           # vide → revient à l'image par défaut
         _write_json(SLIDES_FILE, slides)
         return self._send_json({"ok": True, "paths": clean})
+
+    def _lancer_compression(self):
+        """Compresse en tâche de fond une vidéo qui vient d'être envoyée."""
+        if not self._is_admin():
+            return self._send_json({"error": "Non autorisé"}, 401)
+        data = self._read_body() or {}
+        rel = _chemin_media(data.get("path"))
+        if not rel.startswith("uploads/video-"):
+            return self._send_json({"error": "Vidéo introuvable."}, 400)
+        if not _ffmpeg():
+            # Sans outil de compression, la vidéo reste telle quelle.
+            return self._send_json({"etat": "pret", "path": rel, "poster": "", "sans_compression": True})
+        for j in _COMPRESSIONS.values():
+            if j.get("source") == rel and j.get("etat") in ("attente", "en_cours"):
+                return self._send_json(j)
+        job_id = uuid.uuid4().hex[:12]
+        _COMPRESSIONS[job_id] = {"id": job_id, "etat": "attente", "source": rel,
+                                 "titre": _clean(data.get("titre"), 160)}
+        threading.Thread(target=_compresser_video, args=(job_id, rel, "fond" if data.get("mode") == "fond" else "lecteur"),
+                         daemon=True).start()
+        return self._send_json(_COMPRESSIONS[job_id], 202)
 
     def _login(self):
         """Authentifie le propriétaire et ouvre une session (cookie HttpOnly)."""
@@ -3477,7 +3682,8 @@ class Handler(BaseHTTPRequestHandler):
         if length <= 0:
             return self._send_json({"error": "Fichier vide."}, 400)
         if length > MAX_MEDIA_BYTES:
-            return self._send_json({"error": "Fichier trop lourd (max 200 Mo)."}, 413)
+            return self._send_json({"error": "Fichier trop lourd (200 Mo au maximum). Pour une vidéo longue, "
+                                             "mettez-la sur YouTube en « non répertorié » et collez son lien."}, 413)
 
         orig = self.headers.get("X-Filename", "fichier")
         ext = os.path.splitext(orig)[1].lower()
@@ -3549,6 +3755,10 @@ class Handler(BaseHTTPRequestHandler):
                     os.remove(fp)
             except OSError:
                 pass
+        try:
+            os.remove(os.path.join(VIDEO_CACHE_DIR, name))
+        except OSError:
+            pass
         _write_json(MEDIA_FILE, remaining)
         return self._send_json({"ok": True})
 
@@ -3726,6 +3936,9 @@ class Handler(BaseHTTPRequestHandler):
         # Fichiers téléversés : servis depuis PostgreSQL en production
         # (le disque de Railway est éphémère).
         if DB_ENABLED and (rel.startswith("uploads/") or rel.startswith("images/uploads/")):
+            copie = os.path.join(VIDEO_CACHE_DIR, os.path.basename(rel))
+            if rel.startswith("uploads/video-") and os.path.isfile(copie):
+                return self._serve_ranged(copie, CONTENT_TYPES.get(os.path.splitext(rel)[1].lower(), "video/mp4"))
             try:
                 hit = _file_get(rel)
             except Exception:
@@ -3733,7 +3946,16 @@ class Handler(BaseHTTPRequestHandler):
             if hit is not None:
                 data, mime = hit
                 if os.path.splitext(rel)[1].lower() in (".mp4", ".webm", ".mov", ".m4v"):
-                    return self._serve_bytes_ranged(data, mime)
+                    copie = os.path.join(VIDEO_CACHE_DIR, os.path.basename(rel))
+                    try:
+                        os.makedirs(VIDEO_CACHE_DIR, exist_ok=True)
+                        tmp = copie + ".tmp-" + uuid.uuid4().hex[:6]
+                        with open(tmp, "wb") as f:
+                            f.write(data)
+                        os.replace(tmp, copie)
+                        return self._serve_ranged(copie, mime)
+                    except OSError:
+                        return self._serve_bytes_ranged(data, mime)
                 return self._send_bytes(data, mime, cache=True)
 
         status = 200

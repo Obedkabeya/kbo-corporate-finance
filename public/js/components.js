@@ -261,7 +261,7 @@
     document.querySelectorAll(EDIT_SELECTOR + ",[data-text]").forEach(el => {
       if (el.hasAttribute("data-noedit")) return;
       if (el.querySelector(EDIT_SELECTOR + ",[data-text]")) return;  // only leaf text blocks
-      const inChrome = el.closest(".site-header, .site-footer, form, .admin-bar, .preview-bar");
+      const inChrome = el.closest(".site-header, .site-footer, form, .admin-bar, .preview-bar, .kbo-fm");
       if (inChrome && !el.hasAttribute("data-text")) return;         // skip nav/footer chrome
       if (!el.textContent.trim()) return;
       set.add(el);
@@ -293,7 +293,7 @@
     const out = [];
     document.querySelectorAll("section img").forEach(img => {
       if (img.hasAttribute("data-noedit")) return;
-      if (img.closest(".site-header, .site-footer, .admin-bar, #blogGrid, #galleryGrid")) return;
+      if (img.closest(".site-header, .site-footer, .admin-bar, .kbo-fm, #blogGrid, #galleryGrid")) return;
       if (img.closest("[data-slot]")) return;                    // géré par le système de slots
       out.push(img);
     });
@@ -310,7 +310,157 @@
     editableImages().forEach(img => {
       const info = imageKey(img);
       if (info.kind !== "img") return;                          // photo/bio via settings
-      if (Object.prototype.hasOwnProperty.call(map, info.key)) img.src = map[info.key];
+      if (Object.prototype.hasOwnProperty.call(map, info.key)) appliquerMedia(img, map[info.key]);
+    });
+  }
+
+  // ---- Médias : une image OU une vidéo dans chaque emplacement d'image ----
+  // L'<img> d'origine reste en place et sert d'image d'aperçu : le cadre, le
+  // format et les effets ne changent pas. La vidéo se pose par-dessus, sur la
+  // même surface, et ne se charge que lorsqu'elle arrive à l'écran.
+  // Valeur : chemin d'image (ancien format) ou objet {type:"image"|"video", …}.
+  function cheminAbsolu(p) { return !p || /^(https?:)?\/|^data:|^blob:/.test(p) ? p : "/" + p; }
+  function normMedia(v) {
+    if (!v) return null;
+    if (typeof v === "string") {
+      return isVideoPath(v) ? { type: "video", source: "fichier", src: v, poster: "", mode: "fond", alt: "" }
+                            : { type: "image", src: v, alt: "" };
+    }
+    return v;
+  }
+  const reduitMouvement = window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
+  function connexionEconome() {
+    const c = navigator.connection;
+    return !!(c && (c.saveData || /(^|-)2g$/.test(c.effectiveType || "")));
+  }
+  function lienVideo(m, fond) {
+    if (m.source === "youtube") {
+      const u = "https://www.youtube-nocookie.com/embed/" + m.src + "?autoplay=1&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3";
+      return fond ? u + "&mute=1&loop=1&controls=0&disablekb=1&enablejsapi=1&playlist=" + m.src +
+                    "&origin=" + encodeURIComponent(location.origin) : u;
+    }
+    const p = String(m.src).split("/");
+    const u = "https://player.vimeo.com/video/" + p[0] + "?autoplay=1&dnt=1" + (p[1] ? "&h=" + p[1] : "");
+    return fond ? u + "&background=1&muted=1&loop=1" : u;
+  }
+  function elementVideo(m, fond, couche) {
+    let el;
+    if (m.source === "fichier") {
+      el = document.createElement("video");
+      el.playsInline = true; el.setAttribute("playsinline", "");
+      el.src = cheminAbsolu(m.src);
+      el.style.objectPosition = couche.__pos || "";
+      if (fond) {
+        el.muted = true; el.setAttribute("muted", ""); el.loop = true; el.autoplay = true;
+        el.preload = "auto"; el.tabIndex = -1; el.setAttribute("aria-hidden", "true"); el.disablePictureInPicture = true;
+        el.addEventListener("playing", () => couche.classList.add("est-pret"), { once: true });
+      } else {
+        el.controls = true; el.autoplay = true; el.preload = "auto";
+        if (m.titre) el.title = m.titre;
+      }
+    } else {
+      el = document.createElement("iframe");
+      el.src = lienVideo(m, fond);
+      el.title = m.titre || m.alt || "Vidéo";
+      el.setAttribute("allow", "autoplay; fullscreen; picture-in-picture; encrypted-media");
+      el.setAttribute("allowfullscreen", "");
+      if (fond) { el.tabIndex = -1; el.setAttribute("aria-hidden", "true"); }
+      // Le temps que le lecteur démarre, on garde l'image d'aperçu. YouTube affiche
+      // quelques secondes son titre au début de la lecture, même sans contrôles :
+      // on attend qu'il annonce « lecture en cours », puis encore 3 secondes.
+      const pret = () => couche.classList.add("est-pret");
+      if (fond && m.source === "youtube") {
+        const ecoute = e => {
+          if (e.source !== el.contentWindow) return;
+          let d; try { d = JSON.parse(e.data); } catch (err) { return; }
+          const st = d && (d.event === "onStateChange" ? d.info : d.info && d.info.playerState);
+          if (st === 1) { window.removeEventListener("message", ecoute); setTimeout(pret, 3000); }
+        };
+        window.addEventListener("message", ecoute);
+        el.addEventListener("load", () => {
+          el.contentWindow.postMessage(JSON.stringify({ event: "listening", id: 1, channel: "widget" }), "*");
+          setTimeout(pret, 12000);              // au cas où le lecteur ne répond pas
+        });
+      } else {
+        el.addEventListener("load", () => setTimeout(pret, fond ? 1200 : 0));
+      }
+    }
+    return el;
+  }
+  const observateur = "IntersectionObserver" in window ? new IntersectionObserver(entrees => {
+    entrees.forEach(e => (e.isIntersecting ? activerFond(e.target) : pauseFond(e.target)));
+  }, { rootMargin: "250px 0px" }) : null;
+
+  function activerFond(img) {
+    const m = img.__kboMedia, c = img.__kboCouche;
+    if (!m || !c || m.mode !== "fond") return;
+    if (reduitMouvement.matches || connexionEconome()) return;   // on garde l'image d'aperçu
+    if (!c.__video) { c.__video = elementVideo(m, true, c); c.appendChild(c.__video); }
+    else if (c.__video.play) c.__video.play().catch(() => {});
+  }
+  function pauseFond(img) {
+    const c = img.__kboCouche;
+    if (c && c.__video && c.__video.pause && img.__kboMedia && img.__kboMedia.mode === "fond") c.__video.pause();
+  }
+  function lancerLecteur(img) {
+    const m = img.__kboMedia, c = img.__kboCouche;
+    if (!m || !c) return;
+    c.innerHTML = "";
+    c.classList.add("est-lance", "est-pret");
+    c.__video = elementVideo(m, false, c);
+    c.appendChild(c.__video);
+    if (c.__video.play) c.__video.play().catch(() => {});
+  }
+  function retirerVideo(img) {
+    if (img.__kboCouche) { img.__kboCouche.remove(); img.__kboCouche = null; }
+    if (observateur) observateur.unobserve(img);
+    img.__kboMedia = null;
+  }
+  function preparerVideo(img, m) {
+    retirerVideo(img);
+    if (!m || m.type !== "video") return;
+    const parent = img.parentElement;
+    if (!parent) return;
+    if (getComputedStyle(parent).position === "static") parent.style.position = "relative";
+    const c = document.createElement("span");
+    c.className = "kbo-media__couche kbo-media__couche--" + (m.mode === "lecteur" ? "lecteur" : "fond");
+    const cs = getComputedStyle(img);
+    c.style.borderRadius = cs.borderRadius;
+    if (cs.filter && cs.filter !== "none") c.style.filter = cs.filter;
+    c.__pos = cs.objectPosition;
+    img.insertAdjacentElement("afterend", c);
+    img.__kboMedia = m; img.__kboCouche = c;
+    if (m.mode === "lecteur") {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "kbo-media__lire";
+      b.setAttribute("aria-label", "Lire la vidéo : " + (m.titre || m.alt || ""));
+      b.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.5v13l10.5-6.5z"/></svg>';
+      b.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); lancerLecteur(img); });
+      c.appendChild(b);
+      return;
+    }
+    if (observateur) observateur.observe(img); else activerFond(img);
+  }
+  // Applique une valeur (ou null : retour à l'image d'origine) sur une image du site.
+  function appliquerMedia(img, v) {
+    if (!img.__orig) {
+      img.__orig = { src: img.getAttribute("src"), srcset: img.getAttribute("srcset"),
+                     sizes: img.getAttribute("sizes"), alt: img.getAttribute("alt") };
+    }
+    const o = img.__orig;
+    const remettre = (attr, val) => (val == null ? img.removeAttribute(attr) : img.setAttribute(attr, val));
+    const m = normMedia(v);
+    img.__kboValeur = v || null;
+    const src = !m ? o.src : cheminAbsolu(m.type === "video" ? (m.poster || o.src) : m.src);
+    if (src === o.src) { remettre("src", o.src); remettre("srcset", o.srcset); remettre("sizes", o.sizes); }
+    else { img.removeAttribute("srcset"); img.removeAttribute("sizes"); img.setAttribute("src", src); }
+    remettre("alt", (m && m.alt) || o.alt);
+    preparerVideo(img, m && m.type === "video" ? m : null);
+  }
+  function hydraterMedias(racine) {
+    (racine || document).querySelectorAll("img[data-kbo-media]").forEach(img => {
+      if (img.__kboMedia) return;
+      try { preparerVideo(img, JSON.parse(img.getAttribute("data-kbo-media"))); } catch (e) { /* valeur illisible : l'image reste */ }
     });
   }
 
@@ -321,7 +471,16 @@
   // Un emplacement peut contenir une image OU une vidéo (ou plusieurs, en
   // carrousel). On détecte la vidéo à l'extension du fichier.
   function isVideoPath(p) { return /\.(mp4|webm|mov|m4v)(\?|#|$)/i.test(p || ""); }
-  function mediaTag(p, lazy, alt) {
+  function attrEsc(t) { return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+  function mediaTag(v, lazy, alt) {
+    const m = normMedia(v);
+    if (m && typeof v !== "string") {
+      const txt = attrEsc(m.alt || alt || "ceci est une image du site");
+      if (m.type === "image") return '<img src="' + attrEsc(cheminAbsolu(m.src)) + '" alt="' + txt + '"' + (lazy ? ' loading="lazy"' : "") + ">";
+      return '<span class="slot-item"><img src="' + attrEsc(cheminAbsolu(m.poster)) + '" alt="' + txt + '"' + (lazy ? ' loading="lazy"' : "") +
+        ' data-kbo-media="' + attrEsc(JSON.stringify(m)) + '"></span>';
+    }
+    const p = v;
     if (isVideoPath(p)) {
       return '<video src="' + p + '" muted loop autoplay playsinline preload="metadata"' +
         (lazy ? ' loading="lazy"' : "") + '></video>';
@@ -346,11 +505,13 @@
     }
     if (list.length === 1) {
       slot.innerHTML = mediaTag(list[0], false, alt);
+      hydraterMedias(slot);
       return;
     }
     const media = list.map(p => mediaTag(p, true, alt)).join("");
     const dots = list.map((_, i) => '<button type="button" class="slot-dot' + (i === 0 ? " is-on" : "") + '" data-i="' + i + '" aria-label="Média ' + (i + 1) + '"></button>').join("");
     slot.innerHTML = '<div class="slot-carousel"><div class="slot-track">' + media + '</div><div class="slot-dots">' + dots + '</div></div>';
+    hydraterMedias(slot);
     wireSlotCarousel(slot);
   }
   function wireSlotCarousel(slot) {
@@ -396,6 +557,9 @@
   window.KBO.editableImages = editableImages;
   window.KBO.imageKey = imageKey;
   window.KBO.renderSlot = renderSlot;
+  window.KBO.appliquerMedia = appliquerMedia;
+  window.KBO.normMedia = normMedia;
+  window.KBO.cheminAbsolu = cheminAbsolu;
 
   fetch("/api/settings")
     .then(r => (r.ok ? r.json() : null))

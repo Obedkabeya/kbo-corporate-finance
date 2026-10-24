@@ -460,10 +460,18 @@ def _demande_diagnostic(h):
     lignes += ["", "Le détail est dans l'espace administrateur, onglet « Jeunes Entreprenants »."]
     try:
         S["_send_email"](S["_get_settings"]()["email"], "%s — nouvelle demande de diagnostic (%s %s)" % (
-            c["sigle"], demande["prenom"], demande["nom"]), "\n".join(lignes), reply_to=demande.get("email") or None)
+            c["sigle"], demande["prenom"], demande["nom"]), "\n".join(lignes), reply_to=demande.get("email") or None,
+            entete=_entete_email)
     except Exception as e:  # noqa: BLE001
         print("  [IJE] e-mail non envoyé : %s" % e, flush=True)
     return h._send_json({"ok": True})
+
+
+def _entete_email(base):
+    """En-tête des e-mails du pôle : son logo (PNG, lu par toutes les messageries)."""
+    return ('<img src="' + base + '/assets/logo-ije/logo-ije-email-600.png" width="260" height="68" '
+            'alt="' + _esc(config()["nom"]) + ', by KBO Corporate Finance" '
+            'style="display:block;border:0;width:260px;height:auto">')
 
 
 def _demande_partenaire(h):
@@ -493,7 +501,7 @@ def _demande_partenaire(h):
                           ("telephone", "Téléphone"), ("message", "Message"))])
     try:
         S["_send_email"](S["_get_settings"]()["email"], "%s — demande partenaire (%s)" % (c["sigle"], demande["organisation"]),
-                         texte, reply_to=demande["email"])
+                         texte, reply_to=demande["email"], entete=_entete_email)
     except Exception as e:  # noqa: BLE001
         print("  [IJE] e-mail non envoyé : %s" % e, flush=True)
     return h._send_json({"ok": True})
