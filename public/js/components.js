@@ -16,7 +16,7 @@
   ];
   // Design « La Maison » : le menu comprend aussi L'analyse du matin.
   if (document.body.classList.contains("maison")) {
-    links.splice(3, 0, { href: "analyse-du-matin", label: "L'analyse du matin", key: "analyse" });
+    links.splice(3, 0, { href: "/analyse-du-matin", label: "L'analyse du matin", key: "analyse" });
   }
 
   // Logo officiel v2 (assets/logo/, même famille que le logo IJE) : version claire, et version
@@ -615,7 +615,7 @@
     // Keep the visitor flag while navigating within the preview.
     document.addEventListener("click", (e) => {
       const a = e.target.closest && e.target.closest('a[href]');
-      if (!a) return;
+      if (!a || e.defaultPrevented) return;
       const href = a.getAttribute("href");
       if (!href || /^(https?:|mailto:|tel:|#)/.test(href) || a.target === "_blank" || href.indexOf("/admin") === 0) return;
       if (/[?&]visitor=1/.test(href)) return;

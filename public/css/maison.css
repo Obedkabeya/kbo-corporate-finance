@@ -396,3 +396,13 @@
   .js-tot .a-hero__titre:not(.lettres-pret),.js-tot .p-hero__titre:not(.lettres-pret),.js-tot .page-head h1:not(.lettres-pret){visibility:hidden;animation:kbo-titre-secours 0s linear 2.5s forwards}
 }
 @keyframes kbo-titre-secours{to{visibility:visible}}
+
+/* Publications : filtre « Tout · Marchés · Tribunes » et en-tête de la rubrique Tribunes */
+.pub-filtre{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 32px}
+.pub-filtre a{font:600 14px var(--sans);letter-spacing:.02em;color:var(--m-nuit);text-decoration:none;padding:10px 20px;border:1px solid rgba(13,26,58,.25);border-radius:100px;transition:background .2s,color .2s,border-color .2s}
+.pub-filtre a:hover{border-color:var(--m-nuit)}
+.pub-filtre a.is-on{background:var(--m-nuit);border-color:var(--m-nuit);color:#fff}
+.pub-rubrique{margin:0 0 32px;padding-left:20px;border-left:3px solid var(--m-or)}
+.pub-rubrique h2{font:700 32px/1.1 var(--title);letter-spacing:-.02em;color:var(--m-nuit);margin:0 0 8px}
+.pub-rubrique p{font:400 16px/1.6 var(--sans);color:#4A5163;margin:0;max-width:680px}
+@media (max-width:767px){.pub-rubrique h2{font-size:24px}.pub-filtre a{padding:9px 16px;font-size:13px}}

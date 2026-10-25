@@ -35,14 +35,16 @@
   }
 
   const kindLabel = { video: "Vidéo", story: "Histoire", article: "Réflexion" };
+  const abs = (p) => (!p || /^(https?:)?\/|^data:/.test(p) ? p : "/" + p);
+  const categorie = (a) => (a.categorie === "tribunes" ? "tribunes" : "marches");   // anciens articles : Marchés
 
   function mediaFor(a) {
     let inner;
     if (a.type === "video" && a.videoFile && !a.image) {
       // Miniature directe de la vidéo téléversée (verticale ou horizontale)
-      inner = `<video src="${esc(a.videoFile)}#t=0.1" muted playsinline preload="metadata"></video>`;
+      inner = `<video src="${esc(abs(a.videoFile))}#t=0.1" muted playsinline preload="metadata"></video>`;
     } else {
-      const src = a.image || "images/post-default.svg";
+      const src = abs(a.image) || "/images/post-default.svg";
       inner = `<img src="${esc(src)}" alt="${esc(a.title)}" loading="lazy" />`;
     }
     if (a.type === "video") {
@@ -61,7 +63,7 @@
         </a>
         <div class="post-card__body">
           <div class="post-card__meta">
-            <span class="tag">${esc(a.tag || kindLabel[a.type] || "Réflexion")}</span>
+            <span class="tag">${esc(categorie(a) === "tribunes" ? "Tribune" : (a.tag || kindLabel[a.type] || "Réflexion"))}</span>
             <span>${formatDate(a.date)}</span>
           </div>
           <h3><a href="/article?id=${encodeURIComponent(a.id)}" style="color:inherit">${esc(a.title)}</a></h3>
@@ -71,15 +73,50 @@
       </article>`;
   }
 
+  // Filtre « Tout · Marchés · Tribunes » (page Publications) : il apparaît dans l'adresse
+  // (/publications?categorie=marches, /publications/tribunes) pour pouvoir partager la liste.
+  const filtre = document.querySelector(".pub-filtre");
+  const rubrique = document.getElementById("pubRubrique");
+  let tous = [];
+  function choixDepuisAdresse() {
+    if (/^\/publications\/tribunes\/?$/.test(location.pathname)) return "tribunes";
+    const c = new URLSearchParams(location.search).get("categorie");
+    return c === "tribunes" || c === "marches" ? c : "";
+  }
+  function afficher() {
+    const cat = filtre ? choixDepuisAdresse() : "";
+    if (filtre) filtre.querySelectorAll("a").forEach(a => {
+      const on = a.getAttribute("data-cat") === cat;
+      a.classList.toggle("is-on", on);
+      if (on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    if (rubrique) rubrique.hidden = cat !== "tribunes";
+    const list = cat ? tous.filter(a => categorie(a) === cat) : tous;
+    if (!list.length) {
+      grid.innerHTML = cat === "tribunes"
+        ? `<p class="empty-state">Aucune tribune pour le moment. La première arrive bientôt.</p>`
+        : `<p class="empty-state">Aucun article pour le moment. Les premières publications arrivent bientôt.</p>`;
+      return;
+    }
+    grid.innerHTML = list.map(cardFor).join("");
+    grid.dispatchEvent(new CustomEvent("kbo:rendered"));
+  }
+  if (filtre) {
+    filtre.addEventListener("click", (e) => {
+      const a = e.target.closest("a[data-cat]");
+      if (!a || e.metaKey || e.ctrlKey) return;
+      e.preventDefault();
+      history.pushState(null, "", a.getAttribute("href"));
+      afficher();
+    });
+    window.addEventListener("popstate", afficher);
+  }
+
   fetch("/api/articles")
     .then(r => { if (!r.ok) throw new Error("api"); return r.json(); })
     .then(list => {
-      if (!Array.isArray(list) || list.length === 0) {
-        grid.innerHTML = `<p class="empty-state">Aucun article pour le moment. Les premières publications arrivent bientôt.</p>`;
-        return;
-      }
-      grid.innerHTML = list.map(cardFor).join("");
-      grid.dispatchEvent(new CustomEvent("kbo:rendered"));
+      tous = Array.isArray(list) ? list : [];
+      afficher();
     })
     .catch(() => {
       grid.innerHTML = `<p class="empty-state">Le blog se charge lorsque le serveur est démarré (<code>python3 server.py</code>). Aucun article à afficher pour l'instant.</p>`;

@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Publications — KBO Corporate Finance</title>
   <meta name="description" content="Lectures des marchés, de l'économie et des banques centrales par KBO Corporate Finance." />
-  <link rel="icon" href="assets/logo/favicon.ico" sizes="16x16 32x32 48x48" />
-  <link rel="icon" href="assets/logo/favicon.svg" type="image/svg+xml" />
-  <link rel="apple-touch-icon" href="assets/logo/apple-touch-icon.png" />
-  <link rel="manifest" href="assets/logo/site.webmanifest" />
+  <link rel="icon" href="/assets/logo/favicon.ico" sizes="16x16 32x32 48x48" />
+  <link rel="icon" href="/assets/logo/favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/assets/logo/apple-touch-icon.png" />
+  <link rel="manifest" href="/assets/logo/site.webmanifest" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/marches.css" />
-  <link rel="stylesheet" href="css/maison.css" />
+  <link rel="stylesheet" href="/css/marches.css" />
+  <link rel="stylesheet" href="/css/maison.css" />
 </head>
 <body data-page="m-publications" data-nav="publications" class="maison">
   <div id="site-header"></div>
@@ -29,14 +29,23 @@
 
     <section class="block">
       <div class="wrap">
+        <nav class="pub-filtre" aria-label="Filtrer les publications">
+          <a href="/publications" data-cat="">Tout</a>
+          <a href="/publications?categorie=marches" data-cat="marches">Marchés</a>
+          <a href="/publications/tribunes" data-cat="tribunes">Tribunes</a>
+        </nav>
+        <div class="pub-rubrique" id="pubRubrique" hidden>
+          <h2>Tribunes · Obed KABEYA</h2>
+          <p>La voix personnelle d'Obed KABEYA : l'Afrique et son économie, le peuple et la culture, le destin et les valeurs, la famille, la jeunesse.</p>
+        </div>
         <div id="blogGrid" class="blog-grid" aria-live="polite"><p class="empty-state">Chargement des publications…</p></div>
       </div>
     </section>
   </main>
   <div id="site-footer"></div>
-  <script src="js/components.js"></script>
+  <script src="/js/components.js"></script>
   <script src="/js/apparition.js"></script>
-  <script src="js/visuel.js" defer></script>
-  <script src="js/blog.js"></script>
+  <script src="/js/visuel.js" defer></script>
+  <script src="/js/blog.js"></script>
 </body>
 </html>

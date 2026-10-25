@@ -113,7 +113,7 @@ ANCIENNES_ACCUEIL = ("/index", "/index.html", "/ecole", "/ecole.html")
 FICHIERS_CACHES = {fichier: propre for propre, fichier in PAGES_CACHEES.items()}
 # Pages publiques du plan du site (sitemap.xml), dans l'ordre d'importance.
 PAGES_PUBLIQUES = ("/", "/admission", "/formations/trading-institutionnel", "/formations/finance-des-marches",
-                   "/formations/webinars-et-communaute", "/publications", "/analyse-du-matin", "/contact", "/faq",
+                   "/formations/webinars-et-communaute", "/publications", "/publications/tribunes", "/analyse-du-matin", "/contact", "/faq",
                    "/risques", "/mentions-legales", "/confidentialite")
 
 # Image de partage sur les réseaux (Open Graph) : logo blanc sur bleu nuit.
@@ -2169,6 +2169,8 @@ class Handler(BaseHTTPRequestHandler):
         q = "?" + query if query else ""
         if path == "/":
             return self._serve_static(ACCUEIL_FICHIER)
+        if path.rstrip("/") == "/publications/tribunes":     # liste des tribunes, adresse propre
+            return self._serve_static("/publications.html")
         if path == "/sitemap.xml":
             return self._sitemap()
         if path == "/robots.txt":
@@ -3850,6 +3852,8 @@ class Handler(BaseHTTPRequestHandler):
             "orientation": orientation,                     # vertical (mobile) | landscape
             "excerpt": excerpt,
             "body": _clean(data.get("body"), 20000),
+            # Catégorie : « Marchés » (par défaut, et tous les anciens articles) ou « Tribunes · Obed KABEYA ».
+            "categorie": "tribunes" if data.get("categorie") in ("tribune", "tribunes") else "marches",
             "created": datetime.utcnow().isoformat() + "Z",
         }
         articles = _read_json(ARTICLES_FILE, [])

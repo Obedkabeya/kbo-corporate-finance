@@ -231,7 +231,7 @@
         <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem 1.2rem;border:1px solid var(--line);border-radius:6px;background:#fff;">
           <div>
             <strong style="color:var(--navy)">${esc(a.title)}</strong>
-            <div class="muted" style="font-size:.82rem">${label[a.type] || "Article"}${a.type === "video" && a.orientation === "vertical" ? " · verticale" : ""} · ${fmt(a.date)}</div>
+            <div class="muted" style="font-size:.82rem">${a.categorie === "tribunes" ? "Tribune · Obed KABEYA" : "Marchés"} · ${label[a.type] || "Article"}${a.type === "video" && a.orientation === "vertical" ? " · verticale" : ""} · ${fmt(a.date)}</div>
           </div>
           <div style="display:flex;gap:.5rem;flex-shrink:0">
             <a class="btn btn--ghost" style="padding:.5em 1em;font-size:.8rem" href="/article?id=${encodeURIComponent(a.id)}" target="_blank">Voir</a>
