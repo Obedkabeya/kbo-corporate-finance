@@ -19,12 +19,17 @@
     links.splice(3, 0, { href: "analyse-du-matin", label: "L'analyse du matin", key: "analyse" });
   }
 
-  // Logo officiel (assets/logo/) : version claire, et version foncée pour les
-  // fonds bleu nuit (pied de page, menu transparent posé sur une photo).
+  // Logo officiel v2 (assets/logo/, même famille que le logo IJE) : version claire, et version
+  // sombre pour les fonds bleu nuit. Chaque version contient le logo complet et le sigle seul
+  // (affiché sous 360 px de large). Les PNG servent de secours.
+  const variante = (v, png) => `
+      <span class="logo__img logo__img--${v === "clair" ? "clair" : "fonce"}">
+        <img class="logo__complet" src="/assets/logo/kbo-logo-v2-${v}.svg" alt="" width="1460" height="348"
+          onerror="this.onerror=null;this.src='/assets/logo/kbo-logo-v2-${v}.png'">
+        <img class="logo__sigle" src="/assets/logo/kbo-sigle-v2-${v}.svg" alt="" width="820" height="348">
+      </span>`;
   const logo = (extra) => `
-    <a class="logo ${extra || ""}" href="/" aria-label="KBO Corporate Finance — accueil">
-      <img class="logo__img logo__img--clair" src="/assets/logo/kbo-logo-horizontal-clair.svg" alt="" width="935" height="400">
-      <img class="logo__img logo__img--fonce" src="/assets/logo/kbo-logo-horizontal-fonce.svg" alt="" width="935" height="400">
+    <a class="logo ${extra || ""}" href="/" aria-label="KBO Corporate Finance — accueil">${variante("clair")}${variante("sombre")}
     </a>`;
 
   const header = `
@@ -96,10 +101,7 @@
   const headerSimple = `
     <header class="site-header site-header--simple" id="siteHeader">
       <div class="wrap bar">
-        <a class="logo" href="/" aria-label="KBO Corporate Finance — accueil">
-          <img class="logo__img logo__img--clair" src="/assets/logo/kbo-logo-horizontal-clair.svg" alt="" width="935" height="400">
-          <img class="logo__img logo__img--fonce" src="/assets/logo/kbo-logo-horizontal-fonce.svg" alt="" width="935" height="400">
-        </a>
+        ${logo()}
         ${retour ? `<a class="entete-lien" href="${retour.split("|")[0]}">← ${retour.split("|")[1] || "Retour"}</a>`
                  : `<a class="entete-lien" href="/">Découvrir l'école →</a>`}
       </div>

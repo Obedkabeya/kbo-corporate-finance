@@ -984,14 +984,10 @@ def _public_url():
 
 
 def _entete_email(base):
-    """En-tête discret des e-mails : petite icône KBO (carré bleu, lisible sur fond clair
-    comme sombre) et le nom en texte, que les messageries recolorent en mode sombre."""
-    return (
-        '<table role="presentation" cellpadding="0" cellspacing="0"><tr>'
-        '<td width="28" style="width:28px"><img src="' + base + '/assets/logo/kbo-icone-email-96.png" width="28" height="28" '
-        'alt="KBO" style="display:block;border:0;width:28px;height:28px"></td>'
-        '<td style="padding-left:10px;font:700 13px/1.2 Arial,Helvetica,sans-serif;letter-spacing:.02em;color:#0D1A3A">'
-        'KBO Corporate Finance</td></tr></table>')
+    """En-tête des e-mails : le logo KBO v2 (PNG sur fond blanc, lu par toutes les messageries)."""
+    return ('<img src="' + base + '/assets/logo/kbo-logo-v2-email-600.png" width="230" height="61" '
+            'alt="KBO Corporate Finance, Comprendre avant d\'agir" '
+            'style="display:block;border:0;width:230px;height:auto">')
 
 
 def _email_html(body, entete=None):

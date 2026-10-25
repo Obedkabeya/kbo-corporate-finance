@@ -22,7 +22,7 @@
 .maison .site-header{background:var(--m-nuit);border-bottom:0;backdrop-filter:none}
 .maison .site-header .bar{height:84px}
 .maison .site-header .logo__img--clair{display:none}
-.maison .site-header .logo__img--fonce{display:block;height:44px}
+.maison .site-header .logo__img--fonce{display:block;height:50px}
 .maison .mnav ul{gap:36px}
 .maison .mnav a{font:500 15px var(--sans);color:rgba(255,255,255,.88);border-bottom-color:transparent}
 .maison .mnav a:hover{color:#fff;border-color:var(--m-or)}
@@ -104,7 +104,7 @@
 /* ---------- Pied de page bleu nuit ---------- */
 .maison .site-footer{background:var(--m-nuit);padding:56px 0 32px;border-top:1px solid rgba(255,255,255,.08)}
 .maison .site-footer .fgrid{grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px}
-.maison .site-footer .logo__img--fonce{height:48px}
+.maison .site-footer .logo__img--fonce{height:64px}
 .maison .site-footer h4{font:600 13px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:#fff;margin-bottom:16px}
 .maison .site-footer ul a,.maison .site-footer .about{font:400 14px/1.6 var(--sans);color:rgba(255,255,255,.82)}
 .maison .site-footer ul a:hover{color:#fff}
@@ -119,7 +119,7 @@
 @media (max-width:980px){
   .maison{--m-gout:22px}
   .maison .site-header .bar{height:60px}
-  .maison .site-header .logo__img--fonce{height:34px}
+  .maison .site-header .logo__img--fonce{height:38px}
   .maison .menu-panel{inset:60px 0 0 0}
   .maison .sec-head{grid-template-columns:1fr;gap:12px}
 }
@@ -146,7 +146,8 @@
   .maison .analyse-bande .wrap > .btn{grid-column:1;grid-row:auto;width:100%}
   .maison .analyse-bande .analyse-form--bande{grid-column:1;grid-row:auto;margin-top:8px}
   .analyse-form__ligne{flex-direction:column}
-  .maison .analyse-bande .analyse-form__ligne .btn{width:100%;justify-content:center}
+  .analyse-form__ligne input{flex:none;width:100%;height:56px;font-size:17px}
+  .maison .analyse-bande .analyse-form__ligne .btn{width:100%;justify-content:center;height:48px;font-size:15px}
   .maison .site-footer{padding:28px 0 96px}
   .maison .site-footer .fgrid{grid-template-columns:1fr 1fr;gap:24px}
 }
@@ -384,3 +385,14 @@
   .maison .analyse-bande .wrap.narrow{grid-template-columns:1fr}
   .maison .analyse-bande .analyse-form--bande{grid-column:1;grid-row:auto;max-width:620px;margin-top:8px}
 }
+
+/* Logo KBO v2 : mêmes tailles que le logo IJE */
+@media (max-width:1100px){.maison .site-header .logo__img--fonce{height:44px}}
+@media (max-width:767px){.maison .site-header .logo__img--fonce{height:38px}.maison .site-footer .logo__img--fonce{height:52px}}
+
+/* Titre d'ouverture : masqué dès la première image de la page (classe posée dans <head>), puis
+   il apparaît directement lettre par lettre, sans être d'abord affiché figé. Secours : visible après 2,5 s. */
+@media (prefers-reduced-motion:no-preference){
+  .js-tot .a-hero__titre:not(.lettres-pret),.js-tot .p-hero__titre:not(.lettres-pret),.js-tot .page-head h1:not(.lettres-pret){visibility:hidden;animation:kbo-titre-secours 0s linear 2.5s forwards}
+}
+@keyframes kbo-titre-secours{to{visibility:visible}}

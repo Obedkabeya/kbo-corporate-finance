@@ -69,10 +69,16 @@
 @media (max-width:980px){:root{--gut:20px}}
 
 /* Logo officiel KBO (assets/logo/) : 42 px de haut sur ordinateur, 36 px sur téléphone. */
-.logo .logo__img{display:block;height:42px;width:auto}
+.logo .logo__img{display:block;height:50px;width:auto}
 .logo .logo__img--fonce{display:none}
 .site-footer .logo .logo__img--clair{display:none}
-.site-footer .logo .logo__img--fonce{display:block;height:44px}
+.site-footer .logo .logo__img--fonce{display:block;height:64px}
 .home-photo .site-header:not(.is-solid) .logo__img--clair{display:none}
 .home-photo .site-header:not(.is-solid) .logo__img--fonce{display:block}
-@media (max-width:980px){.logo .logo__img{height:36px}.site-footer .logo .logo__img--fonce{height:38px}}
+@media (max-width:980px){.logo .logo__img{height:44px}.site-footer .logo .logo__img--fonce{height:52px}}
+
+/* Logo KBO v2 : chaque variante contient le logo complet et le sigle seul (sous 360 px). */
+.logo .logo__img img{display:block;height:100%;width:auto}
+.logo .logo__sigle{display:none!important}
+@media (max-width:359px){.site-header .logo .logo__complet{display:none!important}.site-header .logo .logo__sigle{display:block!important;height:40px}
+  .site-header .logo .logo__img{height:40px!important}}
