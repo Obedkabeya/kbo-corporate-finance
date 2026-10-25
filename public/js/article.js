@@ -44,8 +44,8 @@
     // No separate hero when a video is present (the video is the hero).
     const showHero = a.image && !(a.type === "video");
     const hero = showHero
-      ? `<div class="article__hero"><img src="${esc(a.image)}" alt="${esc(a.title)}"></div>`
-      : (a.type === "video" ? "" : `<div class="article__hero"><img src="images/post-default.svg" alt="${esc(a.title)}"></div>`);
+      ? `<div class="article__hero"><img src="${esc(/^(https?:)?\/|^data:/.test(a.image) ? a.image : "/" + a.image)}" alt="${esc(a.title)}" data-article="${esc(a.id)}"></div>`
+      : (a.type === "video" ? "" : `<div class="article__hero"><img src="/images/post-default.svg" alt="${esc(a.title)}" data-article="${esc(a.id)}"></div>`);
 
     root.innerHTML = `
       <p class="breadcrumb"><a href="/publications">Publications</a> · ${esc(a.tag || kindLabel[a.type] || "Réflexion")}</p>

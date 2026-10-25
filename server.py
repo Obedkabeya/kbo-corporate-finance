@@ -2424,6 +2424,10 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/articles":
             return self._create_article()
 
+        m = re.match(r"^/api/articles/([A-Za-z0-9_-]+)$", path)
+        if m:
+            return self._update_article_image(m.group(1))
+
         if path == "/api/settings":
             return self._save_settings()
 
@@ -3860,6 +3864,22 @@ class Handler(BaseHTTPRequestHandler):
         articles.append(article)
         _write_json(ARTICLES_FILE, articles)
         return self._send_json(article, 201)
+
+    def _update_article_image(self, aid):
+        """Change l'image d'une publication (bouton « Image ou vidéo » sur la page de l'article)."""
+        if not self._is_admin():
+            return self._send_json({"error": "Non autorisé"}, 401)
+        data = self._read_body() or {}
+        image = _chemin_media(data.get("image")) if data.get("image") else ""
+        if data.get("image") and not image:
+            return self._send_json({"error": "Image invalide."}, 400)
+        articles = _read_json(ARTICLES_FILE, [])
+        for a in articles:
+            if a.get("id") == aid:
+                a["image"] = image
+                _write_json(ARTICLES_FILE, articles)
+                return self._send_json({"ok": True, "image": image})
+        return self._send_json({"error": "Publication introuvable"}, 404)
 
     def _delete_article(self, aid):
         if not self._is_admin():

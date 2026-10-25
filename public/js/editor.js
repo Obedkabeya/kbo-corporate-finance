@@ -404,6 +404,21 @@
     }
 
     function pickImage(img) {
+      // Image d'une publication : elle est enregistrée dans la fiche de la publication.
+      if (img.dataset.article) {
+        openMediaDialog({
+          valeur: null, img: img, cadre: img, altDefaut: img.alt || "", peutRevenir: true,
+          enregistrer: v => {
+            if (v && v.type !== "image") return Promise.reject(new Error("Pour une publication, choisissez une image."));
+            return fetch("/api/articles/" + encodeURIComponent(img.dataset.article), {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ image: v ? v.src : "" }),
+            }).then(r => r.json().then(j => { if (!r.ok) throw new Error(j.error || "Échec de l'enregistrement"); }))
+              .then(() => { img.src = v ? window.KBO.cheminAbsolu(v.src) : "/images/post-default.svg"; hint("Image de la publication mise à jour ✓", "ok"); });
+          },
+        });
+        return;
+      }
       const info = window.KBO.imageKey(img);
       if (info.kind === "img") {
         openMediaDialog({
