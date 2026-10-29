@@ -2513,7 +2513,7 @@ class Handler(BaseHTTPRequestHandler):
             c = _pay_cfg(mode)
             if not c["configured"]:
                 return self._send_json({"ok": False, "message": "Aucune clé secrète enregistrée pour ce mode."})
-            ok, res = _fedapay_req("GET", "/transactions?per_page=1", c["secret"], c["live"], timeout=15)
+            ok, res = _fedapay_req("GET", "/transactions/search?per_page=1", c["secret"], c["live"], timeout=15)
             return self._send_json({"ok": ok, "message": "Connexion à FedaPay réussie (%s)." % ("Live" if c["live"] else "Sandbox")
                                     if ok else "FedaPay refuse la clé : " + str(res)[:200]})
 
