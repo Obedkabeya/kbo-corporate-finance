@@ -24,15 +24,16 @@
   const telChamp = document.getElementById("achatTelChamp");
   function majMoyen() {
     const m = (f.querySelector("input[name=moyen]:checked") || {}).value;
-    if (telChamp) telChamp.hidden = m !== "fedapay";
+    if (telChamp) telChamp.hidden = m !== "mobilemoney";
   }
   f.querySelectorAll("input[name=moyen]").forEach((r) => r.addEventListener("change", majMoyen));
   fetch("/api/achat/moyens").then((r) => r.json()).then((m) => {
-    const fp = document.getElementById("moyenFedapay");
-    if (m.fedapay && fp) {
-      fp.classList.remove("is-off"); const r = fp.querySelector("input"); r.disabled = false; r.checked = true;
+    document.querySelectorAll("[data-fedapay]").forEach((fp, i) => {
+      if (!m.fedapay) { fp.hidden = true; return; }
+      fp.classList.remove("is-off"); const r = fp.querySelector("input"); r.disabled = false;
+      if (i === 0) r.checked = true;                      // Mobile Money proposé en premier
       if (m.fedapaySandbox) fp.querySelector("small").textContent += " · mode test";
-    } else if (fp) { fp.hidden = true; }
+    });
     if (!m.crypto) {
       const c = f.querySelector("input[name=moyen][value=crypto]");
       if (c) { c.disabled = true; c.closest("label").classList.add("is-off"); }
@@ -49,7 +50,7 @@
                    telephone: f.telephone ? f.telephone.value.trim() : "" };
     if (data.nom.length < 2) { msg.textContent = "Indiquez votre nom."; msg.className = "form-msg err"; return; }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) { msg.textContent = "Indiquez une adresse e-mail valide."; msg.className = "form-msg err"; return; }
-    if (data.moyen === "fedapay" && data.telephone.replace(/\D/g, "").length < 8) { msg.textContent = "Indiquez votre numéro de téléphone (Mobile Money)."; msg.className = "form-msg err"; return; }
+    if (data.moyen === "mobilemoney" && data.telephone.replace(/\D/g, "").length < 8) { msg.textContent = "Indiquez votre numéro de téléphone (Mobile Money)."; msg.className = "form-msg err"; return; }
     if (!data.risques) { msg.textContent = "Cochez l'avertissement sur les risques."; msg.className = "form-msg err"; return; }
     const libelle = btn.innerHTML;
     btn.disabled = true; btn.textContent = "Redirection vers le paiement…"; msg.textContent = ""; msg.className = "form-msg";

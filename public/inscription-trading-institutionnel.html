@@ -38,7 +38,8 @@
           <div class="field" id="achatTelChamp" hidden><label for="achat_tel">Téléphone (Mobile Money)</label><input id="achat_tel" name="telephone" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" placeholder="+229 01 97 00 00 00" /></div>
           <h2 class="checkout__h2">Moyen de paiement</h2>
           <div class="checkout__moyens" role="radiogroup" aria-label="Moyen de paiement">
-            <label class="checkout__moyen is-off" id="moyenFedapay"><input type="radio" name="moyen" value="fedapay" disabled /><span><strong>Mobile Money ou carte</strong><small>MTN, Moov, carte bancaire · paiement en FCFA</small></span></label>
+            <label class="checkout__moyen is-off" data-fedapay><input type="radio" name="moyen" value="mobilemoney" disabled /><span><strong>Mobile Money</strong><small>MTN, Moov · paiement en FCFA</small></span></label>
+            <label class="checkout__moyen is-off" data-fedapay><input type="radio" name="moyen" value="carte" disabled /><span><strong>Carte bancaire</strong><small>Visa, Mastercard · saisie sur la page sécurisée FedaPay</small></span></label>
             <label class="checkout__moyen"><input type="radio" name="moyen" value="crypto" checked /><span><strong>USDT</strong><small>Réseau Tron (TRC20)</small></span></label>
           </div>
           <label class="check checkout__risque"><input type="checkbox" name="risques" required /> <span>J'ai lu l'<a href="/risques" target="_blank" rel="noopener">avertissement sur les risques</a>.</span></label>

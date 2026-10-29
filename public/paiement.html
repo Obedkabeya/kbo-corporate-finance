@@ -40,15 +40,16 @@
             <h2 class="checkout__h2">Vos coordonnées</h2>
             <div class="field"><label for="fp_nom">Nom complet</label><input id="fp_nom" type="text" autocomplete="name" maxlength="120" /></div>
             <div class="field"><label for="fp_email">E-mail</label><input id="fp_email" type="email" autocomplete="email" maxlength="200" /></div>
-            <div class="field"><label for="fp_tel">Téléphone (Mobile Money)</label><input id="fp_tel" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" placeholder="+229 01 97 00 00 00" /></div>
+            <div class="field" id="fp_tel_champ"><label for="fp_tel">Téléphone (Mobile Money)</label><input id="fp_tel" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" placeholder="+229 01 97 00 00 00" /></div>
           </div>
           <h2 class="checkout__h2">Moyen de paiement</h2>
           <div class="checkout__moyens">
-            <div class="checkout__moyen" id="fpCard" hidden><span><strong>Mobile Money ou carte</strong><small id="fpNote">MTN, Moov, carte bancaire · paiement en FCFA</small></span></div>
+            <label class="checkout__moyen" data-fp-moyen hidden><input type="radio" name="fpMoyen" value="mobilemoney" checked /><span><strong>Mobile Money</strong><small class="fp-note">MTN, Moov · paiement en FCFA</small></span></label>
+            <label class="checkout__moyen" data-fp-moyen hidden><input type="radio" name="fpMoyen" value="carte" /><span><strong>Carte bancaire</strong><small class="fp-note">Visa, Mastercard · saisie sur la page sécurisée FedaPay</small></span></label>
             <div class="checkout__moyen" id="cryptoCard"><span><strong>USDT</strong><small>Réseau Tron (TRC20)</small></span></div>
             <div class="checkout__moyen is-off" id="payCardTile"><span><strong>Carte bancaire</strong><small id="payCardNote">Bientôt disponible</small></span></div>
           </div>
-          <button class="btn checkout__payer" id="fpBtn" type="button" hidden>Payer par Mobile Money ou carte <span class="arrow">→</span></button>
+          <button class="btn checkout__payer" id="fpBtn" type="button" hidden>Payer par Mobile Money <span class="arrow">→</span></button>
           <span class="form-msg" id="fpMsg"></span>
           <button class="btn checkout__payer" id="cryptoBtn" type="button">Payer en USDT <span class="arrow">→</span></button>
           <button class="btn btn--ghost checkout__payer-carte" id="payCardBtn" type="button" hidden>Payer par carte <span class="arrow">→</span></button>
@@ -136,10 +137,20 @@
           if (d.fedapayReady) {
             document.getElementById("payCardTile").hidden = true;
             document.getElementById("fpBloc").hidden = false;
-            document.getElementById("fpCard").hidden = false;
             var fpBtn = document.getElementById("fpBtn"), fpMsg = document.getElementById("fpMsg");
             fpBtn.hidden = false;
-            if (d.fedapaySandbox) document.getElementById("fpNote").textContent += " · mode test";
+            var libelles = { mobilemoney: "Payer par Mobile Money", carte: "Payer par carte bancaire" };
+            function moyenFp() { return (document.querySelector("input[name=fpMoyen]:checked") || {}).value || "mobilemoney"; }
+            function majFp() {
+              document.getElementById("fp_tel_champ").hidden = moyenFp() !== "mobilemoney";
+              fpBtn.innerHTML = libelles[moyenFp()] + ' <span class="arrow">→</span>';
+            }
+            document.querySelectorAll("[data-fp-moyen]").forEach(function (t) {
+              t.hidden = false;
+              if (d.fedapaySandbox) t.querySelector(".fp-note").textContent += " · mode test";
+              t.querySelector("input").addEventListener("change", majFp);
+            });
+            majFp();
             document.getElementById("fp_nom").value = d.nom || "";
             document.getElementById("fp_email").value = d.email || "";
             document.getElementById("fp_tel").value = d.telephone || "";
@@ -148,7 +159,7 @@
                   tel = document.getElementById("fp_tel").value.trim();
               if (nom.length < 2) { fpMsg.textContent = "Indiquez votre nom."; fpMsg.className = "form-msg err"; return; }
               if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { fpMsg.textContent = "Indiquez une adresse e-mail valide (pour votre reçu)."; fpMsg.className = "form-msg err"; return; }
-              if (tel.replace(/\D/g, "").length < 8) { fpMsg.textContent = "Indiquez votre numéro de téléphone (Mobile Money)."; fpMsg.className = "form-msg err"; return; }
+              if (moyenFp() === "mobilemoney" && tel.replace(/\D/g, "").length < 8) { fpMsg.textContent = "Indiquez votre numéro de téléphone (Mobile Money)."; fpMsg.className = "form-msg err"; return; }
               fpBtn.disabled = true; fpBtn.innerHTML = "Ouverture du paiement…"; fpMsg.textContent = "";
               fetch("/api/pay/start", {
                 method: "POST", headers: { "Content-Type": "application/json" },
@@ -159,7 +170,7 @@
                   throw new Error((o2.j && o2.j.error) || "Paiement indisponible.");
                 }).catch(function (err) {
                   fpMsg.textContent = err.message; fpMsg.className = "form-msg err";
-                  fpBtn.disabled = false; fpBtn.innerHTML = 'Payer par Mobile Money ou carte <span class="arrow">→</span>';
+                  fpBtn.disabled = false; majFp();
                 });
             });
           }

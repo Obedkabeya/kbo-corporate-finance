@@ -3138,10 +3138,10 @@ class Handler(BaseHTTPRequestHandler):
         if not data.get("risques"):
             return self._send_json({"error": "Merci de confirmer avoir lu l'avertissement sur les risques."}, 400)
         moyen = data.get("moyen")
-        if moyen not in ("crypto", "fedapay"):
+        if moyen not in ("crypto", "fedapay", "mobilemoney", "carte"):
             return self._send_json({"error": "Choisissez un moyen de paiement."}, 400)
         telephone = _clean(data.get("telephone"), 40)
-        if moyen == "fedapay" and len(re.sub(r"\D", "", telephone)) < 8:
+        if moyen == "mobilemoney" and len(re.sub(r"\D", "", telephone)) < 8:
             return self._send_json({"error": "Indiquez votre numéro de téléphone (Mobile Money)."}, 400)
         price_key = "priceTradingMonth" if cycle == "mensuel" else "priceTradingYear"
         token = uuid.uuid4().hex[:16]
@@ -3153,7 +3153,7 @@ class Handler(BaseHTTPRequestHandler):
             links = {}
         links[token] = link
         _write_json(PAYLINKS_FILE, links)
-        if moyen == "fedapay":
+        if moyen in ("fedapay", "mobilemoney", "carte"):
             url, err = self._fedapay_checkout(token, link, links)
             if err:
                 return self._send_json({"error": err}, 503)
