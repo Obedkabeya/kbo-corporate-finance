@@ -485,19 +485,36 @@ def _pay_brut():
     return cfg
 
 
+def _pay_env():
+    """Clés FedaPay enregistrées dans le fichier de configuration du serveur avec
+    « sudo kbo-set-secret » (jamais dans la conversation, ni sur le site, ni sur GitHub).
+    Elles valent pour le mode de la clé secrète (sk_live_ → Live, sinon Sandbox)."""
+    sk = os.environ.get("FEDAPAY_SECRET_KEY", "").strip()
+    if not sk:
+        return None, {}
+    mode = "live" if sk.startswith("sk_live_") else "sandbox"
+    return mode, {"secret": sk, "public": os.environ.get("FEDAPAY_PUBLIC_KEY", "").strip(),
+                  "webhook": os.environ.get("FEDAPAY_WEBHOOK_SECRET", "").strip()}
+
+
 def _pay_cfg(mode=None):
-    """Config de paiement (Sandbox ou Live) saisie dans l'admin. Clés secrètes déchiffrées
-    uniquement en mémoire, au moment de l'appel à FedaPay. Jamais sur GitHub."""
+    """Config de paiement (Sandbox ou Live). Priorité aux clés du serveur (kbo-set-secret) ;
+    sinon celles saisies dans l'admin (chiffrées). Déchiffrées uniquement en mémoire."""
     cfg = _pay_brut()
-    mode = mode if mode in PAY_MODES else (cfg.get("mode") if cfg.get("mode") in PAY_MODES else "sandbox")
+    env_mode, env = _pay_env()
+    if mode not in PAY_MODES:
+        mode = cfg.get("mode") if cfg.get("mode") in PAY_MODES else None
+        choisi = cfg.get(mode) if isinstance(cfg.get(mode), dict) else {}
+        if not mode or (not choisi.get("secret_enc") and mode != env_mode):
+            mode = env_mode or mode or "sandbox"   # le mode choisi n'a pas de clé : celui de la clé du serveur
     sec = cfg.get(mode) if isinstance(cfg.get(mode), dict) else {}
-    sk = _dechiffrer(sec.get("secret_enc")) or (str(cfg.get("secret") or "").strip()
-                                                 if mode == ("live" if str(cfg.get("secret") or "").startswith("sk_live_") else "sandbox") else "")
+    depuis_env = env_mode == mode
+    sk = (env["secret"] if depuis_env else "") or _dechiffrer(sec.get("secret_enc"))
     return {
         "mode": mode,
-        "public": str(sec.get("public") or "").strip(),
+        "public": (env.get("public") if depuis_env else "") or str(sec.get("public") or "").strip(),
         "secret": sk,
-        "webhook": _dechiffrer(sec.get("webhook_enc")),
+        "webhook": (env.get("webhook") if depuis_env else "") or _dechiffrer(sec.get("webhook_enc")),
         "live": mode == "live",
         "discord": str(cfg.get("discord") or "").strip(),
         "binance": str(cfg.get("binance") or "").strip(),
@@ -2475,10 +2492,14 @@ class Handler(BaseHTTPRequestHandler):
             brut = _pay_brut()
             actif = _pay_cfg()
             modes = {}
+            env_mode, env = _pay_env()
             for m in PAY_MODES:
                 sec = brut.get(m) if isinstance(brut.get(m), dict) else {}
-                modes[m] = {"public": sec.get("public", ""), "secretFin": sec.get("secret_fin", ""),
-                            "webhookFin": sec.get("webhook_fin", ""), "configured": bool(sec.get("secret_enc"))}
+                serveur = env_mode == m
+                modes[m] = {"public": (env["public"] if serveur and env["public"] else sec.get("public", "")),
+                            "secretFin": env["secret"][-4:] if serveur else sec.get("secret_fin", ""),
+                            "webhookFin": env["webhook"][-4:] if serveur and env["webhook"] else sec.get("webhook_fin", ""),
+                            "serveur": serveur, "configured": serveur or bool(sec.get("secret_enc"))}
             base = _public_url() or self._public_base()
             return self._send_json({"mode": actif["mode"], "modes": modes, "discord": actif["discord"],
                                     "binance": actif["binance"], "configured": actif["configured"],

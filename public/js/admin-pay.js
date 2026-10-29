@@ -92,9 +92,10 @@
         var info = (c.modes || {})[m] || {};
         $("fpPublic_" + m).value = info.public || "";
         var s1 = $("fpSecretState_" + m), s2 = $("fpWebhookState_" + m);
-        s1.textContent = info.secretFin ? "✓ Clé secrète enregistrée (…" + info.secretFin + "). Laissez vide pour la conserver." : "Aucune clé secrète enregistrée.";
+        s1.textContent = info.serveur ? "✓ Clé secrète enregistrée sur le serveur (…" + info.secretFin + "), avec la commande sécurisée. Rien à saisir ici."
+          : (info.secretFin ? "✓ Clé secrète enregistrée (…" + info.secretFin + "). Laissez vide pour la conserver." : "Aucune clé secrète enregistrée.");
         s1.style.color = info.secretFin ? "#1a7a4c" : "";
-        s2.textContent = info.webhookFin ? "✓ Secret du webhook enregistré (…" + info.webhookFin + ")." : "Aucun secret de webhook : les paiements ne pourront pas être confirmés.";
+        s2.textContent = info.webhookFin ? "✓ Secret du webhook enregistré" + (info.serveur ? " sur le serveur" : "") + " (…" + info.webhookFin + ")." : "Aucun secret de webhook : les paiements ne pourront pas être confirmés.";
         s2.style.color = info.webhookFin ? "#1a7a4c" : "#8A5A00";
         $("fpBloc_" + m).classList.toggle("is-actif", c.mode === m);
       });
