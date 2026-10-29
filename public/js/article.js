@@ -123,23 +123,15 @@
     const map = {
       whatsapp: `https://wa.me/?text=${enc(t + " — " + url)}`,
       x: `https://twitter.com/intent/tweet?text=${enc(t)}&url=${enc(url)}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
+      // Sur téléphone, l'application Facebook ignore le lien de « www.facebook.com/sharer » et
+      // n'ouvre que le profil : l'adresse mobile ouvre directement la fenêtre de publication.
+      facebook: (window.matchMedia && matchMedia("(pointer: coarse)").matches)
+        ? `https://m.facebook.com/sharer.php?u=${enc(url)}&t=${enc(t)}`
+        : `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${enc(url)}`,
       mail: `mailto:?subject=${enc(t)}&body=${enc(url)}`,
     };
     root.querySelectorAll("[data-share]").forEach(el => { el.href = map[el.getAttribute("data-share")]; });
-    // Sur téléphone, les applications Facebook, LinkedIn et X ignorent souvent le lien reçu
-    // (elles ouvrent juste le profil). On passe alors par le menu de partage du téléphone :
-    // on y choisit l'application, qui reçoit bien le lien et son aperçu.
-    const telephone = window.matchMedia && matchMedia("(pointer: coarse)").matches;
-    if (telephone && navigator.share) {
-      root.querySelectorAll('[data-share="facebook"], [data-share="linkedin"], [data-share="x"]').forEach(el => {
-        el.addEventListener("click", (e) => {
-          e.preventDefault();
-          navigator.share({ title: t, text: a.excerpt || t, url: url }).catch(() => {});
-        });
-      });
-    }
     const copy = root.querySelector("#copyLink");
     if (copy) copy.addEventListener("click", () => {
       const done = () => { const c = root.querySelector("#copied"); if (c) { c.hidden = false; setTimeout(() => (c.hidden = true), 2000); } };
