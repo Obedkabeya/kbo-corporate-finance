@@ -929,3 +929,8 @@ body.kbo-fm-ouverte{overflow:hidden}
 /* Menu du haut : chaque lien sur une seule ligne (logo v2 plus large) */
 .mnav a{white-space:nowrap}
 @media (min-width:981px) and (max-width:1180px){.mnav ul{gap:18px!important}.mnav a{font-size:14px}}
+
+/* Couverture des articles de L'école : cadre large 16:9, image entière, fond flouté de la même image */
+.article__hero--large{position:relative;aspect-ratio:16/9;overflow:hidden;background:#0D1A3A}
+.article__hero--large img{position:relative;z-index:1;display:block;width:100%;height:100%;object-fit:contain}
+.article__hero--large .article__hero-fond{position:absolute;inset:0;z-index:0;object-fit:cover;filter:blur(28px) brightness(.55);transform:scale(1.15)}

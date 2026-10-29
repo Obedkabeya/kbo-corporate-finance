@@ -65,8 +65,15 @@
     }
     // No separate hero when a video is present (the video is the hero).
     const showHero = a.image && !(a.type === "video");
+    const srcHero = a.image ? (/^(https?:)?\/|^data:/.test(a.image) ? a.image : "/" + a.image) : "";
+    // Articles de L'école (catégorie Marchés) : image dans un cadre large 16:9, entière et centrée,
+    // côtés remplis par la même image floutée (une couverture carrée prend moins de place).
+    // Les tribunes gardent leur grande image d'origine.
+    const large = a.categorie !== "tribunes";
     const hero = showHero
-      ? `<div class="article__hero"><img src="${esc(/^(https?:)?\/|^data:/.test(a.image) ? a.image : "/" + a.image)}" alt="${esc(a.title)}" data-article="${esc(a.id)}"></div>`
+      ? (large
+        ? `<div class="article__hero article__hero--large"><img class="article__hero-fond" src="${esc(srcHero)}" alt="" aria-hidden="true" data-noedit><img src="${esc(srcHero)}" alt="${esc(a.title)}" data-article="${esc(a.id)}"></div>`
+        : `<div class="article__hero"><img src="${esc(srcHero)}" alt="${esc(a.title)}" data-article="${esc(a.id)}"></div>`)
       : (a.type === "video" ? "" : `<div class="article__hero"><img src="/images/post-default.svg" alt="${esc(a.title)}" data-article="${esc(a.id)}"></div>`);
 
     const brouillon = a.statut === "brouillon"
