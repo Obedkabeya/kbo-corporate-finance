@@ -109,7 +109,8 @@
   }
 
   function wireShare(a) {
-    const url = location.href;
+    // Adresse propre de l'article (sans « ?visitor=1 » ni autre réglage).
+    const url = location.origin + "/article?id=" + encodeURIComponent(a.id);
     const t = a.title || "";
     const enc = encodeURIComponent;
     const map = {
@@ -120,6 +121,18 @@
       mail: `mailto:?subject=${enc(t)}&body=${enc(url)}`,
     };
     root.querySelectorAll("[data-share]").forEach(el => { el.href = map[el.getAttribute("data-share")]; });
+    // Sur téléphone, les applications Facebook, LinkedIn et X ignorent souvent le lien reçu
+    // (elles ouvrent juste le profil). On passe alors par le menu de partage du téléphone :
+    // on y choisit l'application, qui reçoit bien le lien et son aperçu.
+    const telephone = window.matchMedia && matchMedia("(pointer: coarse)").matches;
+    if (telephone && navigator.share) {
+      root.querySelectorAll('[data-share="facebook"], [data-share="linkedin"], [data-share="x"]').forEach(el => {
+        el.addEventListener("click", (e) => {
+          e.preventDefault();
+          navigator.share({ title: t, text: a.excerpt || t, url: url }).catch(() => {});
+        });
+      });
+    }
     const copy = root.querySelector("#copyLink");
     if (copy) copy.addEventListener("click", () => {
       const done = () => { const c = root.querySelector("#copied"); if (c) { c.hidden = false; setTimeout(() => (c.hidden = true), 2000); } };
