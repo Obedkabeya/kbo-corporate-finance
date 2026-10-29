@@ -82,44 +82,88 @@
     }).catch(function () {});
   }
 
-  // ---------- Config FedaPay ----------
+  // ---------- Config FedaPay (Sandbox / Live) ----------
+  var MODES = ["sandbox", "live"];
   function loadConfig() {
     fetch("/api/payconfig").then(function (r) { return r.ok ? r.json() : null; }).then(function (c) {
       if (!c) return;
-      if ($("fpPublic")) $("fpPublic").value = c.public || "";
-      if ($("fpDiscord")) $("fpDiscord").value = c.discord || "";
-      if ($("fpBinance")) $("fpBinance").value = c.binance || "";
-      if ($("fpSecretState")) {
-        $("fpSecretState").textContent = c.configured
-          ? ("✓ Clé secrète enregistrée (" + (c.live ? "mode réel" : "mode test") + "). Laissez vide pour la conserver.")
-          : "Aucune clé secrète enregistrée.";
-        $("fpSecretState").style.color = c.configured ? "#1a7a4c" : "";
-      }
+      document.querySelectorAll("input[name=fpMode]").forEach(function (r) { r.checked = r.value === c.mode; });
+      MODES.forEach(function (m) {
+        var info = (c.modes || {})[m] || {};
+        $("fpPublic_" + m).value = info.public || "";
+        var s1 = $("fpSecretState_" + m), s2 = $("fpWebhookState_" + m);
+        s1.textContent = info.secretFin ? "✓ Clé secrète enregistrée (…" + info.secretFin + "). Laissez vide pour la conserver." : "Aucune clé secrète enregistrée.";
+        s1.style.color = info.secretFin ? "#1a7a4c" : "";
+        s2.textContent = info.webhookFin ? "✓ Secret du webhook enregistré (…" + info.webhookFin + ")." : "Aucun secret de webhook : les paiements ne pourront pas être confirmés.";
+        s2.style.color = info.webhookFin ? "#1a7a4c" : "#8A5A00";
+        $("fpBloc_" + m).classList.toggle("is-actif", c.mode === m);
+      });
+      $("fpWebhookUrl").value = c.webhookUrl || "";
+      $("fpDiscord").value = c.discord || "";
+      $("fpBinance").value = c.binance || "";
+      var ch = $("fpChiffrement");
+      ch.textContent = c.chiffrement ? "🔒 Chiffrement des clés : actif sur le serveur." : "⚠️ Chiffrement non activé sur le serveur : les clés secrètes ne peuvent pas encore être enregistrées.";
+      ch.style.color = c.chiffrement ? "#1a7a4c" : "#b3261e";
     }).catch(function () {});
   }
   function saveConfig() {
     var msg = $("fpMsg");
+    var mode = (document.querySelector("input[name=fpMode]:checked") || {}).value;
+    if (mode === "live" && !confirm("Activer le mode Live ? Les paiements seront réels.")) return;
+    var body = { mode: mode, discord: $("fpDiscord").value.trim(), binance: $("fpBinance").value.trim() };
+    MODES.forEach(function (m) {
+      body["public_" + m] = $("fpPublic_" + m).value.trim();
+      body["secret_" + m] = $("fpSecret_" + m).value.trim();
+      body["webhook_" + m] = $("fpWebhook_" + m).value.trim();
+    });
     msg.textContent = "Enregistrement…"; msg.className = "form-msg";
-    fetch("/api/payconfig", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        public: $("fpPublic").value.trim(), secret: $("fpSecret").value.trim(),
-        discord: $("fpDiscord").value.trim(), binance: $("fpBinance").value.trim(),
-      }),
-    }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+    fetch("/api/payconfig", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
       .then(function (o) {
         if (!o.ok) throw new Error(o.j.error || "Erreur");
-        $("fpSecret").value = "";
-        msg.textContent = "✓ Enregistré."; msg.className = "form-msg ok";
+        MODES.forEach(function (m) { $("fpSecret_" + m).value = ""; $("fpWebhook_" + m).value = ""; });
+        msg.textContent = "✓ Enregistré. Mode actif : " + (o.j.mode === "live" ? "Live" : "Sandbox") + "."; msg.className = "form-msg ok";
         loadConfig();
       }).catch(function (e) { msg.textContent = e.message; msg.className = "form-msg err"; });
   }
-  function clearConfig() {
-    if (!confirm("Déconnecter FedaPay ? Les paiements par carte seront désactivés.")) return;
-    fetch("/api/payconfig", {
-      method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clear: true }),
-    }).then(function () { $("fpPublic").value = ""; $("fpSecret").value = ""; loadConfig(); });
+  function testConfig(m) {
+    var out = $("fpTestMsg_" + m);
+    out.textContent = "Test en cours…"; out.className = "form-msg";
+    fetch("/api/payconfig/test?mode=" + m).then(function (r) { return r.json(); }).then(function (j) {
+      out.textContent = j.message || (j.ok ? "OK" : "Échec"); out.className = "form-msg " + (j.ok ? "ok" : "err");
+    }).catch(function () { out.textContent = "Test impossible."; out.className = "form-msg err"; });
+  }
+  function clearConfig(m) {
+    if (!confirm("Effacer les clés " + (m === "live" ? "Live" : "Sandbox") + " ?")) return;
+    fetch("/api/payconfig", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clear: m }) })
+      .then(function () { loadConfig(); });
+  }
+
+  // ---------- Transactions FedaPay ----------
+  var STATUT_COULEUR = { "approuvée": "#1a7a4c", "refusée": "#b3261e", "annulée": "#8A5A00", "en attente": "#5A5F73" };
+  function loadTx() {
+    var host = $("txList"); if (!host) return;
+    fetch("/api/fedapay/transactions").then(function (r) { return r.ok ? r.json() : []; }).then(function (list) {
+      $("txCount").textContent = String(list.length);
+      if (!list.length) { host.innerHTML = '<p class="muted" style="font-size:.9rem">Aucune transaction pour l\'instant.</p>'; return; }
+      host.innerHTML = '<div class="tx-table"><table><thead><tr><th>Date</th><th>Élève</th><th>Formation</th><th>Montant</th><th>Statut</th><th>Référence</th><th></th></tr></thead><tbody>' +
+        list.map(function (t) {
+          var d = (t.maj || t.date || "").slice(0, 16).replace("T", " ");
+          var coul = STATUT_COULEUR[t.statut] || "#5A5F73";
+          return "<tr><td>" + esc(d) + "</td><td>" + esc(t.nom || "—") + "<br><small>" + esc(t.email || "") + (t.telephone ? " · " + esc(t.telephone) : "") + "</small></td>" +
+            "<td>" + esc(t.formation || "") + "</td><td>" + esc(String(t.montant || "")) + " FCFA</td>" +
+            '<td><strong style="color:' + coul + '">' + esc(t.statut || "") + "</strong>" + (t.mode === "sandbox" ? " <small>(test)</small>" : "") + "</td>" +
+            "<td><small>" + esc(String(t.id)) + "</small></td>" +
+            "<td>" + (t.statut !== "approuvée" ? '<button class="btn btn--ghost" style="padding:.4em .8em;font-size:.78rem" data-tx-verif="' + esc(String(t.id)) + '">Vérifier</button>' : "") + "</td></tr>";
+        }).join("") + "</tbody></table></div>";
+      host.querySelectorAll("[data-tx-verif]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          b.disabled = true; b.textContent = "…";
+          fetch("/api/fedapay/verifier", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: b.getAttribute("data-tx-verif") }) })
+            .then(function () { loadTx(); loadSubs(); });
+        });
+      });
+    }).catch(function () {});
   }
 
   // ---------- Abonnés ----------
@@ -156,11 +200,13 @@
     $("plCreate").addEventListener("click", createLink);
     if ($("plPrice")) { $("plPrice").addEventListener("change", syncPriceMode); syncPriceMode(); }
     $("fpSave").addEventListener("click", saveConfig);
-    $("fpClear").addEventListener("click", clearConfig);
+    document.querySelectorAll("[data-fp-test]").forEach(function (b) { b.addEventListener("click", function () { testConfig(b.getAttribute("data-fp-test")); }); });
+    document.querySelectorAll("[data-fp-clear]").forEach(function (b) { b.addEventListener("click", function () { clearConfig(b.getAttribute("data-fp-clear")); }); });
+    if ($("txReload")) $("txReload").addEventListener("click", loadTx);
     if ($("subReload")) $("subReload").addEventListener("click", loadSubs);
     document.querySelectorAll('.admin-tab[data-tab="paiements"]').forEach(function (b) {
-      b.addEventListener("click", function () { loadLinks(); loadConfig(); loadSubs(); });
+      b.addEventListener("click", function () { loadLinks(); loadConfig(); loadSubs(); loadTx(); });
     });
-    loadLinks(); loadConfig(); loadSubs();
+    loadLinks(); loadConfig(); loadSubs(); loadTx();
   });
 })();

@@ -104,3 +104,16 @@
 .stat-card--total { background: var(--navy, #0D1A3A); border-color: var(--navy, #0D1A3A); }
 .stat-card--total b { color: #fff; font-size: 2.8rem; }
 .stat-card--total span { color: #C9D0E0; }
+
+/* FedaPay : interrupteur Sandbox / Live, blocs de clés, journal des transactions */
+.fp-interrupteur{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:.6rem 0 1.2rem;padding:12px 16px;border:1px solid var(--line,#DCDFE5);border-radius:8px;background:#F7F8FA}
+.fp-interrupteur label{display:flex;gap:6px;align-items:center;cursor:pointer}
+.fp-interrupteur small{color:#5A5F73}
+.fp-mode{grid-column:1 / -1;border:1px solid var(--line,#DCDFE5);border-radius:8px;padding:14px 16px 6px;margin:0 0 6px}
+.fp-mode legend{font-weight:700;padding:0 6px;color:#0D1A3A}
+.fp-mode.is-actif{border-color:#1a7a4c;box-shadow:0 0 0 1px #1a7a4c}
+.fp-mode.is-actif legend::after{content:" · actif";color:#1a7a4c}
+.tx-table{overflow-x:auto}
+.tx-table table{border-collapse:collapse;width:100%;font-size:.86rem;min-width:720px}
+.tx-table th,.tx-table td{padding:8px 10px;border-bottom:1px solid var(--line,#DCDFE5);text-align:left;vertical-align:top}
+.tx-table th{font-weight:600;color:#0D1A3A}

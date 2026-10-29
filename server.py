@@ -73,7 +73,8 @@ STATS_FILE = os.path.join(DATA_DIR, "stats.json")            # fréquentation (a
 MAIL_FILE = os.path.join(DATA_DIR, "mail.json")
 PAYLINKS_FILE = os.path.join(DATA_DIR, "paylinks.json")       # liens de paiement secrets (jetons)
 SUBSCRIBERS_FILE = os.path.join(DATA_DIR, "subscribers.json") # accès accordés (abonnés)
-PAYCFG_FILE = os.path.join(DATA_DIR, "pay.json")             # clés FedaPay + Discord (JAMAIS sur GitHub)
+PAYCFG_FILE = os.path.join(DATA_DIR, "pay.json")             # clés FedaPay (chiffrées) + Discord (JAMAIS sur GitHub)
+PAYTX_FILE = os.path.join(DATA_DIR, "fedapay-transactions.json")  # journal des transactions FedaPay
 AUTH_FILE = os.path.join(DATA_DIR, "auth.json")            # mot de passe admin (haché)
 SESSIONS_FILE = os.path.join(DATA_DIR, "sessions.json")   # sessions d'authentification (rôle admin)
 
@@ -415,21 +416,146 @@ def _record_view(rel_path, referer=""):
 # ============================================================
 #  PAIEMENT — FedaPay (page hébergée) + Discord + suivi des abonnés
 # ============================================================
-def _pay_cfg():
-    """Config de paiement saisie dans l'admin (clés FedaPay, Discord, Binance).
-    Jamais dans GitHub. Le mode test/live est déduit du préfixe de la clé."""
+# ---- Chiffrement des clés secrètes (clé secrète FedaPay, secret du webhook) ----
+# La clé de chiffrement est dans le fichier de configuration du serveur (KBO_CLE_CHIFFREMENT,
+# 64 caractères hexadécimaux), jamais sur GitHub ni dans la base. Chiffrement authentifié avec
+# la bibliothèque standard : flux HMAC-SHA256 en mode compteur + étiquette HMAC (chiffrer puis signer).
+def _cle_maitre():
+    k = os.environ.get("KBO_CLE_CHIFFREMENT", "").strip()
+    return bytes.fromhex(k) if re.fullmatch(r"[0-9a-fA-F]{64}", k) else None
+
+
+def _sous_cles(maitre):
+    return (hmac.new(maitre, b"kbo-chiffrement", hashlib.sha256).digest(),
+            hmac.new(maitre, b"kbo-authentification", hashlib.sha256).digest())
+
+
+def _flux(cle, nonce, n):
+    out, i = bytearray(), 0
+    while len(out) < n:
+        out += hmac.new(cle, nonce + i.to_bytes(8, "big"), hashlib.sha256).digest()
+        i += 1
+    return bytes(out[:n])
+
+
+def _chiffrer(texte):
+    maitre = _cle_maitre()
+    if not maitre:
+        raise RuntimeError("clé de chiffrement absente du serveur")
+    k_enc, k_mac = _sous_cles(maitre)
+    nonce = secrets.token_bytes(16)
+    clair = texte.encode("utf-8")
+    chiffre = bytes(a ^ b for a, b in zip(clair, _flux(k_enc, nonce, len(clair))))
+    tag = hmac.new(k_mac, nonce + chiffre, hashlib.sha256).digest()
+    return "v1:" + base64.b64encode(nonce + chiffre + tag).decode("ascii")
+
+
+def _dechiffrer(valeur):
+    maitre = _cle_maitre()
+    if not maitre or not str(valeur or "").startswith("v1:"):
+        return ""
+    try:
+        brut = base64.b64decode(valeur[3:])
+        nonce, chiffre, tag = brut[:16], brut[16:-32], brut[-32:]
+        k_enc, k_mac = _sous_cles(maitre)
+        if not hmac.compare_digest(tag, hmac.new(k_mac, nonce + chiffre, hashlib.sha256).digest()):
+            return ""
+        return bytes(a ^ b for a, b in zip(chiffre, _flux(k_enc, nonce, len(chiffre)))).decode("utf-8")
+    except Exception:
+        return ""
+
+
+PAY_MODES = ("sandbox", "live")
+
+
+def _pay_brut():
     cfg = _read_json(PAYCFG_FILE, {})
     if not isinstance(cfg, dict):
         cfg = {}
-    sk = str(cfg.get("secret") or "").strip()
+    # Ancien format (clé secrète en clair) : rangée dans le bon mode et chiffrée dès que possible.
+    if cfg.get("secret") and _cle_maitre():
+        sk = str(cfg.pop("secret")).strip()
+        mode = "live" if sk.startswith("sk_live_") else "sandbox"
+        sec = cfg.setdefault(mode, {})
+        sec.update(secret_enc=_chiffrer(sk), secret_fin=sk[-4:])
+        if cfg.get("public"):
+            sec.setdefault("public", cfg.pop("public"))
+        cfg.setdefault("mode", mode)
+        _write_json(PAYCFG_FILE, cfg)
+    return cfg
+
+
+def _pay_cfg(mode=None):
+    """Config de paiement (Sandbox ou Live) saisie dans l'admin. Clés secrètes déchiffrées
+    uniquement en mémoire, au moment de l'appel à FedaPay. Jamais sur GitHub."""
+    cfg = _pay_brut()
+    mode = mode if mode in PAY_MODES else (cfg.get("mode") if cfg.get("mode") in PAY_MODES else "sandbox")
+    sec = cfg.get(mode) if isinstance(cfg.get(mode), dict) else {}
+    sk = _dechiffrer(sec.get("secret_enc")) or (str(cfg.get("secret") or "").strip()
+                                                 if mode == ("live" if str(cfg.get("secret") or "").startswith("sk_live_") else "sandbox") else "")
     return {
-        "public": str(cfg.get("public") or "").strip(),
+        "mode": mode,
+        "public": str(sec.get("public") or "").strip(),
         "secret": sk,
-        "live": sk.startswith("sk_live_"),
+        "webhook": _dechiffrer(sec.get("webhook_enc")),
+        "live": mode == "live",
         "discord": str(cfg.get("discord") or "").strip(),
         "binance": str(cfg.get("binance") or "").strip(),
         "configured": bool(sk),
     }
+
+
+def _paytx_log(tx_id, **champs):
+    """Journal des transactions FedaPay (référence, montant, statut, date, élève), affiché dans l'admin."""
+    journal = _read_json(PAYTX_FILE, [])
+    if not isinstance(journal, list):
+        journal = []
+    for t in journal:
+        if str(t.get("id")) == str(tx_id):
+            t.update(champs, maj=datetime.utcnow().isoformat() + "Z")
+            break
+    else:
+        journal.append(dict(champs, id=tx_id, date=datetime.utcnow().isoformat() + "Z"))
+    _write_json(PAYTX_FILE, journal[-2000:])
+
+
+# Indicatifs des pays d'Afrique de l'Ouest servis par FedaPay → code pays attendu.
+_INDICATIFS = {"229": "bj", "225": "ci", "228": "tg", "221": "sn", "226": "bf", "227": "ne", "223": "ml", "224": "gn"}
+
+
+def _telephone_fedapay(texte):
+    """« +229 01 97 00 00 00 » → {"number": "0197000000", "country": "bj"} ; rien si incertain."""
+    brut = str(texte or "").strip()
+    chiffres = re.sub(r"\D", "", brut)
+    if not chiffres:
+        return None
+    if brut.startswith("+") or brut.startswith("00"):
+        chiffres = chiffres[2:] if brut.startswith("00") else chiffres
+        for ind, pays in _INDICATIFS.items():
+            if chiffres.startswith(ind) and len(chiffres) > len(ind) + 6:
+                return {"number": chiffres[len(ind):], "country": pays}
+        return None
+    if len(chiffres) in (8, 10):          # numéro béninois sans indicatif
+        return {"number": chiffres, "country": "bj"}
+    return None
+
+
+def _signature_fedapay_ok(brut, entete, secret, tolerance=300):
+    """Vérifie l'en-tête X-FEDAPAY-SIGNATURE (« t=<horodatage>,s=<signature hex> »), comme la
+    bibliothèque officielle : HMAC-SHA256 de « <horodatage>.<contenu brut> » avec le secret du webhook."""
+    if not secret or not entete:
+        return False
+    t, signatures = None, []
+    for morceau in entete.split(","):
+        cle, _, val = morceau.strip().partition("=")
+        if cle == "t" and val.strip().isdigit():
+            t = int(val.strip())
+        elif cle == "s":
+            signatures.append(val.strip())
+    if t is None or not signatures or abs(time.time() - t) > tolerance:
+        return False
+    attendu = hmac.new(secret.encode("utf-8"), str(t).encode("ascii") + b"." + brut, hashlib.sha256).hexdigest()
+    return any(hmac.compare_digest(attendu, s) for s in signatures)
 
 
 # Prix « du site » qu'un lien de paiement peut suivre automatiquement.
@@ -487,6 +613,9 @@ def _to_xof(amount, currency):
 
 
 def _fedapay_base(live):
+    essai = os.environ.get("KBO_FEDAPAY_API_ESSAI", "").strip()   # uniquement pour les tests locaux
+    if essai:
+        return essai.rstrip("/")
     return "https://api.fedapay.com/v1" if live else "https://sandbox-api.fedapay.com/v1"
 
 
@@ -2240,8 +2369,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._pay_state()
 
         if path == "/api/achat/moyens":
+            fp = _pay_cfg()
             return self._send_json({
                 "carte": bool(os.environ.get("LEMONSQUEEZY_API_KEY") and os.environ.get("LEMONSQUEEZY_STORE_ID")),
+                "fedapay": fp["configured"], "fedapaySandbox": fp["configured"] and not fp["live"],
                 "crypto": bool(os.environ.get("NOWPAYMENTS_API_KEY"))})
 
         if path == "/api/admin/discord":
@@ -2341,10 +2472,36 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/payconfig":       # admin : config paiement (SANS la clé secrète)
             if not self._is_admin():
                 return self._send_json({"error": "Non autorisé"}, 401)
-            c = _pay_cfg()
-            return self._send_json({"public": c["public"], "discord": c["discord"],
-                                    "binance": c["binance"], "configured": c["configured"],
-                                    "live": c["live"]})
+            brut = _pay_brut()
+            actif = _pay_cfg()
+            modes = {}
+            for m in PAY_MODES:
+                sec = brut.get(m) if isinstance(brut.get(m), dict) else {}
+                modes[m] = {"public": sec.get("public", ""), "secretFin": sec.get("secret_fin", ""),
+                            "webhookFin": sec.get("webhook_fin", ""), "configured": bool(sec.get("secret_enc"))}
+            base = _public_url() or self._public_base()
+            return self._send_json({"mode": actif["mode"], "modes": modes, "discord": actif["discord"],
+                                    "binance": actif["binance"], "configured": actif["configured"],
+                                    "live": actif["live"], "chiffrement": bool(_cle_maitre()),
+                                    "webhookUrl": base + "/api/fedapay/webhook"})
+
+        if path == "/api/payconfig/test":   # admin : la clé secrète du mode choisi fonctionne-t-elle ?
+            if not self._is_admin():
+                return self._send_json({"error": "Non autorisé"}, 401)
+            mode = (parse_qs(urlparse(self.path).query).get("mode") or [""])[0]
+            c = _pay_cfg(mode)
+            if not c["configured"]:
+                return self._send_json({"ok": False, "message": "Aucune clé secrète enregistrée pour ce mode."})
+            ok, res = _fedapay_req("GET", "/transactions?per_page=1", c["secret"], c["live"], timeout=15)
+            return self._send_json({"ok": ok, "message": "Connexion à FedaPay réussie (%s)." % ("Live" if c["live"] else "Sandbox")
+                                    if ok else "FedaPay refuse la clé : " + str(res)[:200]})
+
+        if path == "/api/fedapay/transactions":   # admin : journal des paiements FedaPay
+            if not self._is_admin():
+                return self._send_json({"error": "Non autorisé"}, 401)
+            journal = _read_json(PAYTX_FILE, [])
+            return self._send_json(sorted(journal if isinstance(journal, list) else [],
+                                          key=lambda t: t.get("date", ""), reverse=True))
 
         # Commentaires d'un article (publics, en lecture)
         m = re.match(r"^/api/comments/([A-Za-z0-9_\-]+)$", path)
@@ -2477,6 +2634,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._create_paylink()
         if path == "/api/payconfig":          # admin : enregistrer clés FedaPay + Discord
             return self._save_payconfig()
+        if path == "/api/fedapay/webhook":    # FedaPay : confirmation signée d'un paiement
+            return self._fedapay_webhook()
+        if path == "/api/fedapay/verifier":   # admin : revérifier une transaction auprès de FedaPay
+            return self._fedapay_verifier()
         if path == "/api/pay/start":          # public : démarrer un paiement (via jeton)
             return self._pay_start()
         if path == "/api/pay/crypto":         # public : créer la page de paiement crypto (NOWPayments)
@@ -2628,18 +2789,44 @@ class Handler(BaseHTTPRequestHandler):
         cur = _read_json(PAYCFG_FILE, {})
         if not isinstance(cur, dict):
             cur = {}
-        if data.get("clear"):
-            _write_json(PAYCFG_FILE, {})
-            return self._send_json({"ok": True, "cleared": True})
-        secret = str(data.get("secret") or "").strip()
-        cfg = {
-            "public": _clean(data.get("public"), 120) or cur.get("public", ""),
-            "secret": secret or cur.get("secret", ""),      # vide = on garde l'ancienne
-            "discord": _clean(data.get("discord"), 300) or cur.get("discord", ""),
-            "binance": _clean(data.get("binance"), 160) if data.get("binance") is not None else cur.get("binance", ""),
-        }
-        _write_json(PAYCFG_FILE, cfg)
-        return self._send_json({"ok": True, "configured": bool(cfg["secret"])})
+        cur = _pay_brut()
+        # Effacer les clés d'un mode (Sandbox ou Live)
+        if data.get("clear") in PAY_MODES:
+            cur.pop(data["clear"], None)
+            _write_json(PAYCFG_FILE, cur)
+            return self._send_json({"ok": True, "cleared": data["clear"]})
+        if data.get("mode") in PAY_MODES:
+            cur["mode"] = data["mode"]
+        prefixes = {"sandbox": ("sk_sandbox_", "sk_test_"), "live": ("sk_live_",)}
+        publics = {"sandbox": ("pk_sandbox_", "pk_test_"), "live": ("pk_live_",)}
+        for m in PAY_MODES:
+            sec = cur.get(m) if isinstance(cur.get(m), dict) else {}
+            pk = _clean(data.get("public_" + m), 160)
+            if pk:
+                if not pk.startswith(publics[m]):
+                    return self._send_json({"error": "La clé publique %s doit commencer par %s." % (m.capitalize(), " ou ".join(publics[m]))}, 400)
+                sec["public"] = pk
+            sk = str(data.get("secret_" + m) or "").strip()
+            wh = str(data.get("webhook_" + m) or "").strip()
+            if (sk or wh) and not _cle_maitre():
+                return self._send_json({"error": "Le chiffrement n'est pas encore activé sur le serveur : clé non enregistrée."}, 503)
+            if sk:                                       # vide = on garde l'ancienne
+                if not sk.startswith(prefixes[m]) or len(sk) > 200:
+                    return self._send_json({"error": "La clé secrète %s doit commencer par %s." % (m.capitalize(), " ou ".join(prefixes[m]))}, 400)
+                sec.update(secret_enc=_chiffrer(sk), secret_fin=sk[-4:])
+            if wh:
+                if len(wh) < 12 or len(wh) > 300 or any(ch.isspace() for ch in wh):
+                    return self._send_json({"error": "Le secret du webhook semble incomplet."}, 400)
+                sec.update(webhook_enc=_chiffrer(wh), webhook_fin=wh[-4:])
+            if sec:
+                cur[m] = sec
+        if data.get("discord") is not None:
+            cur["discord"] = _clean(data.get("discord"), 300)
+        if data.get("binance") is not None:
+            cur["binance"] = _clean(data.get("binance"), 160)
+        cur.pop("secret", None)
+        _write_json(PAYCFG_FILE, cur)
+        return self._send_json({"ok": True, "mode": cur.get("mode", "sandbox"), "configured": _pay_cfg()["configured"]})
 
     def _create_paylink(self):
         if not self._is_admin():
@@ -2689,8 +2876,10 @@ class Handler(BaseHTTPRequestHandler):
             "currency": currency, "cycle": link["cycle"],
             "amountXof": _to_xof(amount, currency),   # équivalent FCFA (info client)
             "cardReady": bool(os.environ.get("LEMONSQUEEZY_API_KEY") and os.environ.get("LEMONSQUEEZY_STORE_ID")),
+            "fedapayReady": c["configured"], "fedapaySandbox": c["configured"] and not c["live"],
             "cryptoReady": bool(os.environ.get("NOWPAYMENTS_API_KEY")),
             "cryptoMin": CRYPTO_MIN_EUR,
+            "nom": link.get("nom", ""), "email": link.get("email", ""), "telephone": link.get("telephone", ""),
         })
 
     def _pay_state(self):
@@ -2701,8 +2890,54 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_json({"paye": True, "acces": "/acces?t=" + sub["acces"]})
         return self._send_json({"paye": False})
 
+    def _fedapay_checkout(self, token, link, links):
+        """Crée la transaction FedaPay (montant en FCFA, description, élève) et renvoie
+        (url de la page de paiement FedaPay, erreur). L'accès ne s'ouvre qu'au webhook confirmé."""
+        c = _pay_cfg()
+        if not c["configured"]:
+            return None, "Le paiement Mobile Money / carte n'est pas encore activé."
+        amount, currency = _resolve_price(link)    # prix ACTUEL du site (ex. 89 €)
+        if amount <= 0:
+            return None, "Montant indisponible."
+        xof = _to_xof(amount, currency)            # FedaPay encaisse en francs CFA
+        base = _public_url() or self._public_base()
+        nom = (link.get("nom") or "").strip()
+        prenom, _, nom_famille = nom.partition(" ")
+        client = {"firstname": prenom or "Élève", "lastname": nom_famille or prenom or "KBO",
+                  "email": link.get("email") or "eleve@kbocorporatefinance.com"}
+        tel = _telephone_fedapay(link.get("telephone"))
+        if tel:
+            client["phone_number"] = tel
+        cycles = {"mensuel": " (mensuel)", "annuel": " (annuel)"}
+        ok, res = _fedapay_req("POST", "/transactions", c["secret"], c["live"], {
+            "description": (link.get("formation") or "Formation KBO") + ("" if (link.get("cycle") or "") in (link.get("formation") or "")
+                                                                       else cycles.get(link.get("cycle"), "")),
+            "amount": xof,
+            "currency": {"iso": "XOF"},
+            "callback_url": base + "/api/pay/callback?c=" + token,
+            "customer": client,
+        })
+        if not ok:
+            print("  [FedaPay] création refusée : %s" % res, flush=True)
+            return None, "FedaPay n'a pas pu créer le paiement. Réessayez dans un instant."
+        tx = res.get("v1/transaction") or res.get("transaction") or res
+        tx_id = tx.get("id")
+        if not tx_id:
+            return None, "Réponse FedaPay inattendue."
+        ok2, res2 = _fedapay_req("POST", "/transactions/%s/token" % tx_id, c["secret"], c["live"])
+        pay_url = (res2.get("url") or (res2.get("v1/transaction") or {}).get("url")) if ok2 else None
+        if not pay_url:
+            return None, "Page de paiement FedaPay indisponible. Réessayez dans un instant."
+        link.update(txId=tx_id, txMode=c["mode"], txAmount=xof)
+        links[token] = link
+        _write_json(PAYLINKS_FILE, links)
+        _paytx_log(tx_id, mode=c["mode"], lien=token, statut="en attente", montant=xof, devise="XOF",
+                   formation=link.get("formation", ""), nom=link.get("nom", ""), email=link.get("email", ""),
+                   telephone=link.get("telephone", ""))
+        return pay_url, None
+
     def _pay_start(self):
-        """Crée une transaction FedaPay et renvoie l'URL de la page de paiement."""
+        """Paiement Mobile Money / carte (FedaPay) depuis une page de paiement cachée."""
         data = self._read_body() or {}
         token = _clean(data.get("token"), 40)
         links = _read_json(PAYLINKS_FILE, {})
@@ -2711,67 +2946,102 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_json({"error": "Lien invalide."}, 404)
         if link.get("used"):
             return self._send_json({"error": "Ce lien a déjà été utilisé."}, 410)
-        c = _pay_cfg()
-        if not c["configured"]:
-            return self._send_json({"error": "Le paiement par carte / Mobile Money n'est pas encore activé. "
-                                             "Ajoutez vos clés FedaPay dans l'administration."}, 503)
-        base_url = self._public_base()
-        callback = base_url + "/api/pay/callback?c=" + token
-        amount, currency = _resolve_price(link)    # prix ACTUEL du site (ex. 89 €)
-        if amount <= 0:
-            return self._send_json({"error": "Montant indisponible."}, 400)
-        # FedaPay (Bénin) n'encaisse qu'en francs CFA → on convertit le prix.
-        xof = _to_xof(amount, currency)
-        ok, res = _fedapay_req("POST", "/transactions", c["secret"], c["live"], {
-            "description": link["formation"] + " (" + link["cycle"] + ")",
-            "amount": xof,
-            "currency": {"iso": "XOF"},
-            "callback_url": callback,
-            "customer": {"email": link.get("email") or "client@kbo.local",
-                         "firstname": link.get("nom") or "Client"},
-        })
-        if not ok:
-            return self._send_json({"error": "FedaPay : " + str(res)}, 502)
-        tx = res.get("v1/transaction") or res.get("transaction") or res
-        tx_id = tx.get("id")
-        if not tx_id:
-            return self._send_json({"error": "Réponse FedaPay inattendue."}, 502)
-        # Générer le jeton de paiement → URL de la page hébergée FedaPay
-        ok2, res2 = _fedapay_req("POST", "/transactions/%s/token" % tx_id, c["secret"], c["live"])
-        if not ok2:
-            return self._send_json({"error": "FedaPay (token) : " + str(res2)}, 502)
-        pay_url = res2.get("url") or (res2.get("v1/transaction") or {}).get("url")
-        if not pay_url:
-            return self._send_json({"error": "URL de paiement FedaPay introuvable."}, 502)
-        # Mémoriser l'id de transaction pour la vérification au retour
-        link["txId"] = tx_id
-        links[token] = link
-        _write_json(PAYLINKS_FILE, links)
-        return self._send_json({"ok": True, "url": pay_url})
+        for champ, limite in (("nom", 120), ("email", 200), ("telephone", 40)):
+            val = _clean(data.get(champ), limite)
+            if val:
+                link[champ] = val.lower() if champ == "email" else val
+        if link.get("email") and not EMAIL_RE.match(link["email"]):
+            return self._send_json({"error": "Adresse e-mail invalide."}, 400)
+        url, err = self._fedapay_checkout(token, link, links)
+        if err:
+            return self._send_json({"error": err}, 503 if "activé" in err else 502)
+        return self._send_json({"ok": True, "url": url})
 
     def _pay_callback(self):
-        """FedaPay renvoie ici après paiement. On vérifie le statut réel côté
-        serveur (jamais la confiance au navigateur), puis on ouvre l'accès."""
-        from urllib.parse import parse_qs
+        """Retour de FedaPay après paiement. Cette page ne valide JAMAIS un paiement (elle peut être
+        falsifiée) : elle affiche « Paiement reçu, merci » en attendant la confirmation du webhook,
+        ou la page d'échec avec « Réessayer »."""
         qs = parse_qs(urlparse(self.path).query)
-        token = (qs.get("c") or [""])[0]
+        token = re.sub(r"[^A-Za-z0-9]", "", (qs.get("c") or [""])[0])[:40]
+        statut = (qs.get("status") or [""])[0].lower()
+        if statut in ("approved", "transferred"):
+            return self._redirect("/paiement?c=" + token + "&ok=fedapay")
+        return self._redirect("/paiement?c=" + token + "&echec=1")
+
+    def _fedapay_appliquer(self, tx_id, mode):
+        """Vérifie une transaction AUPRÈS DE L'API FedaPay puis applique son statut :
+        approuvée → accès ouvert, reçu envoyé, Obed prévenu. Renvoie le statut vérifié."""
+        c = _pay_cfg(mode)
+        if not c["configured"]:
+            return "inconnu"
+        ok, res = _fedapay_req("GET", "/transactions/%s" % tx_id, c["secret"], c["live"])
+        if not ok:
+            return "inconnu"
+        tx = res.get("v1/transaction") or res.get("transaction") or res
+        statut = str(tx.get("status") or "").lower()
         links = _read_json(PAYLINKS_FILE, {})
-        link = links.get(token) if isinstance(links, dict) else None
-        c = _pay_cfg()
-        fail_url = self._public_base() + "/paiement?c=" + token + "&echec=1"
-        if not link or not c["configured"] or not link.get("txId"):
-            return self._redirect(fail_url)
-        ok, res = _fedapay_req("GET", "/transactions/%s" % link["txId"], c["secret"], c["live"])
-        status = ""
-        if ok:
-            tx = res.get("v1/transaction") or res.get("transaction") or res
-            status = str(tx.get("status") or "").lower()
-        if status not in ("approved", "transferred", "paid", "completed"):
-            return self._redirect(fail_url)
-        # Paiement confirmé → on accorde l'accès
-        self._grant_access(token, link, "FedaPay", link.get("txId"))
-        discord = c["discord"] or "/paiement?c=" + token + "&ok=1"
-        return self._redirect(discord)
+        token, link = None, None
+        for tk, l in (links.items() if isinstance(links, dict) else []):
+            if str(l.get("txId")) == str(tx_id):
+                token, link = tk, l
+                break
+        noms = {"approved": "approuvée", "transferred": "approuvée", "declined": "refusée",
+                "canceled": "annulée", "cancelled": "annulée", "pending": "en attente", "refunded": "remboursée"}
+        _paytx_log(tx_id, statut=noms.get(statut, statut or "inconnu"), mode=mode)
+        if statut in ("approved", "transferred") and link:
+            montant = int(tx.get("amount") or 0)
+            if link.get("txAmount") and montant and montant < int(link["txAmount"]):
+                _paytx_log(tx_id, statut="montant incorrect")
+                return "montant incorrect"
+            sub = self._grant_access(token, link, "FedaPay", "fedapay-%s" % tx_id,
+                                     {"montantPaye": "%s FCFA" % "{:,}".format(montant or link.get("txAmount") or 0).replace(",", " "),
+                                      "telephone": link.get("telephone", ""), "modePaiement": mode})
+            _paytx_log(tx_id, acces=bool(sub))
+        return statut
+
+    def _fedapay_webhook(self):
+        """Webhook FedaPay (transaction.approved / declined / canceled). Tout appel non signé
+        avec le secret du webhook est refusé ; le statut est ensuite revérifié auprès de l'API."""
+        try:
+            longueur = int(self.headers.get("Content-Length", 0))
+        except ValueError:
+            longueur = 0
+        if longueur <= 0 or longueur > 200_000:
+            return self._send_json({"error": "Requête invalide"}, 400)
+        brut = self.rfile.read(longueur)
+        entete = self.headers.get("X-FEDAPAY-SIGNATURE", "")
+        mode = None
+        for m in PAY_MODES:
+            if _signature_fedapay_ok(brut, entete, _pay_cfg(m)["webhook"]):
+                mode = m
+                break
+        if not mode:
+            print("  [FedaPay] webhook refusé : signature absente ou invalide", flush=True)
+            return self._send_json({"error": "Signature invalide"}, 400)
+        try:
+            evt = json.loads(brut.decode("utf-8"))
+        except (ValueError, UnicodeDecodeError):
+            return self._send_json({"error": "Contenu illisible"}, 400)
+        nom = str(evt.get("name") or evt.get("type") or "")
+        entite = evt.get("entity") if isinstance(evt.get("entity"), dict) else {}
+        tx_id = entite.get("id") or evt.get("object_id")
+        if nom.startswith("transaction.") and tx_id:
+            statut = self._fedapay_appliquer(tx_id, mode)
+            print("  [FedaPay] %s → transaction %s : %s" % (nom, tx_id, statut), flush=True)
+        return self._send_json({"ok": True})
+
+    def _fedapay_verifier(self):
+        """Admin : revérifier une transaction auprès de FedaPay (si un webhook a manqué)."""
+        if not self._is_admin():
+            return self._send_json({"error": "Non autorisé"}, 401)
+        data = self._read_body() or {}
+        tx_id = re.sub(r"[^0-9A-Za-z_-]", "", str(data.get("id") or ""))[:40]
+        journal = _read_json(PAYTX_FILE, [])
+        t = next((x for x in (journal if isinstance(journal, list) else []) if str(x.get("id")) == tx_id), None)
+        if not t:
+            return self._send_json({"error": "Transaction inconnue."}, 404)
+        statut = self._fedapay_appliquer(tx_id, t.get("mode") or "sandbox")
+        return self._send_json({"ok": True, "statut": statut})
 
     def _facture_crypto(self, token, link):
         """Crée la page de paiement NOWPayments (USDT, réseau Tron) pour un lien. Renvoie (url, erreur)."""
@@ -2847,18 +3117,26 @@ class Handler(BaseHTTPRequestHandler):
         if not data.get("risques"):
             return self._send_json({"error": "Merci de confirmer avoir lu l'avertissement sur les risques."}, 400)
         moyen = data.get("moyen")
-        if moyen != "crypto":
-            return self._send_json({"error": "Le paiement par carte sera disponible très bientôt. Vous pouvez payer en USDT dès maintenant."}, 400)
+        if moyen not in ("crypto", "fedapay"):
+            return self._send_json({"error": "Choisissez un moyen de paiement."}, 400)
+        telephone = _clean(data.get("telephone"), 40)
+        if moyen == "fedapay" and len(re.sub(r"\D", "", telephone)) < 8:
+            return self._send_json({"error": "Indiquez votre numéro de téléphone (Mobile Money)."}, 400)
         price_key = "priceTradingMonth" if cycle == "mensuel" else "priceTradingYear"
         token = uuid.uuid4().hex[:16]
         link = {"formation": PRICE_KEYS[price_key], "priceKey": price_key, "amount": 0, "currency": "EUR",
-                "cycle": cycle, "nom": nom, "email": email, "created": datetime.utcnow().isoformat() + "Z",
-                "used": False, "direct": True}
+                "cycle": cycle, "nom": nom, "email": email, "telephone": telephone,
+                "created": datetime.utcnow().isoformat() + "Z", "used": False, "direct": True}
         links = _read_json(PAYLINKS_FILE, {})
         if not isinstance(links, dict):
             links = {}
         links[token] = link
         _write_json(PAYLINKS_FILE, links)
+        if moyen == "fedapay":
+            url, err = self._fedapay_checkout(token, link, links)
+            if err:
+                return self._send_json({"error": err}, 503)
+            return self._send_json({"ok": True, "url": url})
         url, err = self._facture_crypto(token, link)
         if err:
             return self._send_json({"error": err}, 502 if "indisponible" in err else 400)
@@ -2916,14 +3194,18 @@ class Handler(BaseHTTPRequestHandler):
         except Exception:
             pass
         if email:
+            montant_txt = (extra or {}).get("montantPaye") or ("%s %s" % (g_amount, g_currency))
+            recu = ("REÇU DE PAIEMENT\nFormation : %s\nMontant : %s\nDate : %s\nRéférence : %s\nMoyen : %s"
+                    % (link.get("formation", ""), montant_txt, _date_fr(now.date().isoformat(), True) or now.date().isoformat(),
+                       ref, method))
             try:
-                _send_email(email, "Votre accès KBO Corporate Finance est ouvert",
-                            "Bonjour %s,\n\nVotre paiement pour « %s » est confirmé. Merci de votre confiance.\n\n"
+                _send_email(email, "Paiement confirmé — votre accès KBO Corporate Finance",
+                            "Bonjour %s,\n\nVotre paiement pour « %s » est confirmé. Merci de votre confiance.\n\n%s\n\n"
                             "Dernière étape : reliez votre compte Discord pour rejoindre la formation. "
                             "Un seul clic suffit, depuis votre page personnelle :\n%s\n\n"
                             "Rappel : les marchés financiers comportent un risque de perte en capital. "
                             "Nos formations ont une vocation pédagogique.\n\nL'équipe KBO Corporate Finance"
-                            % (link.get("nom") or "", link.get("formation", ""), lien))
+                            % (link.get("nom") or "", link.get("formation", ""), recu, lien))
             except Exception:
                 pass
         return sub

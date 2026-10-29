@@ -34,12 +34,22 @@
           <div class="checkout__total"><span>Total <span id="payCycle"></span></span><strong id="payAmount">—</strong></div>
         </aside>
         <div class="checkout__form">
-          <div id="payEchec" hidden class="pay-alert"><strong>Le paiement n'a pas abouti.</strong> Vous pouvez réessayer.</div>
+          <div id="payEchec" hidden class="pay-alert"><strong>Le paiement n'a pas abouti.</strong> Aucun montant n'a été débité. Vous pouvez réessayer ci-dessous.
+            <div style="margin-top:12px"><button class="btn" type="button" id="payReessayer">Réessayer <span class="arrow">→</span></button></div></div>
+          <div id="fpBloc" hidden>
+            <h2 class="checkout__h2">Vos coordonnées</h2>
+            <div class="field"><label for="fp_nom">Nom complet</label><input id="fp_nom" type="text" autocomplete="name" maxlength="120" /></div>
+            <div class="field"><label for="fp_email">E-mail</label><input id="fp_email" type="email" autocomplete="email" maxlength="200" /></div>
+            <div class="field"><label for="fp_tel">Téléphone (Mobile Money)</label><input id="fp_tel" type="tel" autocomplete="tel" inputmode="tel" maxlength="40" placeholder="+229 01 97 00 00 00" /></div>
+          </div>
           <h2 class="checkout__h2">Moyen de paiement</h2>
           <div class="checkout__moyens">
+            <div class="checkout__moyen" id="fpCard" hidden><span><strong>Mobile Money ou carte</strong><small id="fpNote">MTN, Moov, carte bancaire · paiement en FCFA</small></span></div>
             <div class="checkout__moyen" id="cryptoCard"><span><strong>USDT</strong><small>Réseau Tron (TRC20)</small></span></div>
             <div class="checkout__moyen is-off" id="payCardTile"><span><strong>Carte bancaire</strong><small id="payCardNote">Bientôt disponible</small></span></div>
           </div>
+          <button class="btn checkout__payer" id="fpBtn" type="button" hidden>Payer par Mobile Money ou carte <span class="arrow">→</span></button>
+          <span class="form-msg" id="fpMsg"></span>
           <button class="btn checkout__payer" id="cryptoBtn" type="button">Payer en USDT <span class="arrow">→</span></button>
           <button class="btn btn--ghost checkout__payer-carte" id="payCardBtn" type="button" hidden>Payer par carte <span class="arrow">→</span></button>
           <span class="form-msg" id="cryptoMsg"></span>
@@ -68,6 +78,28 @@
 
       if (!token) { showInvalid("Aucun lien fourni."); return; }
 
+      // Retour après un paiement FedaPay : « Paiement reçu, merci ». L'accès s'ouvre seulement quand
+      // FedaPay confirme le paiement au serveur (webhook) — jamais sur la seule foi de cette page.
+      if (params.get("ok") === "fedapay") {
+        loading.hidden = true; document.getElementById("payMethods").hidden = false; document.querySelector("#payMethods .checkout__form").hidden = true;
+        pane.style.gridColumn = "1 / -1";
+        document.getElementById("payTitle").textContent = "Paiement reçu, merci !";
+        var tot = document.querySelector(".checkout__total");
+        tot.textContent = "Nous attendons la confirmation de FedaPay (quelques secondes). Votre accès et votre reçu arrivent aussi par e-mail.";
+        var essais = 0;
+        (function verifier() {
+          fetch("/api/pay/etat?c=" + encodeURIComponent(token)).then(function (r) { return r.json(); }).then(function (j) {
+            if (j.paye) {
+              tot.innerHTML = 'Paiement confirmé ✓ Votre accès est ouvert. <a class="btn" style="margin-top:14px" href="' + j.acces + '">Accéder à ma formation <span class="arrow">→</span></a>';
+              return;
+            }
+            if (++essais < 60) setTimeout(verifier, 4000);
+            else tot.textContent = "La confirmation prend plus de temps que prévu. Vous recevrez votre accès et votre reçu par e-mail dès qu'elle arrivera. En cas de doute, écrivez-nous sur WhatsApp.";
+          }).catch(function () { setTimeout(verifier, 6000); });
+        })();
+        return;
+      }
+
       // Retour après un paiement crypto : on attend la confirmation, puis on ouvre la page d'accès.
       if (params.get("ok") === "crypto") {
         loading.hidden = true; document.getElementById("payMethods").hidden = false; document.querySelector("#payMethods .checkout__form").hidden = true;
@@ -91,7 +123,7 @@
           var d = o.j;
           loading.hidden = true; document.getElementById("payMethods").hidden = false;
           document.getElementById("payTitle").textContent = d.formation;
-          var amountTxt = FCFA.format(d.amount) + " " + d.currency;
+          var amountTxt = FCFA.format(d.amount) + " " + (d.currency === "XOF" ? "FCFA" : d.currency);
           if (d.currency !== "XOF" && d.amountXof) {
             amountTxt += ' <span class="muted" style="font-weight:400">(≈ ' + FCFA.format(d.amountXof) + " FCFA)</span>";
           }
@@ -100,9 +132,46 @@
           document.getElementById("payCycle").textContent = cyc[d.cycle] || "";
           if (params.get("echec")) document.getElementById("payEchec").hidden = false;
 
-          // Carte bancaire (Lemon Squeezy)
+          // Mobile Money / carte (FedaPay) — il remplace l'ancienne tuile « Carte bancaire »
+          if (d.fedapayReady) {
+            document.getElementById("payCardTile").hidden = true;
+            document.getElementById("fpBloc").hidden = false;
+            document.getElementById("fpCard").hidden = false;
+            var fpBtn = document.getElementById("fpBtn"), fpMsg = document.getElementById("fpMsg");
+            fpBtn.hidden = false;
+            if (d.fedapaySandbox) document.getElementById("fpNote").textContent += " · mode test";
+            document.getElementById("fp_nom").value = d.nom || "";
+            document.getElementById("fp_email").value = d.email || "";
+            document.getElementById("fp_tel").value = d.telephone || "";
+            fpBtn.addEventListener("click", function () {
+              var nom = document.getElementById("fp_nom").value.trim(), email = document.getElementById("fp_email").value.trim(),
+                  tel = document.getElementById("fp_tel").value.trim();
+              if (nom.length < 2) { fpMsg.textContent = "Indiquez votre nom."; fpMsg.className = "form-msg err"; return; }
+              if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { fpMsg.textContent = "Indiquez une adresse e-mail valide (pour votre reçu)."; fpMsg.className = "form-msg err"; return; }
+              if (tel.replace(/\D/g, "").length < 8) { fpMsg.textContent = "Indiquez votre numéro de téléphone (Mobile Money)."; fpMsg.className = "form-msg err"; return; }
+              fpBtn.disabled = true; fpBtn.innerHTML = "Ouverture du paiement…"; fpMsg.textContent = "";
+              fetch("/api/pay/start", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ token: token, nom: nom, email: email, telephone: tel }),
+              }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+                .then(function (o2) {
+                  if (o2.ok && o2.j.url) { location.href = o2.j.url; return; }
+                  throw new Error((o2.j && o2.j.error) || "Paiement indisponible.");
+                }).catch(function (err) {
+                  fpMsg.textContent = err.message; fpMsg.className = "form-msg err";
+                  fpBtn.disabled = false; fpBtn.innerHTML = 'Payer par Mobile Money ou carte <span class="arrow">→</span>';
+                });
+            });
+          }
+          var re = document.getElementById("payReessayer");
+          if (re) re.addEventListener("click", function () {
+            var cible = document.querySelector("#fpBtn:not([hidden])") || document.getElementById("cryptoBtn");
+            cible.scrollIntoView({ block: "center" }); cible.focus();
+          });
+
+          // Carte bancaire (Lemon Squeezy) — ancien moyen, seulement si FedaPay n'est pas activé
           var btn = document.getElementById("payCardBtn");
-          if (d.cardReady) {
+          if (d.cardReady && !d.fedapayReady) {
             btn.hidden = false;
             document.getElementById("payCardTile").classList.remove("is-off");
             document.getElementById("payCardNote").textContent = "Visa, Mastercard";

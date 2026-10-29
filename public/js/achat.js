@@ -20,21 +20,36 @@
   document.addEventListener("kbo:settings", () => setTimeout(maj, 0));
   maj();
 
+  // Mobile Money / carte (FedaPay) : choisi par défaut quand il est activé ; le téléphone sert au Mobile Money.
+  const telChamp = document.getElementById("achatTelChamp");
+  function majMoyen() {
+    const m = (f.querySelector("input[name=moyen]:checked") || {}).value;
+    if (telChamp) telChamp.hidden = m !== "fedapay";
+  }
+  f.querySelectorAll("input[name=moyen]").forEach((r) => r.addEventListener("change", majMoyen));
   fetch("/api/achat/moyens").then((r) => r.json()).then((m) => {
-    if (!m.crypto) { btn.disabled = true; msg.textContent = "Le paiement en ligne sera disponible très bientôt."; }
-    if (m.carte) {
-      const c = document.getElementById("moyenCarte");
-      c.classList.remove("is-off"); c.querySelector("input").disabled = false; c.querySelector("small").textContent = "Visa, Mastercard";
+    const fp = document.getElementById("moyenFedapay");
+    if (m.fedapay && fp) {
+      fp.classList.remove("is-off"); const r = fp.querySelector("input"); r.disabled = false; r.checked = true;
+      if (m.fedapaySandbox) fp.querySelector("small").textContent += " · mode test";
+    } else if (fp) { fp.hidden = true; }
+    if (!m.crypto) {
+      const c = f.querySelector("input[name=moyen][value=crypto]");
+      if (c) { c.disabled = true; c.closest("label").classList.add("is-off"); }
+      if (!m.fedapay) { btn.disabled = true; msg.textContent = "Le paiement en ligne sera disponible très bientôt."; }
     }
+    majMoyen();
   }).catch(() => {});
 
   f.addEventListener("submit", (e) => {
     e.preventDefault();
     const data = { cycle: (document.querySelector("input[name=cycle]:checked") || {}).value, nom: f.nom.value.trim(),
                    email: f.email.value.trim(), risques: f.risques.checked,
-                   moyen: (f.querySelector("input[name=moyen]:checked") || {}).value || "crypto" };
+                   moyen: (f.querySelector("input[name=moyen]:checked") || {}).value || "crypto",
+                   telephone: f.telephone ? f.telephone.value.trim() : "" };
     if (data.nom.length < 2) { msg.textContent = "Indiquez votre nom."; msg.className = "form-msg err"; return; }
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) { msg.textContent = "Indiquez une adresse e-mail valide."; msg.className = "form-msg err"; return; }
+    if (data.moyen === "fedapay" && data.telephone.replace(/\D/g, "").length < 8) { msg.textContent = "Indiquez votre numéro de téléphone (Mobile Money)."; msg.className = "form-msg err"; return; }
     if (!data.risques) { msg.textContent = "Cochez l'avertissement sur les risques."; msg.className = "form-msg err"; return; }
     const libelle = btn.innerHTML;
     btn.disabled = true; btn.textContent = "Redirection vers le paiement…"; msg.textContent = ""; msg.className = "form-msg";

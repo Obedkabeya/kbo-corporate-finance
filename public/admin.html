@@ -436,21 +436,53 @@
             <div id="plList"></div>
           </div>
 
-          <div class="form-wrap" style="margin-bottom:1.6rem">
-            <h3>Connexion FedaPay + Discord</h3>
-            <p class="muted" style="font-size:.92rem">Créez un compte gratuit sur <strong>fedapay.com</strong>, puis copiez vos clés (Paramètres → API). Commencez en <strong>mode test</strong> (<code>pk_test_…</code> / <code>sk_test_…</code>).</p>
+          <div class="form-wrap" style="margin-bottom:1.6rem" id="fedapay">
+            <h3>FedaPay : Mobile Money et carte</h3>
+            <p class="muted" style="font-size:.92rem">Vos clés se trouvent sur <strong>fedapay.com</strong>, menu <strong>Paramètres → Clés API</strong>. Les clés secrètes sont <strong>chiffrées sur le serveur</strong> : elles ne sont jamais réaffichées (seule la fin reste visible, par exemple « …ab12 ») et ne vont jamais sur GitHub.</p>
+            <p class="hint" id="fpChiffrement"></p>
+            <div class="fp-interrupteur" role="radiogroup" aria-label="Mode de paiement">
+              <span>Mode de paiement actif :</span>
+              <label><input type="radio" name="fpMode" value="sandbox" /> <b>Sandbox</b> <small>(tests, aucun argent réel)</small></label>
+              <label><input type="radio" name="fpMode" value="live" /> <b>Live</b> <small>(vrais paiements)</small></label>
+            </div>
             <div class="form-grid">
-              <div class="field field--full"><label for="fpPublic">Clé publique FedaPay</label><input type="text" id="fpPublic" placeholder="pk_test_…" autocomplete="off" /></div>
-              <div class="field field--full"><label for="fpSecret">Clé secrète FedaPay</label><input type="password" id="fpSecret" placeholder="sk_test_…" autocomplete="new-password" /><span class="hint" id="fpSecretState"></span></div>
-              <div class="field field--full"><label for="fpDiscord">Lien d'invitation Discord (redirection après paiement)</label><input type="text" id="fpDiscord" placeholder="https://discord.gg/…" /></div>
+              <fieldset class="fp-mode" id="fpBloc_sandbox">
+                <legend>Sandbox</legend>
+                <div class="field field--full"><label for="fpPublic_sandbox">Clé publique Sandbox</label><input type="text" id="fpPublic_sandbox" placeholder="pk_sandbox_…" autocomplete="off" spellcheck="false" /></div>
+                <div class="field field--full"><label for="fpSecret_sandbox">Clé secrète Sandbox</label><input type="password" id="fpSecret_sandbox" placeholder="sk_sandbox_… (collez-la ici, elle ne sera jamais réaffichée)" autocomplete="new-password" spellcheck="false" /><span class="hint" id="fpSecretState_sandbox"></span></div>
+                <div class="field field--full"><label for="fpWebhook_sandbox">Secret du webhook Sandbox</label><input type="password" id="fpWebhook_sandbox" placeholder="wh_sandbox_…" autocomplete="new-password" spellcheck="false" /><span class="hint" id="fpWebhookState_sandbox"></span></div>
+                <div class="form-actions" style="margin-top:.4rem">
+                  <button type="button" class="btn btn--ghost" data-fp-test="sandbox">Tester la connexion</button>
+                  <button type="button" class="btn btn--ghost" data-fp-clear="sandbox" style="border-color:#d9b3b0;color:#b3261e">Effacer les clés Sandbox</button>
+                  <span class="form-msg" id="fpTestMsg_sandbox"></span>
+                </div>
+              </fieldset>
+              <fieldset class="fp-mode" id="fpBloc_live">
+                <legend>Live</legend>
+                <div class="field field--full"><label for="fpPublic_live">Clé publique Live</label><input type="text" id="fpPublic_live" placeholder="pk_live_…" autocomplete="off" spellcheck="false" /></div>
+                <div class="field field--full"><label for="fpSecret_live">Clé secrète Live</label><input type="password" id="fpSecret_live" placeholder="sk_live_… (collez-la ici, elle ne sera jamais réaffichée)" autocomplete="new-password" spellcheck="false" /><span class="hint" id="fpSecretState_live"></span></div>
+                <div class="field field--full"><label for="fpWebhook_live">Secret du webhook Live</label><input type="password" id="fpWebhook_live" placeholder="wh_live_…" autocomplete="new-password" spellcheck="false" /><span class="hint" id="fpWebhookState_live"></span></div>
+                <div class="form-actions" style="margin-top:.4rem">
+                  <button type="button" class="btn btn--ghost" data-fp-test="live">Tester la connexion</button>
+                  <button type="button" class="btn btn--ghost" data-fp-clear="live" style="border-color:#d9b3b0;color:#b3261e">Effacer les clés Live</button>
+                  <span class="form-msg" id="fpTestMsg_live"></span>
+                </div>
+              </fieldset>
+              <div class="field field--full"><label>Adresse du webhook à donner à FedaPay</label><input type="text" id="fpWebhookUrl" readonly onclick="this.select()" /><span class="hint">Dans FedaPay : <strong>Paramètres → Webhooks → Nouveau webhook</strong>, collez cette adresse et cochez <em>transaction.approved</em>, <em>transaction.declined</em> et <em>transaction.canceled</em>. Copiez ensuite le secret du webhook dans le champ ci-dessus.</span></div>
+              <div class="field field--full"><label for="fpDiscord">Lien d'invitation Discord (après paiement)</label><input type="text" id="fpDiscord" placeholder="https://discord.gg/…" /></div>
               <div class="field field--full"><label for="fpBinance">Binance Pay / adresse crypto (facultatif)</label><input type="text" id="fpBinance" placeholder="ID Binance Pay ou adresse" /></div>
             </div>
             <div class="form-actions">
               <button type="button" class="btn btn--primary" id="fpSave">Enregistrer</button>
-              <button type="button" class="btn btn--ghost" id="fpClear">Déconnecter FedaPay</button>
               <span class="form-msg" id="fpMsg"></span>
             </div>
-            <p class="hint">🔒 La clé secrète est enregistrée uniquement sur votre serveur, jamais réaffichée, jamais envoyée sur GitHub.</p>
+          </div>
+
+          <div class="form-wrap" style="margin-bottom:1.6rem">
+            <h3>Transactions FedaPay <span class="count-pill" id="txCount">0</span></h3>
+            <p class="muted" style="font-size:.92rem">Chaque paiement FedaPay : référence, montant, statut, date et élève. Un paiement n'est validé que lorsque FedaPay le confirme au serveur (webhook). Si une confirmation a manqué, « Vérifier » la redemande à FedaPay.</p>
+            <div class="form-actions" style="margin-bottom:1rem"><button type="button" class="btn btn--ghost" id="txReload">Actualiser</button></div>
+            <div id="txList"></div>
           </div>
 
           <div class="form-wrap">
