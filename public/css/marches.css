@@ -913,3 +913,19 @@ body.kbo-fm-ouverte{overflow:hidden}
 .logo .logo__sigle{display:none!important}
 @media (max-width:359px){.site-header .logo .logo__complet{display:none!important}.site-header .logo .logo__sigle{display:block!important;height:40px}
   .site-header .logo .logo__img{height:40px!important}}
+
+/* Article : tableaux, titres et listes du texte ; bandeau « Brouillon » (administration) */
+.article__body h2{font:700 26px/1.2 var(--title);letter-spacing:-.01em;color:var(--ink);margin:36px 0 12px}
+.article__body h3{font:700 21px/1.25 var(--title);color:var(--ink);margin:28px 0 10px}
+.article__body ul,.article__body ol{margin:0 0 18px;padding-left:1.4em}
+.article__body li{margin:6px 0}
+.article__tableau{overflow-x:auto;margin:6px 0 22px}
+.article__tableau table{border-collapse:collapse;width:100%;min-width:360px;font-size:15px}
+.article__tableau th,.article__tableau td{padding:10px 14px;border-bottom:1px solid var(--rule);text-align:left;vertical-align:top}
+.article__tableau thead th{border-bottom:2px solid var(--navy);font-weight:600;color:var(--ink)}
+.article__brouillon{background:#FFF4D6;border:1px solid #E7C66A;color:#6B4A00;padding:12px 16px;border-radius:6px;font-weight:600;margin-bottom:20px}
+.tag--brouillon{background:#FFF4D6;color:#6B4A00!important;padding:2px 8px;border-radius:3px}
+
+/* Menu du haut : chaque lien sur une seule ligne (logo v2 plus large) */
+.mnav a{white-space:nowrap}
+@media (min-width:981px) and (max-width:1180px){.mnav ul{gap:18px!important}.mnav a{font-size:14px}}

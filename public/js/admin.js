@@ -209,7 +209,7 @@
       .then(r => r.json().then(j => ({ ok: r.ok, j })))
       .then(({ ok, j }) => {
         if (!ok) throw new Error(j.error || "Erreur");
-        $("articleMsg").textContent = "✓ Publié."; $("articleMsg").className = "form-msg ok";
+        $("articleMsg").textContent = j.statut === "brouillon" ? "✓ Brouillon enregistré (invisible des visiteurs)." : "✓ Publié."; $("articleMsg").className = "form-msg ok";
         $("articleForm").reset();
         $("a_image").value = ""; $("a_videoPath").value = "";
         $("a_imagePreview").innerHTML = ""; $("a_imagePreview").classList.add("is-empty");
@@ -231,10 +231,11 @@
         <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem 1.2rem;border:1px solid var(--line);border-radius:6px;background:#fff;">
           <div>
             <strong style="color:var(--navy)">${esc(a.title)}</strong>
-            <div class="muted" style="font-size:.82rem">${a.categorie === "tribunes" ? "Tribune · Obed KABEYA" : "Marchés"} · ${label[a.type] || "Article"}${a.type === "video" && a.orientation === "vertical" ? " · verticale" : ""} · ${fmt(a.date)}</div>
+            <div class="muted" style="font-size:.82rem">${a.statut === "brouillon" ? '<strong style="color:#8A5A00">Brouillon</strong> · ' : ""}${a.categorie === "tribunes" ? "Tribune · Obed KABEYA" : "Marchés"} · ${label[a.type] || "Article"}${a.type === "video" && a.orientation === "vertical" ? " · verticale" : ""} · ${fmt(a.date)}</div>
           </div>
           <div style="display:flex;gap:.5rem;flex-shrink:0">
-            <a class="btn btn--ghost" style="padding:.5em 1em;font-size:.8rem" href="/article?id=${encodeURIComponent(a.id)}" target="_blank">Voir</a>
+            ${a.statut === "brouillon" ? `<button class="btn btn--primary" style="padding:.5em 1em;font-size:.8rem" data-publier="${esc(a.id)}">Publier</button>` : ""}
+            <a class="btn btn--ghost" style="padding:.5em 1em;font-size:.8rem" href="/article?id=${encodeURIComponent(a.id)}" target="_blank">${a.statut === "brouillon" ? "Relire" : "Voir"}</a>
             <button class="btn btn--ghost" style="padding:.5em 1em;font-size:.8rem;border-color:#d9b3b0;color:#b3261e" data-del="${esc(a.id)}">Supprimer</button>
           </div>
         </div>`).join("");
@@ -242,6 +243,13 @@
         if (!confirm("Supprimer cette publication ?")) return;
         fetch(`/api/articles/${encodeURIComponent(b.dataset.del)}`, { method: "DELETE" })
           .then(r => { if (!r.ok) throw new Error(); loadArticles(); }).catch(() => alert("Suppression impossible."));
+      }));
+      list.querySelectorAll("[data-publier]").forEach(b => b.addEventListener("click", () => {
+        if (!confirm("Publier cette publication ? Elle sera visible de tous les visiteurs.")) return;
+        fetch(`/api/articles/${encodeURIComponent(b.dataset.publier)}`, {
+          method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ statut: "publie" }),
+        }).then(r => { if (!r.ok) throw new Error(); loadArticles(); showToast("Publication en ligne"); })
+          .catch(() => alert("Publication impossible."));
       }));
     }).catch(() => { list.innerHTML = `<p class="form-msg err">Chargement impossible.</p>`; });
   }

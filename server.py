@@ -2252,6 +2252,8 @@ class Handler(BaseHTTPRequestHandler):
 
         if path == "/api/articles":
             articles = _read_json(ARTICLES_FILE, [])
+            if not self._is_admin():                       # les brouillons restent invisibles des visiteurs
+                articles = [a for a in articles if a.get("statut") != "brouillon"]
             articles = sorted(articles, key=lambda a: a.get("date", ""), reverse=True)
             return self._send_json(articles)
 
@@ -2259,7 +2261,7 @@ class Handler(BaseHTTPRequestHandler):
         if m:
             aid = m.group(1)
             for a in _read_json(ARTICLES_FILE, []):
-                if a.get("id") == aid:
+                if a.get("id") == aid and (a.get("statut") != "brouillon" or self._is_admin()):
                     return self._send_json(a)
             return self._send_json({"error": "Article introuvable"}, 404)
 
@@ -2426,7 +2428,7 @@ class Handler(BaseHTTPRequestHandler):
 
         m = re.match(r"^/api/articles/([A-Za-z0-9_-]+)$", path)
         if m:
-            return self._update_article_image(m.group(1))
+            return self._update_article(m.group(1))
 
         if path == "/api/settings":
             return self._save_settings()
@@ -2607,7 +2609,7 @@ class Handler(BaseHTTPRequestHandler):
         if pole:
             adresses += [base + p for p in pole.pages_publiques()]
         for a in _read_json(ARTICLES_FILE, []):
-            if a.get("id"):
+            if a.get("id") and a.get("statut") != "brouillon":
                 adresses.append(base + "/article?id=" + quote(str(a["id"]), safe=""))
         xml = ('<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
                + "".join("  <url><loc>%s</loc></url>\n" % u.replace("&", "&amp;") for u in adresses) + "</urlset>\n")
@@ -3858,6 +3860,8 @@ class Handler(BaseHTTPRequestHandler):
             "body": _clean(data.get("body"), 20000),
             # Catégorie : « Marchés » (par défaut, et tous les anciens articles) ou « Tribunes · Obed KABEYA ».
             "categorie": "tribunes" if data.get("categorie") in ("tribune", "tribunes") else "marches",
+            # Brouillon : visible seulement dans l'administration, jusqu'à ce qu'Obed le publie.
+            "statut": "brouillon" if data.get("statut") == "brouillon" else "publie",
             "created": datetime.utcnow().isoformat() + "Z",
         }
         articles = _read_json(ARTICLES_FILE, [])
@@ -3865,8 +3869,9 @@ class Handler(BaseHTTPRequestHandler):
         _write_json(ARTICLES_FILE, articles)
         return self._send_json(article, 201)
 
-    def _update_article_image(self, aid):
-        """Change l'image d'une publication (bouton « Image ou vidéo » sur la page de l'article)."""
+    def _update_article(self, aid):
+        """Change l'image d'une publication (bouton « Image ou vidéo » sur la page de l'article)
+        et/ou son statut (« Publier » un brouillon depuis l'administration)."""
         if not self._is_admin():
             return self._send_json({"error": "Non autorisé"}, 401)
         data = self._read_body() or {}
@@ -3876,9 +3881,14 @@ class Handler(BaseHTTPRequestHandler):
         articles = _read_json(ARTICLES_FILE, [])
         for a in articles:
             if a.get("id") == aid:
-                a["image"] = image
+                if "image" in data:
+                    a["image"] = image
+                if data.get("statut") in ("brouillon", "publie"):
+                    a["statut"] = data["statut"]
+                    if data["statut"] == "publie":
+                        a["date"] = a.get("date") or date.today().isoformat()
                 _write_json(ARTICLES_FILE, articles)
-                return self._send_json({"ok": True, "image": image})
+                return self._send_json({"ok": True, "image": a.get("image"), "statut": a.get("statut")})
         return self._send_json({"error": "Publication introuvable"}, 404)
 
     def _delete_article(self, aid):
@@ -4122,7 +4132,7 @@ class Handler(BaseHTTPRequestHandler):
             return body
         article = None
         for a in _read_json(ARTICLES_FILE, []):
-            if a.get("id") == aid:
+            if a.get("id") == aid and (a.get("statut") != "brouillon" or self._is_admin()):
                 article = a
                 break
         if not article:

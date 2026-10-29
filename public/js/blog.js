@@ -63,6 +63,7 @@
         </a>
         <div class="post-card__body">
           <div class="post-card__meta">
+            ${a.statut === "brouillon" ? '<span class="tag tag--brouillon">Brouillon</span>' : ""}
             <span class="tag">${esc(categorie(a) === "tribunes" ? "Tribune" : (a.tag || kindLabel[a.type] || "Réflexion"))}</span>
             <span>${formatDate(a.date)}</span>
           </div>

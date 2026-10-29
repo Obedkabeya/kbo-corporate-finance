@@ -20,8 +20,30 @@
     return null;
   }
 
+  // Texte de l'article : paragraphes séparés par une ligne vide, avec une mise en forme simple
+  // (## titre, **gras**, *italique*, listes « - » ou « 1. », tableaux « | », séparateur « --- »).
+  // Un texte sans ces signes s'affiche exactement comme avant.
+  function enLigne(t) {
+    return esc(t).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/(^|[^*])\*([^*\s][^*]*?)\*(?!\*)/g, "$1<em>$2</em>");
+  }
   function paragraphs(body) {
-    return String(body || "").split(/\n{2,}/).map(p => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("");
+    return String(body || "").replace(/\r\n/g, "\n").split(/\n{2,}/).map(bloc => {
+      const l = bloc.split("\n").filter(x => x.trim() !== "");
+      if (!l.length) return "";
+      if (l.length === 1 && /^-{3,}$/.test(l[0].trim())) return "<hr class=\"divider\" />";
+      const t = l[0].match(/^(#{2,4})\s+(.*)$/);
+      if (t && l.length === 1) return `<h${t[1].length}>${enLigne(t[2])}</h${t[1].length}>`;
+      if (l.every(x => /^\s*[-•]\s+/.test(x))) return "<ul>" + l.map(x => `<li>${enLigne(x.replace(/^\s*[-•]\s+/, ""))}</li>`).join("") + "</ul>";
+      if (l.every(x => /^\s*\d+[.)]\s+/.test(x))) return "<ol>" + l.map(x => `<li>${enLigne(x.replace(/^\s*\d+[.)]\s+/, ""))}</li>`).join("") + "</ol>";
+      if (l.length >= 2 && l.every(x => /^\s*\|.*\|\s*$/.test(x))) {
+        const cellules = x => x.trim().replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+        const corps = l.filter((x, i) => !(i === 1 && /^[\s|:-]+$/.test(x)));
+        const [tete, ...rangs] = corps;
+        return `<div class="article__tableau"><table><thead><tr>${cellules(tete).map(c => `<th>${enLigne(c)}</th>`).join("")}</tr></thead><tbody>` +
+          rangs.map(r => `<tr>${cellules(r).map(c => `<td>${enLigne(c)}</td>`).join("")}</tr>`).join("") + "</tbody></table></div>";
+      }
+      return `<p>${l.map(enLigne).join("<br>")}</p>`;
+    }).join("");
   }
 
   const kindLabel = { video: "Vidéo", story: "Histoire", article: "Réflexion" };
@@ -47,7 +69,10 @@
       ? `<div class="article__hero"><img src="${esc(/^(https?:)?\/|^data:/.test(a.image) ? a.image : "/" + a.image)}" alt="${esc(a.title)}" data-article="${esc(a.id)}"></div>`
       : (a.type === "video" ? "" : `<div class="article__hero"><img src="/images/post-default.svg" alt="${esc(a.title)}" data-article="${esc(a.id)}"></div>`);
 
+    const brouillon = a.statut === "brouillon"
+      ? `<p class="article__brouillon">Brouillon : visible seulement par vous. Publiez-le depuis l'administration (onglet « Blog &amp; Histoires »).</p>` : "";
     root.innerHTML = `
+      ${brouillon}
       <p class="breadcrumb"><a href="/publications">Publications</a> · ${esc(a.tag || kindLabel[a.type] || "Réflexion")}</p>
       <h1>${esc(a.title)}</h1>
       <p class="muted" style="letter-spacing:.08em;text-transform:uppercase;font-size:.8rem">${fmt(a.date)} · Obed Kabeya</p>
