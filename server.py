@@ -519,6 +519,7 @@ def _pay_cfg(mode=None):
         "discord": str(cfg.get("discord") or "").strip(),
         "binance": str(cfg.get("binance") or "").strip(),
         "configured": bool(sk),
+        "carte": bool(cfg.get("carte")),      # la carte n'est proposée que si FedaPay l'a activée sur le compte
     }
 
 
@@ -2390,6 +2391,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_json({
                 "carte": bool(os.environ.get("LEMONSQUEEZY_API_KEY") and os.environ.get("LEMONSQUEEZY_STORE_ID")),
                 "fedapay": fp["configured"], "fedapaySandbox": fp["configured"] and not fp["live"],
+                "fedapayCarte": fp["configured"] and fp["carte"],
                 "crypto": bool(os.environ.get("NOWPAYMENTS_API_KEY"))})
 
         if path == "/api/admin/discord":
@@ -2501,7 +2503,7 @@ class Handler(BaseHTTPRequestHandler):
                             "webhookFin": env["webhook"][-4:] if serveur and env["webhook"] else sec.get("webhook_fin", ""),
                             "serveur": serveur, "configured": serveur or bool(sec.get("secret_enc"))}
             base = _public_url() or self._public_base()
-            return self._send_json({"mode": actif["mode"], "modes": modes, "discord": actif["discord"],
+            return self._send_json({"mode": actif["mode"], "modes": modes, "discord": actif["discord"], "carte": actif["carte"],
                                     "binance": actif["binance"], "configured": actif["configured"],
                                     "live": actif["live"], "chiffrement": bool(_cle_maitre()),
                                     "webhookUrl": base + "/api/fedapay/webhook"})
@@ -2841,6 +2843,8 @@ class Handler(BaseHTTPRequestHandler):
                 sec.update(webhook_enc=_chiffrer(wh), webhook_fin=wh[-4:])
             if sec:
                 cur[m] = sec
+        if data.get("carte") is not None:
+            cur["carte"] = bool(data.get("carte"))
         if data.get("discord") is not None:
             cur["discord"] = _clean(data.get("discord"), 300)
         if data.get("binance") is not None:
@@ -2898,6 +2902,7 @@ class Handler(BaseHTTPRequestHandler):
             "amountXof": _to_xof(amount, currency),   # équivalent FCFA (info client)
             "cardReady": bool(os.environ.get("LEMONSQUEEZY_API_KEY") and os.environ.get("LEMONSQUEEZY_STORE_ID")),
             "fedapayReady": c["configured"], "fedapaySandbox": c["configured"] and not c["live"],
+            "fedapayCarte": c["configured"] and c["carte"],
             "cryptoReady": bool(os.environ.get("NOWPAYMENTS_API_KEY")),
             "cryptoMin": CRYPTO_MIN_EUR,
             "nom": link.get("nom", ""), "email": link.get("email", ""), "telephone": link.get("telephone", ""),

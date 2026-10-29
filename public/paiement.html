@@ -146,6 +146,7 @@
               fpBtn.innerHTML = libelles[moyenFp()] + ' <span class="arrow">→</span>';
             }
             document.querySelectorAll("[data-fp-moyen]").forEach(function (t) {
+              if (t.querySelector("input").value === "carte" && !d.fedapayCarte) return;   // carte pas encore activée chez FedaPay
               t.hidden = false;
               if (d.fedapaySandbox) t.querySelector(".fp-note").textContent += " · mode test";
               t.querySelector("input").addEventListener("change", majFp);

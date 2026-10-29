@@ -29,7 +29,8 @@
   f.querySelectorAll("input[name=moyen]").forEach((r) => r.addEventListener("change", majMoyen));
   fetch("/api/achat/moyens").then((r) => r.json()).then((m) => {
     document.querySelectorAll("[data-fedapay]").forEach((fp, i) => {
-      if (!m.fedapay) { fp.hidden = true; return; }
+      const carte = fp.querySelector("input").value === "carte";
+      if (!m.fedapay || (carte && !m.fedapayCarte)) { fp.hidden = true; return; }
       fp.classList.remove("is-off"); const r = fp.querySelector("input"); r.disabled = false;
       if (i === 0) r.checked = true;                      // Mobile Money proposé en premier
       if (m.fedapaySandbox) fp.querySelector("small").textContent += " · mode test";

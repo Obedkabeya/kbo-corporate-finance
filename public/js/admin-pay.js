@@ -101,6 +101,7 @@
       });
       $("fpWebhookUrl").value = c.webhookUrl || "";
       $("fpDiscord").value = c.discord || "";
+      $("fpCarte").checked = !!c.carte;
       $("fpBinance").value = c.binance || "";
       var ch = $("fpChiffrement");
       ch.textContent = c.chiffrement ? "🔒 Chiffrement des clés : actif sur le serveur." : "⚠️ Chiffrement non activé sur le serveur : les clés secrètes ne peuvent pas encore être enregistrées.";
@@ -111,7 +112,7 @@
     var msg = $("fpMsg");
     var mode = (document.querySelector("input[name=fpMode]:checked") || {}).value;
     if (mode === "live" && !confirm("Activer le mode Live ? Les paiements seront réels.")) return;
-    var body = { mode: mode, discord: $("fpDiscord").value.trim(), binance: $("fpBinance").value.trim() };
+    var body = { mode: mode, carte: $("fpCarte").checked, discord: $("fpDiscord").value.trim(), binance: $("fpBinance").value.trim() };
     MODES.forEach(function (m) {
       body["public_" + m] = $("fpPublic_" + m).value.trim();
       body["secret_" + m] = $("fpSecret_" + m).value.trim();

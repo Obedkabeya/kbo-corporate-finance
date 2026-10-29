@@ -469,6 +469,7 @@
                 </div>
               </fieldset>
               <div class="field field--full"><label>Adresse du webhook à donner à FedaPay</label><input type="text" id="fpWebhookUrl" readonly onclick="this.select()" /><span class="hint">Dans FedaPay : <strong>Paramètres → Webhooks → Nouveau webhook</strong>, collez cette adresse et cochez <em>transaction.approved</em>, <em>transaction.declined</em> et <em>transaction.canceled</em>. Copiez ensuite le secret du webhook dans le champ ci-dessus.</span></div>
+              <div class="field field--full"><label class="check"><input type="checkbox" id="fpCarte" /> <span>Proposer « Carte bancaire » sur le site (à cocher seulement quand FedaPay a activé la carte sur mon compte)</span></label></div>
               <div class="field field--full"><label for="fpDiscord">Lien d'invitation Discord (après paiement)</label><input type="text" id="fpDiscord" placeholder="https://discord.gg/…" /></div>
               <div class="field field--full"><label for="fpBinance">Binance Pay / adresse crypto (facultatif)</label><input type="text" id="fpBinance" placeholder="ID Binance Pay ou adresse" /></div>
             </div>
