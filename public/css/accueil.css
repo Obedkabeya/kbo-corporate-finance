@@ -311,3 +311,9 @@ a.p-btn--contour:hover{color:#fff}
   .js-effets .a-methode.est-empile .a-mstep .a-pilules{grid-column:1;grid-row:3;align-self:start}
   .js-effets .a-methode.est-empile .a-mstep figure{grid-column:2;grid-row:2 / 4;margin-top:0;aspect-ratio:3/4;height:auto;align-self:start;flex:none}
 }
+
+/* Ouverture avec une vidéo : voile bleu nuit plus dense à gauche (titre, texte, bouton), plus léger à droite */
+.a-hero__fond:has(.kbo-media__couche)::after{background:
+  linear-gradient(90deg,rgba(13,26,58,.9) 0%,rgba(13,26,58,.72) 42%,rgba(13,26,58,.38) 100%),
+  linear-gradient(180deg,rgba(13,26,58,.35) 0%,rgba(13,26,58,0) 40%,rgba(13,26,58,.75) 100%)}
+@media (max-width:767px){.a-hero__fond:has(.kbo-media__couche)::after{background:linear-gradient(180deg,rgba(13,26,58,.78) 0%,rgba(13,26,58,.7) 50%,rgba(13,26,58,.9) 100%)}}
