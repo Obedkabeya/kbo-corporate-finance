@@ -449,7 +449,12 @@
 
     function save(el) {
       const info = window.KBO.editableKey(el);
-      const value = el.innerHTML.trim();
+      // Texte entièrement effacé : on enregistre un « vide » (et non rien, qui ferait revenir
+      // le texte d'origine) ; l'emplacement disparaît pour les visiteurs.
+      const vide = window.KBO.texteVide(el);
+      if (vide) el.innerHTML = "";
+      el.classList.toggle("kbo-texte-vide", vide);
+      const value = vide ? "<!--vide-->" : el.innerHTML.trim();
       const url = info.kind === "setting" ? "/api/settings/text" : "/api/content";
       hint("Enregistrement…");
       fetch(url, {

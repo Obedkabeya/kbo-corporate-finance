@@ -954,3 +954,10 @@ body.editing .kbo-bloc-masque-ed::after{content:"Bloc supprimé — cliquer pour
 /* Barre d'outils : les boutons d'un même groupe restent ensemble (jamais coupés par un retour à la ligne) */
 .fmt-bar__groupe{display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
 .fmt-bar__fleches{background:rgba(255,255,255,.07);border-radius:100px;padding:0 2px}
+
+/* Texte effacé : plus rien pour les visiteurs ; en modification, un petit repère pour réécrire */
+.kbo-texte-vide{display:none!important}
+body.editing .kbo-texte-vide{display:inline-block!important;min-width:5.5em;min-height:1.1em;opacity:.7;outline:1px dashed rgba(201,169,97,.8)!important;outline-offset:2px;vertical-align:middle}
+body.editing .kbo-texte-vide:empty::before{content:"＋ texte";font:500 11px var(--sans);letter-spacing:.04em;color:rgba(201,169,97,.95);text-transform:none}
+body.editing .kbo-texte-vide:focus:empty::before{content:""}
+body.editing.sans-cadres .kbo-texte-vide{display:none!important}

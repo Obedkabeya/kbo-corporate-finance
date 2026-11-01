@@ -274,12 +274,12 @@
       if (el.querySelector(EDIT_SELECTOR + ",[data-text]")) return;  // only leaf text blocks
       const inChrome = el.closest(".site-header, .site-footer, form, .admin-bar, .preview-bar, .kbo-fm");
       if (inChrome && !el.hasAttribute("data-text")) return;         // skip nav/footer chrome
-      if (!el.textContent.trim()) return;
+      if (!el.textContent.trim() && !el.classList.contains("kbo-texte-vide")) return;
       set.add(el);
     });
     const main = document.querySelector("main") || document.body;
     main.querySelectorAll(INLINE_SELECTOR).forEach(el => {
-      if (!ownText(el) || el.hasAttribute("data-noedit") || el.closest("[aria-hidden='true'], " + CHROME)) return;
+      if ((!ownText(el) && !el.classList.contains("kbo-texte-vide")) || el.hasAttribute("data-noedit") || el.closest("[aria-hidden='true'], " + CHROME)) return;
       if (el.closest(".lettre, .mot-rempli, .mot-ensemble")) return;            // découpage des effets
       for (let p = el.parentElement; p; p = p.parentElement) if (set.has(p)) return;
       if (el.querySelector(EDIT_SELECTOR)) return;
@@ -328,13 +328,26 @@
     });
   }
 
+  // Un texte effacé (il ne reste rien, ou seulement un retour à la ligne invisible) ne doit
+  // laisser ni vide ni cadre : il est masqué pour les visiteurs.
+  function texteVide(el) {
+    return !el.textContent.replace(/\u00a0/g, " ").trim() && !el.querySelector("img, svg, video, iframe");
+  }
+  window.KBO = window.KBO || {};
+  window.KBO.texteVide = texteVide;
+
   function applyContent(map) {
     if (!map) return;
     appliquerBlocs(map);
     editableElements().forEach(el => {
       if (el.hasAttribute("data-text")) return;                 // handled by settings
       const k = contentKey(el);
-      if (Object.prototype.hasOwnProperty.call(map, k)) el.innerHTML = map[k];
+      if (Object.prototype.hasOwnProperty.call(map, k)) {
+        el.innerHTML = map[k];
+        const vide = texteVide(el);                              // mot effacé : l'emplacement disparaît
+        if (vide) el.innerHTML = "";
+        el.classList.toggle("kbo-texte-vide", vide);
+      }
     });
     document.dispatchEvent(new CustomEvent("kbo:content"));
   }
