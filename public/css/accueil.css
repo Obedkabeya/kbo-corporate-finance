@@ -317,3 +317,31 @@ a.p-btn--contour:hover{color:#fff}
   linear-gradient(90deg,rgba(13,26,58,.9) 0%,rgba(13,26,58,.72) 42%,rgba(13,26,58,.38) 100%),
   linear-gradient(180deg,rgba(13,26,58,.35) 0%,rgba(13,26,58,0) 40%,rgba(13,26,58,.75) 100%)}
 @media (max-width:767px){.a-hero__fond:has(.kbo-media__couche)::after{background:linear-gradient(180deg,rgba(13,26,58,.78) 0%,rgba(13,26,58,.7) 50%,rgba(13,26,58,.9) 100%)}}
+
+/* Formations en action : le titre et le texte se posent sur l'image, les étiquettes restent dessous,
+   et un bouton visible indique que tout le carré s'ouvre */
+.a-prog--sur-image{display:grid;grid-template-columns:minmax(0,1fr)}
+.a-prog--sur-image .a-prog__image{grid-area:1/1}
+.a-prog--sur-image .a-prog__image::after{background:linear-gradient(180deg,rgba(13,26,58,.12) 0%,rgba(13,26,58,.3) 40%,rgba(13,26,58,.86) 100%)}
+.a-prog--sur-image .a-prog__image:hover::after{background:linear-gradient(180deg,rgba(13,26,58,.25) 0%,rgba(13,26,58,.45) 40%,rgba(13,26,58,.92) 100%)}
+.a-prog--sur-image .a-prog__bas{display:contents}
+.a-prog--sur-image .a-prog__bas>div{grid-area:1/1;align-self:end;position:relative;z-index:2;pointer-events:none;padding:0 48px 46px;max-width:min(680px,62%)}
+body.editing .a-prog--sur-image .a-prog__bas>div{pointer-events:auto}
+.a-prog--sur-image .a-prog__bas>div h3{font:700 clamp(30px,4vw,54px)/1.05 var(--title);letter-spacing:-.03em;margin:0 0 14px;text-shadow:0 4px 30px rgba(0,0,0,.3)}
+.a-prog--sur-image .a-prog__bas>div h3 a,.a-prog--sur-image .a-prog__bas>div h3 a:visited,.a-prog--sur-image .a-prog__bas>div h3 a:hover{color:#fff}
+.a-prog--sur-image .a-prog__bas>div p{font:400 17px/1.55 var(--sans);color:rgba(255,255,255,.9);max-width:none}
+.a-prog--sur-image .a-prog__bas>.a-pilules{grid-area:2/1;padding-top:20px}
+.a-prog--sur-image .a-prog__cta{position:absolute;right:40px;bottom:44px;z-index:2;display:inline-flex;align-items:center;gap:10px;padding:15px 24px;border-radius:999px;background:var(--m-or);color:var(--m-nuit);font:600 15px var(--sans);letter-spacing:.01em;box-shadow:0 10px 30px rgba(0,0,0,.25);transition:background .3s ease,color .3s ease}
+.a-prog--sur-image .a-prog__cta span{display:inline-block;transition:transform .3s ease}
+.a-prog--sur-image .a-prog__image:hover .a-prog__cta,.a-prog--sur-image .a-prog__image:focus-visible .a-prog__cta{background:#fff}
+.a-prog--sur-image .a-prog__image:hover .a-prog__cta span,.a-prog--sur-image .a-prog__image:focus-visible .a-prog__cta span{transform:translateX(5px)}
+@media (max-width:980px){
+  .a-prog--sur-image .a-prog__bas>div{max-width:none;padding:0 32px 108px}
+  .a-prog--sur-image .a-prog__cta{left:32px;right:auto;bottom:36px}
+}
+@media (max-width:767px){
+  .a-prog--sur-image .a-prog__image{aspect-ratio:auto;min-height:440px}
+  .a-prog--sur-image .a-prog__bas>div{padding:0 22px 96px}
+  .a-prog--sur-image .a-prog__bas>div p{font-size:15px}
+  .a-prog--sur-image .a-prog__cta{left:22px;bottom:28px;padding:13px 20px;font-size:14px}
+}
