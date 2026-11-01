@@ -80,6 +80,8 @@
       '<button type="button" data-size="1" title="Agrandir la taille du texte">A+</button>' +
       '<button type="button" data-lh="-1" title="Resserrer les lignes">↕−</button>' +
       '<button type="button" data-lh="1" title="Espacer les lignes">↕+</button>' +
+      '<button type="button" data-ls="-1" title="Rapprocher les lettres">A↔A−</button>' +
+      '<button type="button" data-ls="1" title="Espacer les lettres (et les mots)">A↔A+</button>' +
       '<button type="button" data-case="upper" title="MAJUSCULES">AA</button>' +
       '<span class="fmt-bar__sep"></span>' +
       '<span class="fmt-bar__groupe"><span class="fmt-bar__cible">Cadre</span>' +
@@ -251,6 +253,11 @@
         const cs = getComputedStyle(w);
         const cur = parseFloat(w.style.lineHeight) || (parseFloat(cs.lineHeight) / parseFloat(cs.fontSize)) || 1.4;
         w.style.lineHeight = String(Math.min(2.6, Math.max(0.8, Math.round((cur + parseInt(btn.dataset.lh, 10) * 0.1) * 10) / 10)));
+      } else if (btn.dataset.ls) {
+        const w = fmtWrap(el);
+        const cs = getComputedStyle(w);
+        const cur = parseFloat(w.style.letterSpacing) || (parseFloat(cs.letterSpacing) / parseFloat(cs.fontSize)) || 0;
+        w.style.letterSpacing = (Math.min(0.3, Math.max(-0.08, Math.round((cur + parseInt(btn.dataset.ls, 10) * 0.02) * 100) / 100))) + "em";
       } else if (btn.hasAttribute("data-link")) {
         const actuel = (window.getSelection().anchorNode && window.getSelection().anchorNode.parentElement.closest("a")) || null;
         const url = prompt("Adresse du lien (laisser vide pour retirer le lien) :", actuel ? actuel.getAttribute("href") : "https://");
