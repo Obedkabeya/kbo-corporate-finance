@@ -65,7 +65,7 @@
         <div class="fgrid">
           <div>
             ${logo()}
-            <p class="about" data-text="footerTagline">École de finance des marchés. Cotonou, Bénin.</p>
+            <p class="about" data-text="footerTagline">École de finance des marchés, 100 % en ligne.</p>
             <div class="social">${socialAnchor("linkedin", "LinkedIn")}${socialAnchor("x", "X")}${socialAnchor("youtube", "YouTube")}${socialAnchor("facebook", "Facebook")}${socialAnchor("instagram", "Instagram")}${socialAnchor("tiktok", "TikTok")}</div>
           </div>
           <div><h4>L'école</h4><ul>

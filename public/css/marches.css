@@ -557,6 +557,10 @@ body.editing .kbo-imgwrap { outline: 2px dashed rgba(31,79,156,0.45); outline-of
 body.editing .kbo-editable { outline: 1px dashed rgba(31,79,156,0.5); outline-offset: 3px; border-radius: 3px; cursor: text; transition: background 0.15s; }
 body.editing .kbo-editable:hover { background: rgba(31,79,156,0.06); }
 body.editing .kbo-editable:focus { outline: 2px solid #C9A961; outline-offset: 4px; background: rgba(201,169,97,.08); }
+/* Texte déplacé ou élargi : le cadre de modification entoure le texte lui-même, pas sa place d'origine */
+body.editing .kbo-editable:has(> span[data-fmt]) { outline: none; background: none; }
+body.editing .kbo-editable > span[data-fmt] { outline: 1px dashed rgba(31,79,156,0.5); outline-offset: 3px; }
+body.editing .kbo-editable:focus > span[data-fmt] { outline: 2px solid #C9A961; outline-offset: 4px; background: rgba(201,169,97,.08); }
 /* Cadre de texte élargi ou déplacé depuis l'éditeur : sur téléphone, le texte reprend toute la largeur. */
 @media (max-width: 767px) { span[data-fmt] { width: auto !important; max-width: 100% !important; left: 0 !important; } }
 @media (max-width: 620px) { .admin-bar__hint { display: none; } body.has-admin-bar { padding-bottom: 120px; } }

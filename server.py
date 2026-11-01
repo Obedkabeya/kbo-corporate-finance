@@ -242,7 +242,7 @@ ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "kbo-admin")
 DEFAULT_TEXTS = {
     "brandMark": "KBO",
     # Site « finance des marchés » (octobre 2026) : pied de page
-    "footerTagline": "École de finance des marchés. Cotonou, Bénin.",
+    "footerTagline": "École de finance des marchés, 100 % en ligne.",
     "footerRisk": (
         "Les formations de KBO Corporate Finance ont une vocation pédagogique. Elles ne "
         "constituent ni un conseil en investissement, ni une recommandation d'achat ou de "
