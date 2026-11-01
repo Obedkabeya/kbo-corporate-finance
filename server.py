@@ -832,7 +832,10 @@ def _sanitize_html(value, limit=20000):
     # Cadre du texte (largeur, déplacement) réglé depuis l'éditeur : valeurs strictement encadrées.
     _CSS_CADRE = {"display": r"block|inline-block", "position": r"relative",
                   "width": r"\d{1,3}(\.\d+)?%", "max-width": r"none|100%",
-                  "top": r"-?\d{1,2}(\.\d+)?rem", "left": r"-?\d{1,2}(\.\d+)?rem"}
+                  "top": r"-?\d{1,2}(\.\d+)?rem", "left": r"-?\d{1,2}(\.\d+)?rem",
+                  # Cadre autour d'un texte (bouton « Encadrer ») : trait, marge intérieure, coins
+                  "border": r"\d{1,2}px (solid|dashed|dotted|double) (#[0-9a-f]{3,8}|rgba?\([\d\s.,%]+\))",
+                  "padding": r"\d{1,2}(\.\d+)?(em|px)( \d{1,2}(\.\d+)?(em|px)){0,3}", "border-radius": r"\d{1,2}px"}
 
     def _safe_style(raw):
         m2 = re.search(r'style\s*=\s*"([^"]*)"', raw, re.I)

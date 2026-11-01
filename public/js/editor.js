@@ -45,6 +45,7 @@
     bar.innerHTML =
       '<span class="admin-bar__tag">● Mode administrateur</span>' +
       '<button type="button" class="admin-bar__btn" id="abEdit">✏️ Modifier la page</button>' +
+      '<button type="button" class="admin-bar__btn" id="abCadres" hidden>▢ Masquer les cadres</button>' +
       '<a class="admin-bar__btn" href="/admin">⚙ Tableau de bord</a>' +
       '<a class="admin-bar__btn" id="abPreview" href="?visitor=1">👁 Aperçu visiteur</a>' +
       '<button type="button" class="admin-bar__btn admin-bar__btn--out" id="abLogout">Déconnexion</button>' +
@@ -89,6 +90,7 @@
       '<button type="button" data-dep="y-1" title="Monter">↑</button>' +
       '<button type="button" data-dep="y1" title="Descendre">↓</button>' +
       '<button type="button" data-cadre title="Remettre le cadre comme à l\'origine (taille et place)">⟲ cadre</button>' +
+      '<button type="button" data-encadrer title="Ajouter un cadre visible autour du texte (dans la couleur choisie) ; recliquer pour le retirer">▢ Encadrer</button>' +
       '<span class="fmt-bar__sep"></span>' +
       fontSelectHTML() +
       '<span class="fmt-bar__sep"></span>' +
@@ -136,7 +138,7 @@
         while (el.firstChild) w.appendChild(el.firstChild);
         el.appendChild(w);
       }
-      w.style.display = "block";        // (les anciens réglages enregistrés n'avaient plus ce réglage)
+      if (!w.style.display) w.style.display = "block";   // (les anciens réglages enregistrés n'avaient plus ce réglage)
       return w;
     }
     function unwrapFmt(el) {
@@ -179,6 +181,19 @@
         const next = Math.min(40, Math.max(-40, Math.round((cur + parseInt(btn.dataset.dep.slice(1), 10) * 0.5) * 10) / 10));
         w.style[axe] = next ? next + "rem" : "";
         w.style.position = (w.style.left || w.style.top) ? "relative" : "";
+      } else if (btn.hasAttribute("data-encadrer")) {
+        // Cadre visible autour du texte : ajouté dans la couleur choisie (or par défaut), retiré au second clic.
+        const w = fmtWrap(el);
+        if (w.style.border) {
+          ["border", "padding", "borderRadius"].forEach(k => { w.style[k] = ""; });
+          w.style.display = "block";
+        } else {
+          const choix = tb.querySelector("[data-color]").value;
+          const couleur = choix && choix.toLowerCase() !== "#1e3b8b" ? choix : "#b8934a";
+          w.style.border = "2px solid " + couleur;
+          w.style.padding = ".3em .6em";
+          w.style.display = "inline-block";
+        }
       } else if (btn.hasAttribute("data-cadre")) {
         const w = fmtWrap(el);
         ["width", "maxWidth", "left", "top", "position"].forEach(k => { w.style[k] = ""; });
@@ -233,8 +248,22 @@
       if (a && !e.target.closest(".kbo-imgbtn, .slot-admin, .kbo-fm")) e.preventDefault();
     }, true);
 
+    // Cadres de modification (pointillés, cadre doré) : on peut les masquer pour voir la page
+    // comme un visiteur tout en continuant à modifier. Le choix est gardé d'une page à l'autre.
+    const cadresBtn = $("abCadres");
+    function majCadres(masques) {
+      document.body.classList.toggle("sans-cadres", masques);
+      cadresBtn.textContent = masques ? "▣ Afficher les cadres" : "▢ Masquer les cadres";
+      try { localStorage.setItem("kbo-sans-cadres", masques ? "1" : ""); } catch (e) { /* stockage indisponible */ }
+    }
+    let cadresMasques = false;
+    try { cadresMasques = localStorage.getItem("kbo-sans-cadres") === "1"; } catch (e) { /* stockage indisponible */ }
+    cadresBtn.addEventListener("click", () => { cadresMasques = !document.body.classList.contains("sans-cadres"); majCadres(cadresMasques); });
+
     function setEditing(on) {
       editing = on;
+      cadresBtn.hidden = !on;
+      majCadres(on && cadresMasques);
       document.body.classList.toggle("editing", on);
       editBtn.classList.toggle("is-on", on);
       editBtn.textContent = on ? "✓ Terminer" : "✏️ Modifier la page";
