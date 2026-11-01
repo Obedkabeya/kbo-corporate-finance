@@ -55,7 +55,7 @@
         '<p class="kbo-ri__texte">Chaque matin de semaine, gratuitement : la lecture fondamentale des marchés, l\'agenda du jour à l\'heure du Bénin et une notion expliquée simplement.</p>' +
         '<label class="kbo-ri__label" for="kboRiEmail">Votre adresse e-mail</label>' +
         '<input class="kbo-ri__champ" id="kboRiEmail" name="email" type="email" autocomplete="email" inputmode="email" maxlength="200" placeholder="exemple@gmail.com" required>' +
-        '<label class="kbo-ri__case"><input type="checkbox" name="offres" value="oui"> <span>Je souhaite aussi recevoir les offres et réductions sur les formations KBO (facultatif).</span></label>' +
+        '<label class="kbo-ri__case"><input type="checkbox" name="offres" value="oui" checked> <span>Je souhaite aussi recevoir les offres et réductions sur les formations KBO (facultatif).</span></label>' +
         '<button class="kbo-ri__bouton" type="submit">Je m\'inscris</button>' +
         '<p class="kbo-ri__msg" role="status"></p>' +
         '<p class="kbo-ri__note">Un e-mail de confirmation vous sera envoyé. Désinscription en un clic. Contenu éducatif, pas un conseil en investissement.</p>' +

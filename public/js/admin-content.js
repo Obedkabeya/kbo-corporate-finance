@@ -28,7 +28,9 @@
     var parts = [];
     while (el && el !== body && el.nodeType === 1) {
       var parent = el.parentNode; if (!parent) break;
-      parts.unshift(el.tagName + Array.prototype.indexOf.call(parent.children, el));
+      parts.unshift(el.tagName + Array.prototype.filter.call(parent.children, function (c) {
+        return !c.matches(".bascule, [data-kbo-hors]");     // comme components.js : la barre admin ne compte pas
+      }).indexOf(el));
       el = parent;
     }
     return parts.join("/");

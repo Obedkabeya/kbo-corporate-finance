@@ -246,11 +246,18 @@
   const EDIT_SELECTOR = "h1,h2,h3,h4,h5,p,li,.eyebrow,.lead,figcaption,blockquote,[data-edit]";
   const pageKey = page || "page";
 
+  // Position d'un élément dans la page (clé d'enregistrement des textes et images modifiés).
+  // Les éléments ajoutés seulement pour l'administrateur (barre « L'école / Jeunes Entreprenants »)
+  // ne comptent pas : sinon les textes modifiés seraient rangés à une position que les visiteurs n'ont pas.
+  const HORS_PAGE = ".bascule, [data-kbo-hors]";
+  function enfantsUtiles(parent) {
+    return Array.prototype.filter.call(parent.children, c => !c.matches(HORS_PAGE));
+  }
   function domPath(el) {
     const parts = [];
     while (el && el !== document.body && el.nodeType === 1) {
       const parent = el.parentNode; if (!parent) break;
-      parts.unshift(el.tagName + Array.prototype.indexOf.call(parent.children, el));
+      parts.unshift(el.tagName + enfantsUtiles(parent).indexOf(el));
       el = parent;
     }
     return parts.join("/");
@@ -307,7 +314,7 @@
       let trouve = null;
       for (let i = part.length - 1; i > 0 && !trouve; i--) {
         if (!/^\d+$/.test(part.slice(i))) break;
-        const enfant = el && el.children[parseInt(part.slice(i), 10)];
+        const enfant = el && enfantsUtiles(el)[parseInt(part.slice(i), 10)];
         if (enfant && enfant.tagName === part.slice(0, i)) trouve = enfant;
       }
       if (!trouve) return null;
