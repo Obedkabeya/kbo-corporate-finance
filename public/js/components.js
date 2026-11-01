@@ -298,8 +298,39 @@
     return { kind: "content", key: contentKey(el) };
   }
 
+  // Blocs supprimés ou sans contour (outils « Supprimer le bloc » / « Retirer le contour » de l'éditeur).
+  // Enregistrés comme des textes, sous la clé « bloc|page|chemin » et la valeur « masque » / « sans-cadre ».
+  function elementDuChemin(chemin) {
+    let el = document.body;
+    for (const part of String(chemin || "").split("/")) {
+      // « H12 » peut être H1 en position 2 ou H en position 12 : on garde l'interprétation qui existe.
+      let trouve = null;
+      for (let i = part.length - 1; i > 0 && !trouve; i--) {
+        if (!/^\d+$/.test(part.slice(i))) break;
+        const enfant = el && el.children[parseInt(part.slice(i), 10)];
+        if (enfant && enfant.tagName === part.slice(0, i)) trouve = enfant;
+      }
+      if (!trouve) return null;
+      el = trouve;
+    }
+    return el === document.body ? null : el;
+  }
+  function blocCle(el) { return "bloc|" + pageKey + "|" + domPath(el); }
+  function appliquerBlocs(map) {
+    const prefixe = "bloc|" + pageKey + "|";
+    Object.keys(map || {}).forEach(k => {
+      if (k.indexOf(prefixe) !== 0) return;
+      const el = elementDuChemin(k.slice(prefixe.length));
+      if (!el) return;
+      const v = String(map[k]);
+      el.classList.toggle("kbo-bloc-masque", /masque/.test(v));
+      el.classList.toggle("kbo-bloc-sans-cadre", /sans-cadre/.test(v));
+    });
+  }
+
   function applyContent(map) {
     if (!map) return;
+    appliquerBlocs(map);
     editableElements().forEach(el => {
       if (el.hasAttribute("data-text")) return;                 // handled by settings
       const k = contentKey(el);
@@ -578,6 +609,7 @@
   window.KBO.imageKey = imageKey;
   window.KBO.renderSlot = renderSlot;
   window.KBO.appliquerMedia = appliquerMedia;
+  window.KBO.blocCle = blocCle;
   window.KBO.normMedia = normMedia;
   window.KBO.cheminAbsolu = cheminAbsolu;
 

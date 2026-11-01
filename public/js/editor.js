@@ -82,15 +82,21 @@
       '<button type="button" data-lh="1" title="Espacer les lignes">↕+</button>' +
       '<button type="button" data-case="upper" title="MAJUSCULES">AA</button>' +
       '<span class="fmt-bar__sep"></span>' +
-      '<span class="fmt-bar__cible">Cadre</span>' +
+      '<span class="fmt-bar__groupe"><span class="fmt-bar__cible">Cadre</span>' +
       '<button type="button" data-larg="-1" title="Rétrécir le cadre du texte">⇥⇤</button>' +
-      '<button type="button" data-larg="1" title="Élargir le cadre du texte">⇤⇥</button>' +
+      '<button type="button" data-larg="1" title="Élargir le cadre du texte">⇤⇥</button></span>' +
+      '<span class="fmt-bar__groupe fmt-bar__fleches" title="Déplacer le texte">' +
       '<button type="button" data-dep="x-1" title="Déplacer vers la gauche">←</button>' +
-      '<button type="button" data-dep="x1" title="Déplacer vers la droite">→</button>' +
       '<button type="button" data-dep="y-1" title="Monter">↑</button>' +
       '<button type="button" data-dep="y1" title="Descendre">↓</button>' +
+      '<button type="button" data-dep="x1" title="Déplacer vers la droite">→</button></span>' +
+      '<span class="fmt-bar__groupe">' +
       '<button type="button" data-cadre title="Remettre le cadre comme à l\'origine (taille et place)">⟲ cadre</button>' +
-      '<button type="button" data-encadrer title="Ajouter un cadre visible autour du texte (dans la couleur choisie) ; recliquer pour le retirer">▢ Encadrer</button>' +
+      '<button type="button" data-encadrer title="Ajouter un cadre visible autour du texte (dans la couleur choisie) ; recliquer pour le retirer">▢ Encadrer</button></span>' +
+      '<span class="fmt-bar__sep"></span>' +
+      '<span class="fmt-bar__groupe"><span class="fmt-bar__cible">Bloc</span>' +
+      '<button type="button" data-bloc="sans-cadre" title="Retirer (ou remettre) le contour et le fond de l\'encadré qui contient ce texte">◻︎ Retirer le contour</button>' +
+      '<button type="button" data-bloc="masque" title="Supprimer tout l\'encadré qui contient ce texte (il reste visible en pâle pour vous, cliquez-le pour le réafficher)">🗑 Supprimer le bloc</button></span>' +
       '<span class="fmt-bar__sep"></span>' +
       fontSelectHTML() +
       '<span class="fmt-bar__sep"></span>' +
@@ -148,11 +154,54 @@
       w.remove();
     }
 
+    // Le « bloc » d'un texte : l'encadré qui le contient (contour, fond ou flou visible),
+    // sinon le texte lui-même. On ne remonte jamais jusqu'à une section entière.
+    function blocDe(el) {
+      for (let p = el, n = 0; p && n < 4; p = p.parentElement, n++) {
+        if (/^(MAIN|SECTION|BODY|HEADER|FOOTER|ARTICLE)$/.test(p.tagName)) break;
+        const cs = getComputedStyle(p);
+        const trait = ["Top", "Right", "Bottom", "Left"].some(c => parseFloat(cs["border" + c + "Width"]) > 0 && cs["border" + c + "Style"] !== "none");
+        const fond = cs.backgroundColor !== "rgba(0, 0, 0, 0)" && cs.backgroundColor !== "transparent";
+        if (p !== el && (trait || fond || (cs.backdropFilter && cs.backdropFilter !== "none"))) return p;
+      }
+      return el;
+    }
+    function enregistrerBloc(bloc) {
+      const v = [bloc.classList.contains("kbo-bloc-masque") || bloc.classList.contains("kbo-bloc-masque-ed") ? "masque" : "",
+                 bloc.classList.contains("kbo-bloc-sans-cadre") ? "sans-cadre" : ""].filter(Boolean).join(" ");
+      hint("Enregistrement…");
+      return fetch("/api/content", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: window.KBO.blocCle(bloc), value: v }) })
+        .then(r => { if (!r.ok) throw new Error(); hint(v ? "Bloc modifié ✓" : "Bloc remis comme avant ✓", "ok"); })
+        .catch(() => hint("Échec de l'enregistrement", "err"));
+    }
+    // Bloc supprimé : en modification, il reste visible en pâle ; un clic propose de le réafficher.
+    document.addEventListener("click", (e) => {
+      if (!editing) return;
+      const b = e.target.closest && e.target.closest(".kbo-bloc-masque-ed");
+      if (!b) return;
+      e.preventDefault(); e.stopPropagation();
+      if (!confirm("Réafficher ce bloc pour les visiteurs ?")) return;
+      b.classList.remove("kbo-bloc-masque-ed");
+      enregistrerBloc(b);
+    }, true);
+
     tb.addEventListener("click", (e) => {
       const btn = e.target.closest("button, label");
       if (!btn) return;
       const el = targetEl();
       if (!el) { hint("Cliquez d'abord dans un texte à modifier.", "err"); return; }
+      if (btn.dataset.bloc) {
+        const bloc = blocDe(el);
+        if (btn.dataset.bloc === "masque") {
+          if (!confirm("Supprimer ce bloc pour les visiteurs ? Vous pourrez le réafficher en cliquant dessus (il restera visible en pâle pour vous).")) return;
+          el.blur(); bloc.classList.add("kbo-bloc-masque-ed");
+        } else {
+          bloc.classList.toggle("kbo-bloc-sans-cadre");
+        }
+        enregistrerBloc(bloc);
+        return;
+      }
       el.focus();
       try { document.execCommand("styleWithCSS", false, true); } catch (e) {}
       if (btn.dataset.cmd) {
@@ -262,6 +311,11 @@
 
     function setEditing(on) {
       editing = on;
+      // Blocs supprimés : visibles en pâle pendant la modification, cachés sinon.
+      document.querySelectorAll(on ? ".kbo-bloc-masque" : ".kbo-bloc-masque-ed").forEach(b => {
+        b.classList.toggle("kbo-bloc-masque", !on);
+        b.classList.toggle("kbo-bloc-masque-ed", on);
+      });
       cadresBtn.hidden = !on;
       majCadres(on && cadresMasques);
       document.body.classList.toggle("editing", on);

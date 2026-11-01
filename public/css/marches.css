@@ -944,3 +944,13 @@ body.kbo-fm-ouverte{overflow:hidden}
 body.editing.sans-cadres .kbo-editable,body.editing.sans-cadres .kbo-editable:hover,body.editing.sans-cadres .kbo-editable:focus,
 body.editing.sans-cadres .kbo-editable > span[data-fmt],body.editing.sans-cadres .kbo-editable:focus > span[data-fmt],
 body.editing.sans-cadres [data-slot],body.editing.sans-cadres .kbo-imgwrap{outline:none!important;background:none!important}
+
+/* Blocs supprimés ou sans contour (outils de l'éditeur) */
+.kbo-bloc-masque{display:none!important}
+.kbo-bloc-sans-cadre{border-color:transparent!important;border-width:0!important;background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;box-shadow:none!important}
+body.editing .kbo-bloc-masque-ed{opacity:.35;outline:2px dashed #B3261E!important;outline-offset:3px;cursor:pointer;position:relative}
+body.editing .kbo-bloc-masque-ed::after{content:"Bloc supprimé — cliquer pour le réafficher";position:absolute;left:0;top:100%;margin-top:6px;font:600 11px var(--sans);color:#fff;background:#B3261E;padding:3px 8px;border-radius:3px;white-space:nowrap;z-index:5}
+
+/* Barre d'outils : les boutons d'un même groupe restent ensemble (jamais coupés par un retour à la ligne) */
+.fmt-bar__groupe{display:inline-flex;align-items:center;gap:2px;white-space:nowrap}
+.fmt-bar__fleches{background:rgba(255,255,255,.07);border-radius:100px;padding:0 2px}
