@@ -396,6 +396,9 @@
   .js-tot .a-hero__titre:not(.lettres-pret),.js-tot .p-hero__titre:not(.lettres-pret),.js-tot .page-head h1:not(.lettres-pret){visibility:hidden;animation:kbo-titre-secours 0s linear 2.5s forwards}
 }
 @keyframes kbo-titre-secours{to{visibility:visible}}
+/* Emplacements photo/vidéo réglables : l'image d'origine reste cachée tant que le choix de
+   l'administration n'est pas appliqué (évite de voir passer l'ancienne image). Secours : visible après 2,5 s. */
+.js-tot [data-slot]:not(.slot-pret) img{visibility:hidden;animation:kbo-titre-secours 0s linear 2.5s forwards}
 
 /* Publications : filtre « Tout · Marchés · Tribunes » et en-tête de la rubrique Tribunes */
 .pub-filtre{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 32px}

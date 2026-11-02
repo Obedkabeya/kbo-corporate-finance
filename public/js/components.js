@@ -616,6 +616,7 @@
       }
       const key = slot.getAttribute("data-slot");
       renderSlot(slot, map ? map[key] : null);
+      slot.classList.add("slot-pret");
     });
   }
 
