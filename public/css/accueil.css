@@ -345,3 +345,9 @@ body.editing .a-prog--sur-image .a-prog__bas>div{pointer-events:auto}
   .a-prog--sur-image .a-prog__bas>div p{font-size:15px}
   .a-prog--sur-image .a-prog__cta{left:22px;bottom:28px;padding:13px 20px;font-size:14px}
 }
+
+/* « Le processus » avec une vidéo à fond blanc : contour et ombre pour délimiter la vidéo,
+   l'étiquette et la case « 4 étapes » détachées du graphique par une ombre et un liseré blanc */
+.a-processus__haute:has(.kbo-media__couche){outline:1px solid #D5DBE7;outline-offset:-1px;box-shadow:0 24px 60px rgba(13,26,58,.16)}
+.a-processus__haute:has(.kbo-media__couche) .a-etiquette,
+.a-processus__haute:has(.kbo-media__couche) .a-badge{z-index:3;box-shadow:0 12px 32px rgba(13,26,58,.35),0 0 0 4px #fff}
